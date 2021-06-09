@@ -14,8 +14,27 @@ OSX_LD_FLAGS="-framework AppKit
 
 COMMON_COMPILER_FLAGS="$OSX_LD_FLAGS"
 
+GAME_BUNDLE_RESOURCES_PATH="Vario.app/Contents/Resources"
+
+PLATFORM_RESOURCES_PATH="../../code/mac_platform_layer/resources"
+
 echo Compiling Game Library \(Slow\)
 clang -g -o GameCode.dylib ${COMMON_COMPILER_FLAGS} -dynamiclib ${GAME_LIBRARY_CODE_PATH}/vario.cpp
 
 echo Compiling Mac Platform Layer \(Slow\)
 clang -g -lstdc++ ${COMMON_COMPILER_FLAGS} -mmacosx-version-min=10.14 -o Vario "${MAC_PLATFORM_LAYER_PATH}/mac_os_main.mm"
+
+echo Building Game Application Bundle
+rm -rf Vario.app
+mkdir -p $GAME_BUNDLE_RESOURCES_PATH 
+
+cp Vario Vario.app/Vario
+
+cp GameCode.dylib ${GAME_BUNDLE_RESOURCES_PATH}/GameCode.dylib
+
+echo Copying dSYM File Into Game Bundle
+cp -r GameCode.dylib.dSYM ${GAME_BUNDLE_RESOURCES_PATH}/GameCode.dylib.dSYM
+
+cp ${PLATFORM_RESOURCES_PATH}/GameInfo.plist Vario.app/Contents/Info.plist
+
+popd

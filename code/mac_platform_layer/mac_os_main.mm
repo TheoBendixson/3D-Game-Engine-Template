@@ -31,4 +31,10 @@ int main(int argc, const char * argv[])
                            NSWindowStyleMaskResizable
                   backing: NSBackingStoreBuffered
                     defer: NO];    
+
+    [Window setBackgroundColor: NSColor.blackColor];
+    [Window setTitle: @"Vario's Temple"];
+    [Window makeKeyAndOrderFront: nil];
+    [Window setDelegate: WindowDelegate];
+    return NSApplicationMain(argc, argv);
 }
