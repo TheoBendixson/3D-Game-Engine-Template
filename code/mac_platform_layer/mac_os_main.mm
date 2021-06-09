@@ -1,4 +1,6 @@
 #import <AppKit/AppKit.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
 
 #include "mac_os_main.h"
 #include "mac_window.m"
@@ -36,5 +38,37 @@ int main(int argc, const char * argv[])
     [Window setTitle: @"Vario's Temple"];
     [Window makeKeyAndOrderFront: nil];
     [Window setDelegate: WindowDelegate];
+
+    MTKView *MetalKitView = [[MTKView alloc] init];
+    MetalKitView.frame = CGRectMake(0, 0, 
+                                    GlobalRenderWidth, GlobalRenderHeight); 
+
+    MetalKitView.device = MTLCreateSystemDefaultDevice(); 
+    MetalKitView.framebufferOnly = false;
+    MetalKitView.layer.contentsGravity = kCAGravityCenter;
+    MetalKitView.preferredFramesPerSecond = 60;
+
+    [Window setContentView: MetalKitView];
+    [Window toggleFullScreen: nil];
+
+    NSString *ShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"shaders" ofType: @"metallib"];
+    id<MTLLibrary> ShaderLibrary = [MetalKitView.device newLibraryWithFile: ShaderLibraryFile error: nil];
+    id<MTLFunction> VertexFunction = [ShaderLibrary newFunctionWithName:@"vertexShader"];
+    id<MTLFunction> FragmentFunction = [ShaderLibrary newFunctionWithName:@"fragmentShader"];
+
+    MTLRenderPipelineDescriptor *PipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    PipelineStateDescriptor.label = @"3D Game Vertices";
+    PipelineStateDescriptor.vertexFunction = VertexFunction;
+    PipelineStateDescriptor.fragmentFunction = FragmentFunction;
+    MTLRenderPipelineColorAttachmentDescriptor *RenderBufferAttachment = PipelineStateDescriptor.colorAttachments[0];
+    RenderBufferAttachment.pixelFormat = MetalKitView.colorPixelFormat;
+
+    NSError *error = NULL;
+    id<MTLRenderPipelineState> RenderPipelineState = 
+        [MetalKitView.device newRenderPipelineStateWithDescriptor: PipelineStateDescriptor 
+                                                            error: &error];
+
+    id<MTLCommandQueue> CommandQueue = [MetalKitView.device newCommandQueue]; 
+
     return NSApplicationMain(argc, argv);
 }
