@@ -28,3 +28,11 @@ typedef int32_t b32;
 
 typedef float r32;
 typedef double r64;
+
+#define Kilobytes(Value) ((Value)*1024LL)
+#define Megabytes(Value) (Kilobytes(Value)*1024LL)
+#define Gigabytes(Value) (Megabytes(Value)*1024LL)
+
+#if WINDOWS
+#define Assert(cond) do { if (!(cond)) __debugbreak(); } while (0)
+#endif

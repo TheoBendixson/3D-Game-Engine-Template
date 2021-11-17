@@ -36,6 +36,5 @@ struct game_input
     s32 MouseX, MouseY, MouseZ;
     r32 dtForFrame;
     game_controller_input Controllers[2];
-    b32 AdvanceLevel;
-    b32 GoToPreviousLevel;
+    r32 FrameRateMultiplier;
 };

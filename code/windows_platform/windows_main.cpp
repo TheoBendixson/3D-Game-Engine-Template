@@ -18,6 +18,11 @@
 
 #include <SDL.h>
 
+#include "../game_library/code/vario.cpp"
+
+#include "windows_file_io.h"
+#include "windows_d3d_resource_setup.h"
+
 static void FatalError(const char* message)
 {
     MessageBoxA(NULL, message, "Error", MB_ICONEXCLAMATION);
@@ -417,12 +422,11 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_texture_vertex)*28000;
-    RenderCommands.VertexBuffer.TextureVertices = 
-        (game_texture_vertex *)VirtualAlloc(0, VertexBufferSize, 
+    u32 VertexBufferSize = sizeof(game_vertex)*1000;
+    RenderCommands.VertexBuffer.Vertices = (game_vertex *)VirtualAlloc(0, VertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
-                                                                  RenderCommands.VertexBuffer.TextureVertices);
+                                                                RenderCommands.VertexBuffer.Vertices);
 
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* Layout;
@@ -434,11 +438,11 @@ WinMain(HINSTANCE Instance,
         {
             { 
                 "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 
-                offsetof(struct game_texture_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "COLOR",0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 
-                offsetof(struct game_texture_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
 
@@ -819,7 +823,7 @@ WinMain(HINSTANCE Instance,
                 }
 
                 TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
-                                             RenderCommands.VertexBuffer.TextureVertices, VertexBufferSize);
+                                             RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
                 // Input Assembler
                 DeviceContext->IASetInputLayout(Layout);
