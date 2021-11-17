@@ -2,7 +2,7 @@
 struct VS_INPUT                                                                
 {                                                                              
     float3 position : POSITION;         
-    float4 color    : COLOR;                                                 
+    float3 color    : COLOR;                                                 
 };                                                                             
 
 struct PS_INPUT                                                                
@@ -11,22 +11,28 @@ struct PS_INPUT
     float4 color    : COLOR;                                                 
 };                                                                             
 
-cbuffer cbuffer0 : register(b0)      // b0 = constant buffer bound to slot 0
+cbuffer ModelViewProjectionConstantBuffer : register(b0)      // b0 = constant buffer bound to slot 0
 {                                                                              
-    float2 ViewportSize;                                                       
+    matrix World;
+    matrix View;
+    matrix Projection;
 }                                                                              
-
-sampler sampler0 : register(s0);                 // s0 = sampler bound to slot 0
 
 PS_INPUT vs(VS_INPUT input)                                                    
 {
     PS_INPUT output;
-    output.position = float4(input.position.xyz, 1.f);                               
-    output.color = input.color;                                                      
-    return output;                                                             
+
+    float4 position = float4(input.position, 1.0f);
+    position = mul(position, World);
+    position = mul(position, View);
+    position = mul(position, Projection);
+    output.position = position;
+    output.color = float4(input.color, 1.0f);
+
+    return output;
 }                                                                              
 
 float4 ps(PS_INPUT input) : SV_TARGET                                          
 {                                                                              
-    return float4(input.color[0], input.color[1], input.color[2], input.color[3]);
+    return input.color;
 }

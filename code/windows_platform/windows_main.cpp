@@ -243,7 +243,6 @@ WinMain(HINSTANCE Instance,
     int ScreenHeight = ScreenRect.bottom - ScreenRect.top - 32;
     int ScreenWidth = (ScreenRect.right - ScreenRect.left) + 18;
 
-
     // uncomment in case you want fixed size window
     RECT WindowRect = { 0, 0, ScreenWidth, ScreenHeight };
     AdjustWindowRectEx(&WindowRect, Style, FALSE, Exstyle);
@@ -423,11 +422,29 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_vertex)*1000;
+    u32 VertexBufferSize = sizeof(game_vertex)*100;
     RenderCommands.VertexBuffer.Vertices = (game_vertex *)VirtualAlloc(0, VertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
                                                                 RenderCommands.VertexBuffer.Vertices);
+
+    u32 IndexBufferSize = sizeof(u16)*300;
+    RenderCommands.VertexBuffer.Indices = (u16 *)VirtualAlloc(0, IndexBufferSize, 
+                                            MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+    ID3D11Buffer *IndexBuffer;
+    {
+        D3D11_BUFFER_DESC Desc = {};
+        Desc.ByteWidth = IndexBufferSize;
+        Desc.Usage = D3D11_USAGE_DYNAMIC;
+        Desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+        D3D11_SUBRESOURCE_DATA Initial = {};
+        Initial.pSysMem = RenderCommands.VertexBuffer.Indices;
+        HRESULT HR = D11Device->CreateBuffer(&Desc, &Initial, &IndexBuffer);
+        AssertHR(HR);
+    }
 
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* Layout;
