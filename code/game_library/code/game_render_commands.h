@@ -10,10 +10,16 @@ struct game_vertex_buffer
     u32 VertexCount;
 };
 
+struct clear_color
+{
+    r32 RGBA[4];
+};
+
 struct game_render_commands
 {
     s32 ViewportWidth;
     s32 ViewportHeight;
+    clear_color ClearColor;
 
     game_vertex_buffer VertexBuffer;
 };

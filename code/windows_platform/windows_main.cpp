@@ -22,6 +22,7 @@
 
 #include "windows_file_io.h"
 #include "windows_d3d_resource_setup.h"
+#include "windows_gpu_transfer.h"
 
 static void FatalError(const char* message)
 {
@@ -828,7 +829,7 @@ WinMain(HINSTANCE Instance,
                 // Input Assembler
                 DeviceContext->IASetInputLayout(Layout);
                 DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                UINT Stride = sizeof(struct game_texture_vertex);
+                UINT Stride = sizeof(struct game_vertex);
                 UINT Offset = 0;
 
                 // Vertex Shader
@@ -840,7 +841,6 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->RSSetState(RasterizerState);
 
                 // Pixel Shader
-                DeviceContext->PSSetSamplers(0, 1, &Sampler);
                 DeviceContext->PSSetShader(PShader, NULL, 0);
 
                 // Output Merger
