@@ -1,13 +1,16 @@
 struct game_vertex
 {
     r32 Position[3];
-    r32 Color[4];
+    r32 Color[3];
 };
 
 struct game_vertex_buffer
 {
     game_vertex *Vertices;
     u32 VertexCount;
+
+    u16 *Indices;
+    u32 IndexCount;
 };
 
 struct clear_color
