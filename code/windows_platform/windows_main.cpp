@@ -517,7 +517,6 @@ WinMain(HINSTANCE Instance,
 
     ID3D11RasterizerState* RasterizerState;
     {
-        // disable culling
         D3D11_RASTERIZER_DESC Desc = {};
         Desc.FillMode = D3D11_FILL_SOLID;
         Desc.CullMode = D3D11_CULL_BACK;
