@@ -7,28 +7,21 @@ struct VS_INPUT
 
 struct PS_INPUT                                                                
 {                                                                              
-    float4 position : POSITION;         
+    float4 position : SV_POSITION;         
     float4 color    : COLOR;                                                 
 };                                                                             
 
 cbuffer ModelViewProjectionConstantBuffer : register(b0)      // b0 = constant buffer bound to slot 0
 {                                                                              
-    matrix World;
-    matrix View;
-    matrix Projection;
+    row_major float4x4 Transform;
+    row_major float4x4 Projection;
 }                                                                              
 
 PS_INPUT vs(VS_INPUT input)                                                    
 {
     PS_INPUT output;
-
-    float4 position = float4(input.position, 1.0f);
-    //position = mul(position, World);
-    position = mul(position, View);
-    position = mul(position, Projection);
-    output.position = position;
+    output.position = mul(float4(input.position, 1.0f), mul(Transform, Projection));
     output.color = float4(input.color, 1.0f);
-
     return output;
 }                                                                              
 
