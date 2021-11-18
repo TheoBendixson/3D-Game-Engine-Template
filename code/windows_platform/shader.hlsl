@@ -23,7 +23,7 @@ PS_INPUT vs(VS_INPUT input)
     PS_INPUT output;
 
     float4 position = float4(input.position, 1.0f);
-    position = mul(position, World);
+    //position = mul(position, World);
     position = mul(position, View);
     position = mul(position, Projection);
     output.position = position;

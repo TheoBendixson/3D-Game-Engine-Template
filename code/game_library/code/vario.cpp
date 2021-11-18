@@ -1,5 +1,6 @@
 #include "vario.h"
 #include "game_startup_config.cpp"
+#include "game_math.cpp"
 
 #define CUBE_VERTEX_COUNT   8
 #define CUBE_INDEX_COUNT    36
@@ -8,7 +9,6 @@ extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     // XYZ Vertices, RGB Color
-
     game_vertex ColoredCube[CUBE_VERTEX_COUNT] =
     {
         { {-0.5f,-0.5f,-0.5f}, {0, 0, 0} },
@@ -65,5 +65,34 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     }
 
     VertexBuffer->IndexCount = CUBE_INDEX_COUNT;
+
+    r32 Near = 1000.0f;
+    r32 Far = 1000000.0f;
+
+    vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
+    vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
+    vector_float_3 ModelTranslation = { 0.0f, 0.0f, 1500.0f };
+
+    matrix Scale = { ModelScale.X,  0,              0,              0,
+                     0,             ModelScale.Y,   0,              0,
+                     0,             0,              ModelScale.Z,   0,
+                     0,             0,              0,              1 };
+
+    matrix Translate = { 1,                  0,                  0,                  0,
+                         0,                  1,                  0,                  0,
+                         0,                  0,                  1,                  0,
+                         ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
+
+    u32 ViewportWidth = RenderCommands->ViewportWidth;
+    u32 ViewportHeight = RenderCommands->ViewportHeight;
+
+    game_constants *Constants = &RenderCommands->Constants;
+    Constants->Transform = Scale * Translate;
+    Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
+                              0,                          (2 * Near / ViewportHeight), 0,                           0,
+                              0,                          0,                           (Far / (Far - Near)),        1,
+                              0,                          0,                           (Near * Far / (Near - Far)), 0 };
+
+
 }
 

@@ -476,14 +476,14 @@ WinMain(HINSTANCE Instance,
         AssertHR(HR);
     }
 
-    ID3D11Buffer* UBuffer;
+    ID3D11Buffer* ConstantsBuffer;
     {
         D3D11_BUFFER_DESC Desc = {};
-        Desc.ByteWidth = 2 * 2 * sizeof(float);
+        Desc.ByteWidth = sizeof(game_constants) + 0xf & 0xfffffff0;
         Desc.Usage = D3D11_USAGE_DYNAMIC;
         Desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        HR = D11Device->CreateBuffer(&Desc, NULL, &UBuffer);
+        HR = D11Device->CreateBuffer(&Desc, NULL, &ConstantsBuffer);
         AssertHR(HR);
     }
 
@@ -520,7 +520,7 @@ WinMain(HINSTANCE Instance,
         // disable culling
         D3D11_RASTERIZER_DESC Desc = {};
         Desc.FillMode = D3D11_FILL_SOLID;
-        Desc.CullMode = D3D11_CULL_NONE;
+        Desc.CullMode = D3D11_CULL_BACK;
         HR = D11Device->CreateRasterizerState(&Desc, &RasterizerState);
         AssertHR(HR);
     }
@@ -529,12 +529,12 @@ WinMain(HINSTANCE Instance,
     {
         // disable depth & stencil test
         D3D11_DEPTH_STENCIL_DESC Desc = {};
-        Desc.DepthEnable = FALSE;
+        Desc.DepthEnable = TRUE;
         Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         Desc.DepthFunc = D3D11_COMPARISON_LESS;
-        Desc.StencilEnable = FALSE;
-        Desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-        Desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+        //Desc.StencilEnable = FALSE;
+        //Desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+        //Desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
         HR = D11Device->CreateDepthStencilState(&Desc, &DepthState);
         AssertHR(HR);
     }
@@ -752,7 +752,7 @@ WinMain(HINSTANCE Instance,
                 }
 
                 DeviceContext->ClearRenderTargetView(RTView, ClearColor);
-                DeviceContext->ClearDepthStencilView(DSView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+                DeviceContext->ClearDepthStencilView(DSView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
                 // MARK: Direct Sound Output
                 // TODO: (Ted)  Enable Sound
@@ -831,13 +831,12 @@ WinMain(HINSTANCE Instance,
                 }*/
                 
                 {
-                    float ViewportSize[] = {WindowWidth, WindowHeight};
-
                     D3D11_MAPPED_SUBRESOURCE Mapped;
-                    HR = DeviceContext->Map((ID3D11Resource*)UBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped);
+                    HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
+                                            0, &Mapped);
                     AssertHR(HR);
-                    memcpy(Mapped.pData, ViewportSize, sizeof(ViewportSize));
-                    DeviceContext->Unmap((ID3D11Resource*)UBuffer, 0);
+                    memcpy(Mapped.pData, &RenderCommands.Constants, sizeof(game_constants));
+                    DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
                 }
 
                 TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
@@ -850,7 +849,7 @@ WinMain(HINSTANCE Instance,
                 UINT Offset = 0;
 
                 // Vertex Shader
-                DeviceContext->VSSetConstantBuffers(0, 1, &UBuffer);
+                DeviceContext->VSSetConstantBuffers(0, 1, &ConstantsBuffer);
                 DeviceContext->VSSetShader(VShader, NULL, 0);
 
                 // Rasterizer Stage
@@ -866,8 +865,9 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-                u32 PreviousVertexCount = 0;
+                DeviceContext->DrawIndexed(RenderCommands.VertexBuffer.IndexCount, 0, 0);
 
                 LARGE_INTEGER WithinFrameCounter2;
                 QueryPerformanceCounter(&WithinFrameCounter2);

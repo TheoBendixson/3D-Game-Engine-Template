@@ -1,3 +1,10 @@
+
+struct game_constants
+{
+    matrix Transform;
+    matrix Projection;
+};
+
 struct game_vertex
 {
     r32 Position[3];
@@ -25,4 +32,5 @@ struct game_render_commands
     clear_color ClearColor;
 
     game_vertex_buffer VertexBuffer;
+    game_constants Constants;
 };

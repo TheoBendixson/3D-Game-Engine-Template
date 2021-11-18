@@ -3,6 +3,7 @@
 #include "platform.h"
 #include "game_memory.h"
 #include "game_input.h"
+#include "game_math.h"
 #include "game_render_commands.h"
 #include "game_startup_config.h"
 #include "game_sound.h"
