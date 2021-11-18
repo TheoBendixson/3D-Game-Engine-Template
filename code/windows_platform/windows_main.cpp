@@ -842,6 +842,15 @@ WinMain(HINSTANCE Instance,
                 TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
                                              RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
+                {
+                    D3D11_MAPPED_SUBRESOURCE Mapped;
+                    HRESULT HR = DeviceContext->Map((ID3D11Resource*)IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped);
+                    AssertHR(HR);
+                    memcpy(Mapped.pData, RenderCommands.VertexBuffer.Indices, IndexBufferSize);
+                    DeviceContext->Unmap((ID3D11Resource*)IndexBuffer, 0);
+                }
+
+
                 // Input Assembler
                 DeviceContext->IASetInputLayout(Layout);
                 DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -860,12 +869,12 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->PSSetShader(PShader, NULL, 0);
 
                 // Output Merger
-                DeviceContext->OMSetBlendState(BlendState, NULL, ~0U);
+                DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
-                DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+                DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
                 DeviceContext->DrawIndexed(RenderCommands.VertexBuffer.IndexCount, 0, 0);
 
