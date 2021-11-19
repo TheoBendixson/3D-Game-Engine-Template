@@ -519,7 +519,7 @@ WinMain(HINSTANCE Instance,
     {
         D3D11_RASTERIZER_DESC Desc = {};
         Desc.FillMode = D3D11_FILL_SOLID;
-        Desc.CullMode = D3D11_CULL_BACK;
+        Desc.CullMode = D3D11_CULL_NONE;
         HR = D11Device->CreateRasterizerState(&Desc, &RasterizerState);
         AssertHR(HR);
     }
