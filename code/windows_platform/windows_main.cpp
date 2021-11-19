@@ -266,6 +266,10 @@ WinMain(HINSTANCE Instance,
     RenderCommands.ViewportWidth = WindowWidth;
     RenderCommands.ViewportHeight = WindowHeight;
 
+    u32 InstancedMeshBufferSize = 10;
+    RenderCommands.Constants = (game_constants *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(game_constants),
+                                                              MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
     HDC RefreshDC = GetDC(WindowHandle);
     int RefreshRate = GetDeviceCaps(RefreshDC, VREFRESH);
     r32 RefreshRateInFloat = (r32)RefreshRate;
@@ -531,9 +535,6 @@ WinMain(HINSTANCE Instance,
         Desc.DepthEnable = TRUE;
         Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         Desc.DepthFunc = D3D11_COMPARISON_LESS;
-        //Desc.StencilEnable = FALSE;
-        //Desc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-        //Desc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
         HR = D11Device->CreateDepthStencilState(&Desc, &DepthState);
         AssertHR(HR);
     }
@@ -829,18 +830,12 @@ WinMain(HINSTANCE Instance,
                     }
                 }*/
                 
-                {
-                    D3D11_MAPPED_SUBRESOURCE Mapped;
-                    HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
-                                            0, &Mapped);
-                    AssertHR(HR);
-                    memcpy(Mapped.pData, &RenderCommands.Constants, sizeof(game_constants));
-                    DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
-                }
 
+                // NOTE: (Ted)  Transfer Vertex Buffer.
                 TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
                                              RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
+                // NOTE: (Ted)  Transfer Index Buffer
                 {
                     D3D11_MAPPED_SUBRESOURCE Mapped;
                     HRESULT HR = DeviceContext->Map((ID3D11Resource*)IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped);
@@ -874,7 +869,21 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
                 DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-                DeviceContext->DrawIndexed(RenderCommands.VertexBuffer.IndexCount, 0, 0);
+                for (u32 InstanceMeshIndex = 0;
+                     InstanceMeshIndex < RenderCommands.InstancedMeshCount;
+                     InstanceMeshIndex++)
+                {
+                    {
+                        D3D11_MAPPED_SUBRESOURCE Mapped;
+                        HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
+                                                0, &Mapped);
+                        AssertHR(HR);
+                        memcpy(Mapped.pData, &RenderCommands.Constants[InstanceMeshIndex], sizeof(game_constants));
+                        DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
+                    }
+
+                    DeviceContext->DrawIndexed(RenderCommands.VertexBuffer.IndexCount, 0, 0);
+                }
 
                 LARGE_INTEGER WithinFrameCounter2;
                 QueryPerformanceCounter(&WithinFrameCounter2);

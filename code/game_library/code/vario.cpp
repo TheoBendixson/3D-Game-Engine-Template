@@ -105,13 +105,14 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    game_constants *Constants = &RenderCommands->Constants;
+    game_constants *Constants = &RenderCommands->Constants[0];
     Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
     Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
                               0,                          (2 * Near / ViewportHeight), 0,                           0,
                               0,                          0,                           (Far / (Far - Near)),        1,
                               0,                          0,                           (Near * Far / (Near - Far)), 0 };
 
+    RenderCommands->InstancedMeshCount = 1;
 
 }
 

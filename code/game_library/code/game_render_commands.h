@@ -32,5 +32,6 @@ struct game_render_commands
     clear_color ClearColor;
 
     game_vertex_buffer VertexBuffer;
-    game_constants Constants;
+    game_constants *Constants;
+    u32 InstancedMeshCount;
 };
