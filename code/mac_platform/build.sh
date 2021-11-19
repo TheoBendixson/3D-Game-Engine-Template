@@ -2,7 +2,7 @@ echo Building Varios Temple
 
 pushd ../../build/mac_os
 
-MAC_PLATFORM_LAYER_PATH="../../code/mac_platform_layer"
+MAC_PLATFORM_LAYER_PATH="../../code/mac_platform"
 GAME_LIBRARY_CODE_PATH="../../code/game_library/code"
 
 OSX_LD_FLAGS="-framework AppKit 
@@ -16,7 +16,7 @@ COMMON_COMPILER_FLAGS="$OSX_LD_FLAGS"
 
 GAME_BUNDLE_RESOURCES_PATH="Vario.app/Contents/Resources"
 
-PLATFORM_RESOURCES_PATH="../../code/mac_platform_layer/resources"
+PLATFORM_RESOURCES_PATH="../../code/mac_platform/resources"
 
 echo Compiling Shader Libraries
 xcrun -sdk macosx metal -mmacosx-version-min=10.14 -gline-tables-only -MO -g -c "${MAC_PLATFORM_LAYER_PATH}/shaders.metal" -o shaders.air
