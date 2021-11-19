@@ -455,11 +455,11 @@ WinMain(HINSTANCE Instance,
         D3D11_INPUT_ELEMENT_DESC Desc[] =
         {
             { 
-                "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 
+                "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
                 offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
-                "COLOR",0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 
+                "COLOR",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
                 offsetof(struct game_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
@@ -848,7 +848,6 @@ WinMain(HINSTANCE Instance,
                     memcpy(Mapped.pData, RenderCommands.VertexBuffer.Indices, IndexBufferSize);
                     DeviceContext->Unmap((ID3D11Resource*)IndexBuffer, 0);
                 }
-
 
                 // Input Assembler
                 DeviceContext->IASetInputLayout(Layout);
