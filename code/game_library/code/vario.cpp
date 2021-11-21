@@ -71,7 +71,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
     vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
-    vector_float_3 ModelTranslation = { 0.0f, 0.0f, 1500.0f };
+
+    vector_float_3 ModelTranslations[3];
+    ModelTranslations[0] = { 0.0f, 0.0f, 1500.0f };
+    ModelTranslations[1] = { 800.0f, 0.0f, 1500.0f };
+    ModelTranslations[2] = { -800.0f, 0.0f, 1500.0f };
 
     ModelRotation.X += 0.005f;
     ModelRotation.Y += 0.009f;
@@ -97,22 +101,29 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                      0,             0,              ModelScale.Z,   0,
                      0,             0,              0,              1 };
 
-    matrix Translate = { 1,                  0,                  0,                  0,
-                         0,                  1,                  0,                  0,
-                         0,                  0,                  1,                  0,
-                         ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
-
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    game_constants *Constants = &RenderCommands->Constants[0];
-    Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-    Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
-                              0,                          (2 * Near / ViewportHeight), 0,                           0,
-                              0,                          0,                           (Far / (Far - Near)),        1,
-                              0,                          0,                           (Near * Far / (Near - Far)), 0 };
+    for (u32 InstanceIndex = 0;
+         InstanceIndex < 3;
+         InstanceIndex++)
+    {
+        vector_float_3 ModelTranslation = ModelTranslations[InstanceIndex];
 
-    RenderCommands->InstancedMeshCount = 1;
+        matrix Translate = { 1,                  0,                  0,                  0,
+                             0,                  1,                  0,                  0,
+                             0,                  0,                  1,                  0,
+                             ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
+
+        game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
+                                  0,                          (2 * Near / ViewportHeight), 0,                           0,
+                                  0,                          0,                           (Far / (Far - Near)),        1,
+                                  0,                          0,                           (Near * Far / (Near - Far)), 0 };
+    }
+
+    RenderCommands->InstancedMeshCount = 3;
 
 }
 
