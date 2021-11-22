@@ -2,45 +2,64 @@
 #include "game_startup_config.cpp"
 #include "game_math.cpp"
 
-#define CUBE_VERTEX_COUNT   8
-#define CUBE_INDEX_COUNT    36
+#define CUBE_VERTEX_COUNT   36 
+
+#define FACE_NORMAL_1 { 0.0f, 0.0f, -1.0f }
+#define FACE_NORMAL_2 { 0.0f, 0.0f, 1.0f }
+#define FACE_NORMAL_3 { -1.0f,  0.0f,  0.0f }
+#define FACE_NORMAL_4 { 1.0f,  0.0f,  0.0f }
+#define FACE_NORMAL_5 { 0.0f, -1.0f,  0.0f }
+#define FACE_NORMAL_6 { 0.0f, 1.0f,  0.0f }
+
+#define RED { 1, 0, 0 }
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     // XYZ Vertices, RGB Color
-    game_vertex ColoredCube[CUBE_VERTEX_COUNT] =
+    game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
-        { {-0.5f,-0.5f,-0.5f}, {0, 0, 0} },
-        { {-0.5f,-0.5f, 0.5f}, {0, 0, 1} },
-        { {-0.5f, 0.5f,-0.5f}, {0, 1, 0} },
-        { {-0.5f, 0.5f, 0.5f}, {0, 1, 1} },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_1, RED },
+        { { 0.5f, -0.5f, -0.5f },   FACE_NORMAL_1, RED },
+        { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_1, RED },
+        { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_1, RED },
+        { { -0.5f,  0.5f, -0.5f},   FACE_NORMAL_1, RED },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_1, RED },
 
-        { {0.5f,-0.5f,-0.5f}, {1, 0, 0} },
-        { {0.5f,-0.5f, 0.5f}, {1, 0, 1} },
-        { {0.5f, 0.5f,-0.5f}, {1, 1, 0} },
-        { {0.5f, 0.5f, 0.5f}, {1, 1, 1} }
-    }; 
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_2, RED },
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_2, RED },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_2, RED },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_2, RED },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_2, RED },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_2, RED },
 
-    u16 CubeIndices[CUBE_INDEX_COUNT] = 
-    {
-        0,2,1, // -x
-        1,2,3,
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_3, RED },
+        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_3, RED },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_3, RED },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_3, RED },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_3, RED },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_3, RED },
 
-        4,5,6, // +x
-        5,7,6,
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_4, RED },
+        { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_4, RED },
+        { { 0.5f, -0.5f, -0.5f },   FACE_NORMAL_4, RED },
+        { { 0.5f, -0.5f, -0.5f },   FACE_NORMAL_4, RED },
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_4, RED },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_4, RED },
 
-        0,1,5, // -y
-        0,5,4,
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_5, RED }, 
+        { { 0.5f, -0.5f, -0.5f },   FACE_NORMAL_5, RED }, 
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_5, RED },
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_5, RED },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_5, RED },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_5, RED },
 
-        2,6,7, // +y
-        2,7,3,
-
-        0,4,6, // -z
-        0,6,2,
-
-        1,3,7, // +z
-        1,7,5,
+        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_6, RED },
+        { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_6, RED },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_6, RED },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_6, RED },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_6, RED },
+        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_6, RED },
     };
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
@@ -54,17 +73,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     }
 
     VertexBuffer->VertexCount = CUBE_VERTEX_COUNT;
-
-    u16 *IndexBuffer = VertexBuffer->Indices;
-
-    for (u32 Index = 0;
-         Index < CUBE_INDEX_COUNT;
-         Index++)
-    {
-        IndexBuffer[Index] = CubeIndices[Index];
-    }
-
-    VertexBuffer->IndexCount = CUBE_INDEX_COUNT;
 
     r32 Near = 1000.0f;
     r32 Far = 1000000.0f;
@@ -121,9 +129,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                          (2 * Near / ViewportHeight), 0,                           0,
                                   0,                          0,                           (Far / (Far - Near)),        1,
                                   0,                          0,                           (Near * Far / (Near - Far)), 0 };
+
+        Constants->LightVector = { 1.0f, -1.0f, 1.0f };
     }
 
     RenderCommands->InstancedMeshCount = 3;
-
 }
 
