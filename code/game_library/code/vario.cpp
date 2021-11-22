@@ -109,12 +109,17 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Far = 1000000.0f;
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
-    vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
+    vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
 
     vector_float_3 ModelTranslations[3];
+    /*
     ModelTranslations[0] = { 0.0f, 0.0f, 1500.0f };
     ModelTranslations[1] = { 800.0f, 0.0f, 1500.0f };
     ModelTranslations[2] = { -800.0f, 0.0f, 1500.0f };
+    */
+    ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
+    ModelTranslations[1] = { 800.0f, 0.0f, 0.0f };
+    ModelTranslations[2] = { -800.0f, 0.0f, 0.0f };
 
     ModelRotation.X += 0.005f;
     ModelRotation.Y += 0.009f;
@@ -143,7 +148,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 CameraPosition = { 0.0f, 0.0f, 100.0f };
+    vector_float_3 CameraPosition = { 0.0f, 0.0f, -3.0f };
     vector_float_3 CameraTarget = { 0.0f, 0.0f, 0.0f };
     vector_float_3 CameraDirectionScaled = SubtractVector3(CameraPosition, CameraTarget);
     vector_float_3 CameraDirection = Normalize(CameraDirectionScaled);
@@ -153,6 +158,25 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     vector_float_3 CrossUpAndCameraDirection = CrossProduct(Up, CameraDirection);
     vector_float_3 CameraRight = Normalize(CrossUpAndCameraDirection);
     vector_float_3 CameraUp = CrossProduct(CameraDirection, CameraRight);
+
+    matrix LookAtAxes = { CameraRight.X,        CameraRight.Y,      CameraRight.Z,      0,
+                          CameraUp.X,           CameraUp.Y,         CameraUp.Z,         0,
+                          CameraDirection.X,    CameraDirection.Y,  CameraDirection.Z,  0,
+                          0,                    0,                  0,                  1 };
+
+    /*
+    matrix LookAtPositions = { 1, 0, 0, -CameraPosition.X,
+                               0, 1, 0, -CameraPosition.Y,
+                               0, 0, 1, -CameraPosition.Z,
+                               0, 0, 0, 1                   };
+    */
+
+    matrix LookAtPositions = { 1, 0, 0, 0,
+                               0, 1, 0, 0,
+                               0, 0, 1, 0,
+                               -CameraPosition.X, -CameraPosition.Y,  -CameraPosition.Z, 1               };
+
+    matrix LookAt = LookAtAxes * LookAtPositions;
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < 3;
@@ -166,7 +190,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                              ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate * LookAt;
         Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
                                   0,                          (2 * Near / ViewportHeight), 0,                           0,
                                   0,                          0,                           (Far / (Far - Near)),        1,

@@ -26,7 +26,8 @@ PS_INPUT vs(VS_INPUT input)
 
     PS_INPUT output;
     output.Position = mul(float4(input.Position, 1.0f), mul(Transform, Projection));
-    output.Color = float4(input.Color * light, 1.0f);
+    //output.Color = float4(input.Color * light, 1.0f);
+    output.Color = float4(input.Color, 1.0f);
     return output;
 }                                                                              
 
