@@ -129,6 +129,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                          (2 * Near / ViewportHeight), 0,                           0,
                                   0,                          0,                           (Far / (Far - Near)),        1,
                                   0,                          0,                           (Near * Far / (Near - Far)), 0 };
+
+        Constants->LightVector = { 1.0f, -1.0f, 1.0f };
     }
 
     RenderCommands->InstancedMeshCount = 3;

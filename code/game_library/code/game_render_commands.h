@@ -3,6 +3,7 @@ struct game_constants
 {
     matrix Transform;
     matrix Projection;
+    vector_float_3 LightVector;
 };
 
 struct game_vertex
