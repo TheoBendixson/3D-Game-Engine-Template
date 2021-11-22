@@ -13,6 +13,37 @@
 
 #define RED { 1, 0, 0 }
 
+internal
+vector_float_3 SubtractVector3(vector_float_3 LeftHandSide, vector_float_3 RightHandSide)
+{
+    vector_float_3 Result = {};
+    Result.X = RightHandSide.X - LeftHandSide.X;
+    Result.Y = RightHandSide.Y - LeftHandSide.Y;
+    Result.Z = RightHandSide.Z - LeftHandSide.Z;
+    return (Result);
+}
+
+internal
+vector_float_3 Normalize(vector_float_3 Vector)
+{
+    r32 Magnitude = sqrt((Vector.X*Vector.X) + (Vector.Y*Vector.Y) + (Vector.Z*Vector.Z));
+    vector_float_3 Result = {};
+    Result.X = Vector.X/Magnitude;
+    Result.Y = Vector.Y/Magnitude;
+    Result.Z = Vector.Z/Magnitude;
+    return (Result);
+}
+
+internal
+vector_float_3 CrossProduct(vector_float_3 A, vector_float_3 B)
+{
+    vector_float_3 Result = {};
+    Result.X = (A.Y*B.Z) - (A.Z*B.Y);
+    Result.Y = (A.Z*B.X) - (A.X*B.Z);
+    Result.Z = (A.X*B.Y) - (A.Y*B.X);
+    return (Result);
+}
+
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
@@ -111,6 +142,17 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
+
+    vector_float_3 CameraPosition = { 0.0f, 0.0f, 100.0f };
+    vector_float_3 CameraTarget = { 0.0f, 0.0f, 0.0f };
+    vector_float_3 CameraDirectionScaled = SubtractVector3(CameraPosition, CameraTarget);
+    vector_float_3 CameraDirection = Normalize(CameraDirectionScaled);
+
+    vector_float_3 Up = { 0.0f, 1.0f, 0.0f };
+
+    vector_float_3 CrossUpAndCameraDirection = CrossProduct(Up, CameraDirection);
+    vector_float_3 CameraRight = Normalize(CrossUpAndCameraDirection);
+    vector_float_3 CameraUp = CrossProduct(CameraDirection, CameraRight);
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < 3;
