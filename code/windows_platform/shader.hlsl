@@ -15,6 +15,7 @@ struct PS_INPUT
 cbuffer ModelViewProjectionConstantBuffer : register(b0)      // b0 = constant buffer bound to slot 0
 {                                                                              
     row_major float4x4 Transform;
+    row_major float4x4 View;
     row_major float4x4 Projection;
     float3 LightVector;
 }                                                                              
@@ -25,7 +26,9 @@ PS_INPUT vs(VS_INPUT input)
                             normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
 
     PS_INPUT output;
-    output.Position = mul(float4(input.Position, 1.0f), mul(Transform, Projection));
+
+    row_major float4x4 ModelView = mul(Transform, View);
+    output.Position = mul(float4(input.Position, 1.0f), mul(ModelView, Projection));
     //output.Color = float4(input.Color * light, 1.0f);
     output.Color = float4(input.Color, 1.0f);
     return output;

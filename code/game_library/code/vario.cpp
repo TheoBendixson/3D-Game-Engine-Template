@@ -112,14 +112,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
 
     vector_float_3 ModelTranslations[3];
-    /*
-    ModelTranslations[0] = { 0.0f, 0.0f, 1500.0f };
-    ModelTranslations[1] = { 800.0f, 0.0f, 1500.0f };
-    ModelTranslations[2] = { -800.0f, 0.0f, 1500.0f };
-    */
     ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 800.0f, 0.0f, 0.0f };
-    ModelTranslations[2] = { -800.0f, 0.0f, 0.0f };
+    ModelTranslations[1] = { 100.0f, 0.0f, 0.0f };
+    ModelTranslations[2] = { -100.0f, 0.0f, 0.0f };
 
     ModelRotation.X += 0.005f;
     ModelRotation.Y += 0.009f;
@@ -164,17 +159,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                           CameraDirection.X,    CameraDirection.Y,  CameraDirection.Z,  0,
                           0,                    0,                  0,                  1 };
 
-    /*
-    matrix LookAtPositions = { 1, 0, 0, -CameraPosition.X,
-                               0, 1, 0, -CameraPosition.Y,
-                               0, 0, 1, -CameraPosition.Z,
-                               0, 0, 0, 1                   };
-    */
-
-    matrix LookAtPositions = { 1, 0, 0, 0,
-                               0, 1, 0, 0,
-                               0, 0, 1, 0,
-                               -CameraPosition.X, -CameraPosition.Y,  -CameraPosition.Z, 1               };
+    matrix LookAtPositions = { 1,                   0,                  0,                  0,
+                               0,                   1,                  0,                  0,
+                               0,                   0,                  1,                  0,
+                               -CameraPosition.X,   -CameraPosition.Y,  -CameraPosition.Z,  1 };
 
     matrix LookAt = LookAtAxes * LookAtPositions;
 
@@ -190,7 +178,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                              ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate * LookAt;
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->View = LookAt;
         Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
                                   0,                          (2 * Near / ViewportHeight), 0,                           0,
                                   0,                          0,                           (Far / (Far - Near)),        1,

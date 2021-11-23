@@ -2,6 +2,7 @@
 struct game_constants
 {
     matrix Transform;
+    matrix View;
     matrix Projection;
     vector_float_3 LightVector;
 };
