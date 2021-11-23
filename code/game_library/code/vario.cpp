@@ -11,15 +11,17 @@
 #define FACE_NORMAL_5 { 0.0f, -1.0f,  0.0f }
 #define FACE_NORMAL_6 { 0.0f, 1.0f,  0.0f }
 
-#define RED { 1, 0, 0 }
+#define RED     { 1, 0, 0 }
+#define GREEN   { 0, 1, 0 }
+#define BLUE    { 0, 0, 1 }
 
 internal
 vector_float_3 SubtractVector3(vector_float_3 LeftHandSide, vector_float_3 RightHandSide)
 {
     vector_float_3 Result = {};
-    Result.X = RightHandSide.X - LeftHandSide.X;
-    Result.Y = RightHandSide.Y - LeftHandSide.Y;
-    Result.Z = RightHandSide.Z - LeftHandSide.Z;
+    Result.X = LeftHandSide.X - RightHandSide.X;
+    Result.Y = LeftHandSide.Y - RightHandSide.Y;
+    Result.Z = LeftHandSide.Z - RightHandSide.Z;
     return (Result);
 }
 
@@ -44,6 +46,12 @@ vector_float_3 CrossProduct(vector_float_3 A, vector_float_3 B)
     return (Result);
 }
 
+internal
+r32 DotProduct(vector_float_3 A, vector_float_3 B)
+{
+    return (A.X*B.X + A.Y*B.Y + A.Z*B.Z);
+}
+
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
@@ -57,19 +65,19 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         { { -0.5f,  0.5f, -0.5f},   FACE_NORMAL_1, RED },
         { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_1, RED },
 
-        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_2, RED },
-        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_2, RED },
-        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_2, RED },
-        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_2, RED },
-        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_2, RED },
-        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_2, RED },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_2, GREEN },
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_2, GREEN },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_2, GREEN },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_2, GREEN },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_2, GREEN },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_2, GREEN },
 
-        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_3, RED },
-        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_3, RED },
-        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_3, RED },
-        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_3, RED },
-        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_3, RED },
-        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_3, RED },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_3, BLUE },
+        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_3, BLUE },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_3, BLUE },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_3, BLUE },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_3, BLUE },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_3, BLUE },
 
         { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_4, RED },
         { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_4, RED },
@@ -78,19 +86,19 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_4, RED },
         { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_4, RED },
 
-        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_5, RED }, 
-        { { 0.5f, -0.5f, -0.5f },   FACE_NORMAL_5, RED }, 
-        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_5, RED },
-        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_5, RED },
-        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_5, RED },
-        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_5, RED },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_5, GREEN }, 
+        { { 0.5f, -0.5f, -0.5f },   FACE_NORMAL_5, GREEN }, 
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_5, GREEN },
+        { { 0.5f, -0.5f,  0.5f },   FACE_NORMAL_5, GREEN },
+        { { -0.5f, -0.5f,  0.5f },  FACE_NORMAL_5, GREEN },
+        { { -0.5f, -0.5f, -0.5f },  FACE_NORMAL_5, GREEN },
 
-        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_6, RED },
-        { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_6, RED },
-        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_6, RED },
-        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_6, RED },
-        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_6, RED },
-        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_6, RED },
+        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_6, BLUE },
+        { { 0.5f,  0.5f, -0.5f },   FACE_NORMAL_6, BLUE },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_6, BLUE },
+        { { 0.5f,  0.5f,  0.5f },   FACE_NORMAL_6, BLUE },
+        { { -0.5f,  0.5f,  0.5f },  FACE_NORMAL_6, BLUE },
+        { { -0.5f,  0.5f, -0.5f },  FACE_NORMAL_6, BLUE },
     };
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
@@ -143,28 +151,18 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 CameraPosition = { 0.0f, 0.0f, -3.0f };
-    vector_float_3 CameraTarget = { 0.0f, 0.0f, 0.0f };
-    vector_float_3 CameraDirectionScaled = SubtractVector3(CameraPosition, CameraTarget);
-    vector_float_3 CameraDirection = Normalize(CameraDirectionScaled);
+    vector_float_3 Eye = { 0.0f,  0.0f, -8.0f };
+    vector_float_3 At = {  0.0f,  0.0f,  0.0f };
+    vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
-    vector_float_3 Up = { 0.0f, 1.0f, 0.0f };
+    vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
+    vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
+    vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
 
-    vector_float_3 CrossUpAndCameraDirection = CrossProduct(Up, CameraDirection);
-    vector_float_3 CameraRight = Normalize(CrossUpAndCameraDirection);
-    vector_float_3 CameraUp = CrossProduct(CameraDirection, CameraRight);
-
-    matrix LookAtAxes = { CameraRight.X,        CameraRight.Y,      CameraRight.Z,      0,
-                          CameraUp.X,           CameraUp.Y,         CameraUp.Z,         0,
-                          CameraDirection.X,    CameraDirection.Y,  CameraDirection.Z,  0,
-                          0,                    0,                  0,                  1 };
-
-    matrix LookAtPositions = { 1,                   0,                  0,                  0,
-                               0,                   1,                  0,                  0,
-                               0,                   0,                  1,                  0,
-                               -CameraPosition.X,   -CameraPosition.Y,  -CameraPosition.Z,  1 };
-
-    matrix LookAt = LookAtAxes * LookAtPositions;
+    matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
+                      XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
+                      XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
+                      -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < 3;
