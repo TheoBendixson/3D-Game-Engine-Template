@@ -2,15 +2,16 @@
 #include "game_startup_config.cpp"
 #include "game_math.cpp"
 
-#define CUBE_VERTEX_COUNT   8 
-#define CUBE_INDEX_COUNT    36 
+#define CUBE_VERTEX_COUNT   36 
 
-#define FACE_NORMAL_1 { 0.0f, 0.0f, -1.0f }
-#define FACE_NORMAL_2 { 0.0f, 0.0f, 1.0f }
-#define FACE_NORMAL_3 { -1.0f,  0.0f,  0.0f }
-#define FACE_NORMAL_4 { 1.0f,  0.0f,  0.0f }
-#define FACE_NORMAL_5 { 0.0f, -1.0f,  0.0f }
-#define FACE_NORMAL_6 { 0.0f, 1.0f,  0.0f }
+#define NEGATIVE_X_FACE_NORMAL { -1.0f,  0.0f,  0.0f }
+#define POSITIVE_X_FACE_NORMAL { 1.0f,  0.0f,  0.0f }
+
+#define NEGATIVE_Y_FACE_NORMAL { 0.0f, -1.0f,  0.0f }
+#define POSITIVE_Y_FACE_NORMAL { 0.0f, 1.0f,  0.0f }
+
+#define NEGATIVE_Z_FACE_NORMAL { 0.0f, 0.0f, -1.0f }
+#define POSITIVE_Z_FACE_NORMAL { 0.0f, 0.0f, 1.0f }
 
 #define RED     { 1, 0, 0 }
 #define GREEN   { 0, 1, 0 }
@@ -20,6 +21,71 @@ extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     // XYZ Vertices, RGB Color
+
+    game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
+    {
+        // Index 0, 2, 1
+        { { -1.0f,-1.0f,-1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -1.0f, 1.0f,-1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -1.0f,-1.0f, 1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+
+        // Index 1, 2, 3
+        { { -1.0f,-1.0f, 1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -1.0f, 1.0f,-1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -1.0f, 1.0f, 1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+
+        // Index 4, 5, 6
+        { { 1.0f, -1.0f, -1.0f }, POSITIVE_X_FACE_NORMAL, RED },
+        { { 1.0f, -1.0f, 1.0f },  POSITIVE_X_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, -1.0f },  POSITIVE_X_FACE_NORMAL, RED },
+
+        // Index 5, 7, 6
+        { { 1.0f, -1.0f, 1.0f },  POSITIVE_X_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, 1.0f },   POSITIVE_X_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, -1.0f },  POSITIVE_X_FACE_NORMAL, RED },
+
+        // Index 0, 1, 5
+        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { -1.0f,-1.0f, 1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { 1.0f, -1.0f, 1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
+
+        // Index 0, 5, 4
+        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { 1.0f, -1.0f, 1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { 1.0f, -1.0f, -1.0f }, NEGATIVE_Y_FACE_NORMAL, RED },
+
+        // Index 2, 6, 7
+        { { -1.0f, 1.0f,-1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, -1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, 1.0f },   POSITIVE_Y_FACE_NORMAL, RED },
+
+        // Index 2, 7, 3
+        { { -1.0f, 1.0f,-1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, 1.0f },   POSITIVE_Y_FACE_NORMAL, RED },
+        { { -1.0f, 1.0f, 1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
+
+        // Index 0, 4, 6
+        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { 1.0f, -1.0f, -1.0f }, NEGATIVE_Z_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, -1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+
+        // Index 0, 6, 2
+        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, -1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { -1.0f, 1.0f,-1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+
+        // Index 1, 3, 7
+        { { -1.0f,-1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED },
+        { { -1.0f, 1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, 1.0f },  POSITIVE_Z_FACE_NORMAL, RED },
+
+        // Index 1, 7, 5
+        { { -1.0f,-1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED },
+        { { 1.0f, 1.0f, 1.0f },  POSITIVE_Z_FACE_NORMAL, RED },
+        { { 1.0f, -1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED }
+    };
+
+    /*
     game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
         { { -1.0f,-1.0f,-1.0f },    { 0, 0, 0 } },
@@ -52,7 +118,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         1,3,7, // +z
         1,7,5,
-    };
+    };*/
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
     game_vertex *Vertices = VertexBuffer->Vertices;
@@ -66,17 +132,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     VertexBuffer->VertexCount = CUBE_VERTEX_COUNT;
 
-    u32 *Indices = VertexBuffer->Indices;
-
-    for (u32 Index = 0;
-         Index < CUBE_INDEX_COUNT;
-         Index++)
-    {
-        Indices[Index] = CubeIndices[Index]; 
-    }
-
-    VertexBuffer->IndexCount = CUBE_INDEX_COUNT;
-
     r32 Near = 1000.0f;
     r32 Far = 1000000.0f;
 
@@ -88,10 +143,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     ModelTranslations[1] = { 2.0f, 2.0f, 0.0f };
     ModelTranslations[2] = { -2.0f, -2.0f, 0.0f };
 
-    /*
     ModelRotation.X += 0.005f;
     ModelRotation.Y += 0.009f;
-    ModelRotation.Z += 0.001f;*/
+    ModelRotation.Z += 0.001f;
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -120,7 +174,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 Radius = 8.0f;
     local_persist r32 Counter = 0.0f;
-    Counter += 0.01f;
+    //Counter += 0.01f;
 
     Eye.X = sin(Counter)*Radius;
     Eye.Z = cos(Counter)*Radius;
