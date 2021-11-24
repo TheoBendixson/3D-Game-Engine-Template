@@ -2,6 +2,7 @@
 struct game_constants
 {
     matrix Transform;
+    matrix View;
     matrix Projection;
     vector_float_3 LightVector;
 };
@@ -9,7 +10,6 @@ struct game_constants
 struct game_vertex
 {
     r32 Position[3];
-    r32 Normal[3];
     r32 Color[3];
 };
 
@@ -17,6 +17,9 @@ struct game_vertex_buffer
 {
     game_vertex *Vertices;
     u32 VertexCount;
+
+    u32 *Indices;
+    u32 IndexCount;
 };
 
 struct clear_color

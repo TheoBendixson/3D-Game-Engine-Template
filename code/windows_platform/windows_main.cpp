@@ -432,6 +432,24 @@ WinMain(HINSTANCE Instance,
     WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
                                                                 RenderCommands.VertexBuffer.Vertices);
 
+    u32 IndexBufferSize = sizeof(u32)*100;
+    RenderCommands.VertexBuffer.Indices = (u32 *)VirtualAlloc(0, IndexBufferSize, 
+                                           MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+    ID3D11Buffer* IndexBuffer;
+    {
+        D3D11_BUFFER_DESC Desc = {};
+        Desc.ByteWidth = IndexBufferSize;
+        Desc.Usage = D3D11_USAGE_DYNAMIC;
+        Desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+        D3D11_SUBRESOURCE_DATA Initial = {};
+        Initial.pSysMem = RenderCommands.VertexBuffer.Indices;
+        HRESULT HR = D11Device->CreateBuffer(&Desc, &Initial, &IndexBuffer);
+        AssertHR(HR);
+    }
+    
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* Layout;
     ID3D11VertexShader* VShader;
@@ -443,10 +461,6 @@ WinMain(HINSTANCE Instance,
             { 
                 "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
                 offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
-            },
-            { 
-                "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "COLOR",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
@@ -509,14 +523,14 @@ WinMain(HINSTANCE Instance,
     {
         D3D11_RASTERIZER_DESC Desc = {};
         Desc.FillMode = D3D11_FILL_SOLID;
-        Desc.CullMode = D3D11_CULL_NONE;
+        Desc.CullMode = D3D11_CULL_BACK;
+        Desc.FrontCounterClockwise = TRUE;
         HR = D11Device->CreateRasterizerState(&Desc, &RasterizerState);
         AssertHR(HR);
     }
 
     ID3D11DepthStencilState* DepthState;
     {
-        // disable depth & stencil test
         D3D11_DEPTH_STENCIL_DESC Desc = {};
         Desc.DepthEnable = TRUE;
         Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -821,6 +835,14 @@ WinMain(HINSTANCE Instance,
                 TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
                                              RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
+                {
+                    D3D11_MAPPED_SUBRESOURCE Mapped;
+                    HRESULT HR = DeviceContext->Map((ID3D11Resource*)IndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped);
+                    AssertHR(HR);
+                    memcpy(Mapped.pData, RenderCommands.VertexBuffer.Indices, IndexBufferSize);
+                    DeviceContext->Unmap((ID3D11Resource*)IndexBuffer, 0);
+                }
+
                 // Input Assembler
                 DeviceContext->IASetInputLayout(Layout);
                 DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -844,6 +866,7 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
                 for (u32 InstanceMeshIndex = 0;
                      InstanceMeshIndex < RenderCommands.InstancedMeshCount;
@@ -858,7 +881,7 @@ WinMain(HINSTANCE Instance,
                         DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
                     }
 
-                    DeviceContext->Draw(RenderCommands.VertexBuffer.VertexCount, 0);
+                    DeviceContext->DrawIndexed(RenderCommands.VertexBuffer.IndexCount, 0, 0);
                 }
 
                 LARGE_INTEGER WithinFrameCounter2;
