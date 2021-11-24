@@ -85,12 +85,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     vector_float_3 ModelTranslations[3];
     ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 100.0f, 0.0f, 0.0f };
-    ModelTranslations[2] = { -100.0f, 0.0f, 0.0f };
+    ModelTranslations[1] = { 2.0f, 2.0f, 0.0f };
+    ModelTranslations[2] = { -2.0f, -2.0f, 0.0f };
 
+    /*
     ModelRotation.X += 0.005f;
     ModelRotation.Y += 0.009f;
-    ModelRotation.Z += 0.001f;
+    ModelRotation.Z += 0.001f;*/
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -115,7 +116,15 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 0.0f,  0.0f, 8.0f };
+    local_persist vector_float_3 Eye = { 0.0f,  0.0f, 0.0f };
+
+    r32 Radius = 8.0f;
+    local_persist r32 Counter = 0.0f;
+    Counter += 0.01f;
+
+    Eye.X = sin(Counter)*Radius;
+    Eye.Z = cos(Counter)*Radius;
+
     vector_float_3 At = {  0.0f,  0.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
