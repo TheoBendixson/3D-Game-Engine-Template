@@ -523,14 +523,14 @@ WinMain(HINSTANCE Instance,
     {
         D3D11_RASTERIZER_DESC Desc = {};
         Desc.FillMode = D3D11_FILL_SOLID;
-        Desc.CullMode = D3D11_CULL_FRONT;
+        Desc.CullMode = D3D11_CULL_BACK;
+        Desc.FrontCounterClockwise = TRUE;
         HR = D11Device->CreateRasterizerState(&Desc, &RasterizerState);
         AssertHR(HR);
     }
 
     ID3D11DepthStencilState* DepthState;
     {
-        // disable depth & stencil test
         D3D11_DEPTH_STENCIL_DESC Desc = {};
         Desc.DepthEnable = TRUE;
         Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;

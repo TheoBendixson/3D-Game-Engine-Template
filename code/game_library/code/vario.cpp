@@ -22,15 +22,15 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     // XYZ Vertices, RGB Color
     game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
-        { { -0.5f,-0.5f,-0.5f },    { 0, 0, 0 } },
-        { { -0.5f,-0.5f, 0.5f },    { 0, 0, 1 } },
-        { { -0.5f, 0.5f,-0.5f },    { 0, 1, 0 } },
-        { { -0.5f, 0.5f, 0.5f },    { 0, 1, 1 } },
+        { { -1.0f,-1.0f,-1.0f },    { 0, 0, 0 } },
+        { { -1.0f,-1.0f, 1.0f },    { 0, 0, 1 } },
+        { { -1.0f, 1.0f,-1.0f },    { 0, 1, 0 } },
+        { { -1.0f, 1.0f, 1.0f },    { 0, 1, 1 } },
 
-        { { 0.5f, -0.5f, -0.5f },   { 1, 0, 0 } },
-        { { 0.5f, -0.5f, 0.5f },    { 1, 0, 1 } },
-        { { 0.5f, 0.5f, -0.5f },    { 1, 1, 0 } },
-        { { 0.5f, 0.5f, 0.5f },     { 1, 1, 1 } },
+        { { 1.0f, -1.0f, -1.0f },   { 1, 0, 0 } },
+        { { 1.0f, -1.0f, 1.0f },    { 1, 0, 1 } },
+        { { 1.0f, 1.0f, -1.0f },    { 1, 1, 0 } },
+        { { 1.0f, 1.0f, 1.0f },     { 1, 1, 1 } },
     };
 
     u32 CubeIndices[CUBE_INDEX_COUNT] =
@@ -115,7 +115,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 0.0f,  0.0f, -8.0f };
+    vector_float_3 Eye = { 0.0f,  0.0f, 8.0f };
     vector_float_3 At = {  0.0f,  0.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
