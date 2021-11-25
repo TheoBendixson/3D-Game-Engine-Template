@@ -21,7 +21,6 @@ extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     // XYZ Vertices, RGB Color
-
     game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
         // Index 0, 2, 1
@@ -163,7 +162,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                          0,                           (Far / (Far - Near)),        1,
                                   0,                          0,                           (Near * Far / (Near - Far)), 0 };
 
-        Constants->LightVector = { 1.0f, -1.0f, 1.0f };
+        Constants->LightVector = { 1.0f, -1.0f, -1.0f };
     }
 
     RenderCommands->InstancedMeshCount = 3;
