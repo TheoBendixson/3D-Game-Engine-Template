@@ -14,10 +14,21 @@ struct game_vertex
     r32 Color[3];
 };
 
+#define MAX_MODELS  3
+
+struct model_range
+{
+    u32 StartVertex;
+    u32 VertexCount;
+};
+
 struct game_vertex_buffer
 {
     game_vertex *Vertices;
     u32 VertexCount;
+
+    model_range ModelRanges[MAX_MODELS];
+    u32 ModelCount;
 };
 
 struct clear_color

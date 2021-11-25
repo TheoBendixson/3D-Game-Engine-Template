@@ -858,7 +858,8 @@ WinMain(HINSTANCE Instance,
                         DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
                     }
 
-                    DeviceContext->Draw(RenderCommands.VertexBuffer.VertexCount, 0);
+                    model_range Range = RenderCommands.VertexBuffer.ModelRanges[0];
+                    DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
                 }
 
                 LARGE_INTEGER WithinFrameCounter2;
