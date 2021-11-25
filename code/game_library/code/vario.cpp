@@ -143,10 +143,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
     vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
 
+    // NOTE: (Ted)  Investigate why positive X appears to go left when viewed with this camera.
     vector_float_3 ModelTranslations[3];
     ModelTranslations[0] = { 15.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 16.0f, 1.0f, 0.0f };
-    ModelTranslations[2] = { 17.0f, 2.0f, 0.0f };
+    ModelTranslations[1] = { 16.0f, 0.0f, 0.0f };
+    ModelTranslations[2] = { 17.0f, 0.0f, 0.0f };
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -186,8 +187,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     u32 InstanceModelIndices[3];
     InstanceModelIndices[0] = 0;
-    InstanceModelIndices[1] = 1;
-    InstanceModelIndices[2] = 2;
+    InstanceModelIndices[1] = 0;
+    InstanceModelIndices[2] = 0;
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < 3;
