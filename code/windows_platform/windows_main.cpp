@@ -426,7 +426,7 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_vertex)*100;
+    u32 VertexBufferSize = sizeof(game_vertex)*2000;
     RenderCommands.VertexBuffer.Vertices = (game_vertex *)VirtualAlloc(0, VertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
@@ -858,7 +858,8 @@ WinMain(HINSTANCE Instance,
                         DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
                     }
 
-                    model_range Range = RenderCommands.VertexBuffer.ModelRanges[0];
+                    u32 ModelIndex = RenderCommands.InstanceModelIndices[InstanceMeshIndex];
+                    model_range Range = RenderCommands.VertexBuffer.ModelRanges[ModelIndex];
                     DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
                 }
 

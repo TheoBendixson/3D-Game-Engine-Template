@@ -88,7 +88,7 @@ void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor
     };
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
-    game_vertex *Vertices = (VertexBuffer->Vertices + VertexBuffer->VertexCount);
+    game_vertex *Vertices = VertexBuffer->Vertices;
 
     model_range Range = {};
     Range.StartVertex = VertexBuffer->VertexCount;
@@ -116,12 +116,26 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     VertexBuffer->VertexCount = 0;
     VertexBuffer->ModelCount = 0;
 
-    r32 Color[3];
-    Color[0] = 0;
-    Color[1] = 0;
-    Color[2] = 1;
+    r32 Red[3];
+    Red[0] = 1;
+    Red[1] = 0;
+    Red[2] = 0;
 
-    LoadColoredCubeVertices(RenderCommands, Color);
+    LoadColoredCubeVertices(RenderCommands, Red);
+
+    r32 Green[3];
+    Green[0] = 0;
+    Green[1] = 1;
+    Green[2] = 0;
+
+    LoadColoredCubeVertices(RenderCommands, Green);
+
+    r32 Blue[3];
+    Blue[0] = 0;
+    Blue[1] = 0;
+    Blue[2] = 1;
+
+    LoadColoredCubeVertices(RenderCommands, Blue);
 
     r32 Near = 1000.0f;
     r32 Far = 1000000.0f;
@@ -170,6 +184,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
+    u32 InstanceModelIndices[3];
+    InstanceModelIndices[0] = 0;
+    InstanceModelIndices[1] = 1;
+    InstanceModelIndices[2] = 2;
+
     for (u32 InstanceIndex = 0;
          InstanceIndex < 3;
          InstanceIndex++)
@@ -190,6 +209,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                          0,                           (Near * Far / (Near - Far)), 0 };
 
         Constants->LightVector = { 1.0f, -1.0f, -1.0f };
+
+        RenderCommands->InstanceModelIndices[InstanceIndex] = InstanceModelIndices[InstanceIndex];
     }
 
     RenderCommands->InstancedMeshCount = 3;

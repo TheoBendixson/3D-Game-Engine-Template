@@ -43,6 +43,10 @@ struct game_render_commands
     clear_color ClearColor;
 
     game_vertex_buffer VertexBuffer;
+
+    // TODO: (Ted)  It's pretty clear an instance of constants
+    //              will always be coupled with a model index.
     game_constants *Constants;
+    u32 InstanceModelIndices[100];
     u32 InstancedMeshCount;
 };
