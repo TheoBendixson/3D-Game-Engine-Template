@@ -25,100 +25,65 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
         // Index 0, 2, 1
-        { { -1.0f,-1.0f,-1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
-        { { -1.0f, 1.0f,-1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
-        { { -1.0f,-1.0f, 1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f,-0.5f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f,-0.5f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f, 0.5f }, NEGATIVE_X_FACE_NORMAL, RED },
 
         // Index 1, 2, 3
-        { { -1.0f,-1.0f, 1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
-        { { -1.0f, 1.0f,-1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
-        { { -1.0f, 1.0f, 1.0f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f, 0.5f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f,-0.5f }, NEGATIVE_X_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f, 0.5f }, NEGATIVE_X_FACE_NORMAL, RED },
 
         // Index 4, 5, 6
-        { { 1.0f, -1.0f, -1.0f }, POSITIVE_X_FACE_NORMAL, RED },
-        { { 1.0f, -1.0f, 1.0f },  POSITIVE_X_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, -1.0f },  POSITIVE_X_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, -0.5f }, POSITIVE_X_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, 0.5f },  POSITIVE_X_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, -0.5f },  POSITIVE_X_FACE_NORMAL, RED },
 
         // Index 5, 7, 6
-        { { 1.0f, -1.0f, 1.0f },  POSITIVE_X_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, 1.0f },   POSITIVE_X_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, -1.0f },  POSITIVE_X_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, 0.5f },  POSITIVE_X_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, 0.5f },   POSITIVE_X_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, -0.5f },  POSITIVE_X_FACE_NORMAL, RED },
 
         // Index 0, 1, 5
-        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
-        { { -1.0f,-1.0f, 1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
-        { { 1.0f, -1.0f, 1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f,-0.5f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f, 0.5f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, 0.5f },  NEGATIVE_Y_FACE_NORMAL, RED },
 
         // Index 0, 5, 4
-        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
-        { { 1.0f, -1.0f, 1.0f },  NEGATIVE_Y_FACE_NORMAL, RED },
-        { { 1.0f, -1.0f, -1.0f }, NEGATIVE_Y_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f,-0.5f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, 0.5f },  NEGATIVE_Y_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, -0.5f }, NEGATIVE_Y_FACE_NORMAL, RED },
 
         // Index 2, 6, 7
-        { { -1.0f, 1.0f,-1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, -1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, 1.0f },   POSITIVE_Y_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f,-0.5f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, -0.5f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, 0.5f },   POSITIVE_Y_FACE_NORMAL, RED },
 
         // Index 2, 7, 3
-        { { -1.0f, 1.0f,-1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, 1.0f },   POSITIVE_Y_FACE_NORMAL, RED },
-        { { -1.0f, 1.0f, 1.0f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f,-0.5f },  POSITIVE_Y_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, 0.5f },   POSITIVE_Y_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f, 0.5f },  POSITIVE_Y_FACE_NORMAL, RED },
 
         // Index 0, 4, 6
-        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
-        { { 1.0f, -1.0f, -1.0f }, NEGATIVE_Z_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, -1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f,-0.5f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, -0.5f }, NEGATIVE_Z_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, -0.5f },  NEGATIVE_Z_FACE_NORMAL, RED },
 
         // Index 0, 6, 2
-        { { -1.0f,-1.0f,-1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, -1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
-        { { -1.0f, 1.0f,-1.0f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f,-0.5f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, -0.5f },  NEGATIVE_Z_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f,-0.5f },  NEGATIVE_Z_FACE_NORMAL, RED },
 
         // Index 1, 3, 7
-        { { -1.0f,-1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED },
-        { { -1.0f, 1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, 1.0f },  POSITIVE_Z_FACE_NORMAL, RED },
+        { { -0.5f,-0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, RED },
+        { { -0.5f, 0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, 0.5f },  POSITIVE_Z_FACE_NORMAL, RED },
 
         // Index 1, 7, 5
-        { { -1.0f,-1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED },
-        { { 1.0f, 1.0f, 1.0f },  POSITIVE_Z_FACE_NORMAL, RED },
-        { { 1.0f, -1.0f, 1.0f }, POSITIVE_Z_FACE_NORMAL, RED }
+        { { -0.5f,-0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, RED },
+        { { 0.5f, 0.5f, 0.5f },  POSITIVE_Z_FACE_NORMAL, RED },
+        { { 0.5f, -0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, RED }
     };
-
-    /*
-    game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
-    {
-        { { -1.0f,-1.0f,-1.0f },    { 0, 0, 0 } },
-        { { -1.0f,-1.0f, 1.0f },    { 0, 0, 1 } },
-        { { -1.0f, 1.0f,-1.0f },    { 0, 1, 0 } },
-        { { -1.0f, 1.0f, 1.0f },    { 0, 1, 1 } },
-
-        { { 1.0f, -1.0f, -1.0f },   { 1, 0, 0 } },
-        { { 1.0f, -1.0f, 1.0f },    { 1, 0, 1 } },
-        { { 1.0f, 1.0f, -1.0f },    { 1, 1, 0 } },
-        { { 1.0f, 1.0f, 1.0f },     { 1, 1, 1 } },
-    };
-
-    u32 CubeIndices[CUBE_INDEX_COUNT] =
-    {
-        0,2,1, // -x
-        1,2,3,
-
-        4,5,6, // +x
-        5,7,6,
-
-        0,1,5, // -y
-        0,5,4,
-
-        2,6,7, // +y
-        2,7,3,
-
-        0,4,6, // -z
-        0,6,2,
-
-        1,3,7, // +z
-        1,7,5,
-    };*/
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
     game_vertex *Vertices = VertexBuffer->Vertices;
@@ -139,13 +104,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
 
     vector_float_3 ModelTranslations[3];
-    ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 2.0f, 2.0f, 0.0f };
-    ModelTranslations[2] = { -2.0f, -2.0f, 0.0f };
-
-    ModelRotation.X += 0.005f;
-    ModelRotation.Y += 0.009f;
-    ModelRotation.Z += 0.001f;
+    ModelTranslations[0] = { 15.0f, 0.0f, 0.0f };
+    ModelTranslations[1] = { 16.0f, 1.0f, 0.0f };
+    ModelTranslations[2] = { 17.0f, 2.0f, 0.0f };
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -170,16 +131,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    local_persist vector_float_3 Eye = { 0.0f,  0.0f, 0.0f };
-
-    r32 Radius = 8.0f;
-    local_persist r32 Counter = 0.0f;
-    //Counter += 0.01f;
-
-    Eye.X = sin(Counter)*Radius;
-    Eye.Z = cos(Counter)*Radius;
-
-    vector_float_3 At = {  0.0f,  0.0f,  0.0f };
+    vector_float_3 Eye = { 16.0f,  0.0f, 32.0f };
+    vector_float_3 At = {  16.0f,  16.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
     vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
