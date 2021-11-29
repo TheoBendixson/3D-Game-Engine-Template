@@ -146,8 +146,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     // NOTE: (Ted)  Investigate why positive X appears to go left when viewed with this camera.
     vector_float_3 ModelTranslations[3];
     ModelTranslations[0] = { 15.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 16.0f, 0.0f, 0.0f };
-    ModelTranslations[2] = { 17.0f, 0.0f, 0.0f };
+    ModelTranslations[1] = { 16.0f, 1.0f, 0.0f };
+    ModelTranslations[2] = { 17.0f, 2.0f, 0.0f };
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -172,8 +172,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 16.0f,  0.0f, 32.0f };
-    vector_float_3 At = {  16.0f,  16.0f,  0.0f };
+    vector_float_3 Eye = { 0.0f,  0.0f, -16.0f };
+    vector_float_3 At = {  0.0f,  0.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
     vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
@@ -187,8 +187,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     u32 InstanceModelIndices[3];
     InstanceModelIndices[0] = 0;
-    InstanceModelIndices[1] = 0;
-    InstanceModelIndices[2] = 0;
+    InstanceModelIndices[1] = 1;
+    InstanceModelIndices[2] = 2;
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < 3;
@@ -209,7 +209,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                          0,                           (Far / (Far - Near)),        1,
                                   0,                          0,                           (Near * Far / (Near - Far)), 0 };
 
-        Constants->LightVector = { 1.0f, -1.0f, -1.0f };
+        Constants->LightVector = { -1.0f, -1.0f, 1.0f };
 
         RenderCommands->InstanceModelIndices[InstanceIndex] = InstanceModelIndices[InstanceIndex];
     }
