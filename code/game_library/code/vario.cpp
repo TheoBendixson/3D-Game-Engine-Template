@@ -122,7 +122,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 0.0f,  0.0f, -16.0f };
+    vector_float_3 Eye = { 0.0f,  -32.0f, -16.0f };
     vector_float_3 At = {  0.0f,  0.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
