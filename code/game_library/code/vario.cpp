@@ -7,6 +7,38 @@
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
+    Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
+
+    game_state *GameState = (game_state *)Memory->PermanentStorage;
+
+    if(!Memory->IsInitialized) 
+    {
+        cube_map *CubeMap = &GameState->CubeMap;
+        CubeMap->CountX = CUBE_COUNT_X;
+        CubeMap->CountY = CUBE_COUNT_Y;
+        CubeMap->CountZ = CUBE_COUNT_Z;
+
+        for (u32 Layer = 0;
+             Layer < CubeMap->CountZ;
+             Layer++)
+        {
+            for (u32 Row = 0;
+                 Row < CubeMap->CountY;
+                 Row++)
+            {
+                for (u32 Column = 0;
+                     Column < CubeMap->CountX;
+                     Column++)
+                {
+                    u32 Value = (Layer + Row + Column)%3;
+                    CubeMap->Cubes[Layer*CubeMap->CountY + Row*CubeMap->CountX + Column] = Value;
+                }
+            }
+        }
+
+        Memory->IsInitialized = true;
+    }
+
     // TODO: (Ted)  Move this to loading logic so it isn't happening once per frame.
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
     VertexBuffer->VertexCount = 0;
@@ -39,29 +71,33 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
     vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
 
-    // NOTE: (Ted)  Ultimately a tile map position turns into model translations which place a model some distance away from the center of the
-    //              world.
-    //
-    //              Each cube model is 1 tile across at scale, so should be translated over by 0.5 if its tile map position is one.
+    vector_float_3 *ModelTranslations = GameState->ModelTranslations;
+    u32 TranslationIndex = 0;
 
-    cube_map_position Positions[3];
-    cube_map_position P1 = {};
-    cube_map_position P2 = {};
-    P2.X = 1;
-    P2.Y = 1;
+    cube_map *CubeMap = &GameState->CubeMap;
 
-    cube_map_position P3 = {};
-    P3.X = 2;
-    P3.Y = 2;
+    for (u32 Layer = 0;
+         Layer < CubeMap->CountZ;
+         Layer++)
+    {
+        for (u32 Row = 0;
+             Row < CubeMap->CountY;
+             Row++)
+        {
+            for (u32 Column = 0;
+                 Column < CubeMap->CountX;
+                 Column++)
+            {
+                cube_map_position Pos = {};
+                Pos.X = Column;
+                Pos.Y = Row;
+                Pos.Z = Layer;
 
-    Positions[0] = P1;
-    Positions[1] = P2;
-    Positions[2] = P3;
-
-    vector_float_3 ModelTranslations[3];
-    ModelTranslations[0] = ConvertCubeMapPositionToModelTranslation(P1);
-    ModelTranslations[1] = ConvertCubeMapPositionToModelTranslation(P2);
-    ModelTranslations[2] = ConvertCubeMapPositionToModelTranslation(P3);
+                ModelTranslations[TranslationIndex] = ConvertCubeMapPositionToModelTranslation(Pos);
+                TranslationIndex++;
+            }
+        }
+    }
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -99,13 +135,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
-    u32 InstanceModelIndices[3];
-    InstanceModelIndices[0] = 0;
-    InstanceModelIndices[1] = 1;
-    InstanceModelIndices[2] = 2;
-
     for (u32 InstanceIndex = 0;
-         InstanceIndex < 3;
+         InstanceIndex < CUBE_MAP_SIZE;
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ModelTranslations[InstanceIndex];
@@ -125,9 +156,12 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         Constants->LightVector = { -1.0f, -1.0f, 1.0f };
 
-        RenderCommands->InstanceModelIndices[InstanceIndex] = InstanceModelIndices[InstanceIndex];
+        u32 Value = GameState->CubeMap.Cubes[InstanceIndex];
+        u32 ColorIndex = 0;
+
+        RenderCommands->InstanceModelIndices[InstanceIndex] = Value;
     }
 
-    RenderCommands->InstancedMeshCount = 3;
+    RenderCommands->InstancedMeshCount = CUBE_MAP_SIZE;
 }
 

@@ -266,7 +266,7 @@ WinMain(HINSTANCE Instance,
     RenderCommands.ViewportWidth = WindowWidth;
     RenderCommands.ViewportHeight = WindowHeight;
 
-    u32 InstancedMeshBufferSize = 10;
+    u32 InstancedMeshBufferSize = 200;
     RenderCommands.Constants = (game_constants *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(game_constants),
                                                               MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 

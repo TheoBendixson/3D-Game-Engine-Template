@@ -36,6 +36,8 @@ struct clear_color
     r32 RGBA[4];
 };
 
+
+// TODO: (Ted)  Tie this more closely to the cube map
 struct game_render_commands
 {
     s32 ViewportWidth;
@@ -47,6 +49,6 @@ struct game_render_commands
     // TODO: (Ted)  It's pretty clear an instance of constants
     //              will always be coupled with a model index.
     game_constants *Constants;
-    u32 InstanceModelIndices[100];
+    u32 InstanceModelIndices[200];
     u32 InstancedMeshCount;
 };
