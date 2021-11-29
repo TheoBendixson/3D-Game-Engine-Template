@@ -7,6 +7,7 @@
 #include "game_render_commands.h"
 #include "game_startup_config.h"
 #include "game_sound.h"
+#include "cube_map.h"
 
 #define PLATFORM_READ_ENTIRE_FILE(name) read_file_result name(thread_context *Thread, char *Filename)
 typedef PLATFORM_READ_ENTIRE_FILE(platform_read_entire_file);

@@ -1,6 +1,7 @@
 #include "vario.h"
 #include "game_startup_config.cpp"
 #include "game_math.cpp"
+#include "cube_map.cpp"
 #include "model_loader.cpp"
 
 extern "C"
@@ -42,10 +43,25 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     //              world.
     //
     //              Each cube model is 1 tile across at scale, so should be translated over by 0.5 if its tile map position is one.
+
+    cube_map_position Positions[3];
+    cube_map_position P1 = {};
+    cube_map_position P2 = {};
+    P2.X = 1;
+    P2.Y = 1;
+
+    cube_map_position P3 = {};
+    P3.X = 2;
+    P3.Y = 2;
+
+    Positions[0] = P1;
+    Positions[1] = P2;
+    Positions[2] = P3;
+
     vector_float_3 ModelTranslations[3];
-    ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 1.0f, 1.0f, 0.0f };
-    ModelTranslations[2] = { 2.0f, 2.0f, 0.0f };
+    ModelTranslations[0] = ConvertCubeMapPositionToModelTranslation(P1);
+    ModelTranslations[1] = ConvertCubeMapPositionToModelTranslation(P2);
+    ModelTranslations[2] = ConvertCubeMapPositionToModelTranslation(P3);
 
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
