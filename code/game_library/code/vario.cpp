@@ -81,7 +81,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Far = 1000000.0f;
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
-    vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
+    vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
 
     vector_float_3 ModelTranslations[3];
     ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
@@ -115,7 +115,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 0.0f,  0.0f, 8.0f };
+    vector_float_3 Eye = { 0.0f,  0.0f, 1500.0f };
     vector_float_3 At = {  0.0f,  0.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
@@ -129,7 +129,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
     for (u32 InstanceIndex = 0;
-         InstanceIndex < 3;
+         InstanceIndex < 1;
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ModelTranslations[InstanceIndex];
