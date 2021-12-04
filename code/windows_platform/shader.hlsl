@@ -25,15 +25,19 @@ PS_INPUT vs(VS_INPUT input)
     float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
                             normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
 
+
     PS_INPUT output;
 
     row_major float4x4 ModelView = mul(Transform, View);
-    output.Position = mul(float4(input.Position, 1.0f), mul(ModelView, Projection));
+    row_major float4x4 MVPMatrix = mul(ModelView, Projection);
+    output.Position = mul(float4(input.Position.xyz, 1.0f), MVPMatrix);
     output.Color = float4(input.Color * Light, 1.0f);
     return output;
 }                                                                              
 
 float4 ps(PS_INPUT input) : SV_TARGET                                          
 {                                                                              
+    //return float4(input.Position.zzz, 1.0f);
     return input.Color;
 }
+

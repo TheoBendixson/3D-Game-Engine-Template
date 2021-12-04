@@ -377,7 +377,7 @@ WinMain(HINSTANCE Instance,
         SwapChainDescription.BufferCount = 2;
         SwapChainDescription.OutputWindow = WindowHandle;
         SwapChainDescription.Windowed = TRUE;
-
+    
         // use more efficient flip model, available in Windows 10
         // if Windows 8 compatibility required, use DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
         // if Windows 7/Vista compatibility required, use DXGI_SWAP_EFFECT_DISCARD
@@ -486,6 +486,7 @@ WinMain(HINSTANCE Instance,
         *Byte++ = 0;
     }
 
+    /*
     ID3D11BlendState* BlendState;
     {
         // enable alpha blending
@@ -503,7 +504,7 @@ WinMain(HINSTANCE Instance,
 
         HR = D11Device->CreateBlendState(&Desc, &BlendState);
         AssertHR(HR);
-    }
+    }*/
 
     ID3D11RasterizerState* RasterizerState;
     {
@@ -839,8 +840,8 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->PSSetShader(PShader, NULL, 0);
 
                 // Output Merger
-                DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
+                DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);

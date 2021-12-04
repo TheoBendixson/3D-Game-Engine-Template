@@ -8,7 +8,6 @@ extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
-
     game_state *GameState = (game_state *)Memory->PermanentStorage;
 
     if(!Memory->IsInitialized) 
@@ -64,12 +63,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         Memory->IsInitialized = true;
     }
 
-
-    r32 Near = 1000.0f;
-    r32 Far = 1000000.0f;
-
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
-    vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
+    //vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
+    vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
 
     vector_float_3 *ModelTranslations = GameState->ModelTranslations;
     u32 TranslationIndex = 0;
@@ -122,9 +118,21 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 0.0f,  -32.0f, -16.0f };
-    vector_float_3 At = {  0.0f,  0.0f,  0.0f };
+    local_persist r32 Counter = 0;
+    Counter += 0.01f;
+
+    r32 EyeX = -cos(Counter)*5.0f;
+    r32 EyeY = -sin(Counter)*4.0f;
+    r32 EyeZ = -1000.0f;
+    //r32 EyeZ = -4.0f;
+
+    vector_float_3 Eye = { EyeX,  EyeY, EyeZ };
+    vector_float_3 At = {  5.0f,  5.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
+
+    //r32 Near = 1.0f;
+    r32 Near = 1000.0f;
+    r32 Far = 2048.0f;
 
     vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
     vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
@@ -135,8 +143,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
+    //u32 DrawCount = CUBE_MAP_SIZE;
+    u32 DrawCount = 1;
+
     for (u32 InstanceIndex = 0;
-         InstanceIndex < CUBE_MAP_SIZE;
+         InstanceIndex < DrawCount;
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ModelTranslations[InstanceIndex];
@@ -147,21 +158,27 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                              ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        //Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->Transform = Scale * Translate;
         Constants->View = LookAt;
-        Constants->Projection = { (2 * Near / ViewportWidth), 0,                           0,                           0,
-                                  0,                          (2 * Near / ViewportHeight), 0,                           0,
-                                  0,                          0,                           (Far / (Far - Near)),        1,
-                                  0,                          0,                           (Near * Far / (Near - Far)), 0 };
 
-        Constants->LightVector = { -1.0f, -1.0f, 1.0f };
+        Constants->Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
+                                  0,                        2 * Near / ViewportHeight, 0,                           0,
+                                  0,                        0,                         Far / (Far - Near),          1,
+                                  0,                        0,                         Near*Far / (Near - Far),     0 };
+
+        Constants->LightVector = { 1.0f, -1.0f, 1.0f };
 
         u32 Value = GameState->CubeMap.Cubes[InstanceIndex];
-        u32 ColorIndex = 0;
-
         RenderCommands->InstanceModelIndices[InstanceIndex] = Value;
     }
 
-    RenderCommands->InstancedMeshCount = CUBE_MAP_SIZE;
+    RenderCommands->InstancedMeshCount = DrawCount;
+
+    clear_color *ClearColor = &RenderCommands->ClearColor;
+    ClearColor->RGBA[0] = 0.183f;
+    ClearColor->RGBA[1] = 0.211f;
+    ClearColor->RGBA[2] = 0.249f;
+    ClearColor->RGBA[3] = 1.0f;
 }
 
