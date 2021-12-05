@@ -64,8 +64,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     }
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
-    //vector_float_3 ModelScale = { 1.0f, 1.0f, 1.0f };
-    vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
+
+    r32 CubeSideInMeters = 200.0f;
+    vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
     vector_float_3 *ModelTranslations = GameState->ModelTranslations;
     u32 TranslationIndex = 0;
@@ -121,18 +122,16 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     local_persist r32 Counter = 0;
     Counter += 0.01f;
 
-    r32 EyeX = -cos(Counter)*5.0f;
-    r32 EyeY = -sin(Counter)*4.0f;
-    r32 EyeZ = -1000.0f;
-    //r32 EyeZ = -4.0f;
+    r32 EyeX = -cos(Counter)*500.0f;
+    r32 EyeY = -sin(Counter)*400.0f;
+    r32 EyeZ = -2000.0f;
 
     vector_float_3 Eye = { EyeX,  EyeY, EyeZ };
     vector_float_3 At = {  5.0f,  5.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
-    //r32 Near = 1.0f;
     r32 Near = 1000.0f;
-    r32 Far = 2048.0f;
+    r32 Far = 10000.0f;
 
     vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
     vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
@@ -143,8 +142,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
-    //u32 DrawCount = CUBE_MAP_SIZE;
-    u32 DrawCount = 1;
+    u32 DrawCount = CUBE_MAP_SIZE;
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < DrawCount;
