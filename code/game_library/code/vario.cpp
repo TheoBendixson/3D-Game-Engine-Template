@@ -22,15 +22,15 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     // XYZ Vertices, RGB Color
     game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
-        { { -1.0f,-1.0f,-1.0f },    { 0, 0, 0 } },
-        { { -1.0f,-1.0f, 1.0f },    { 0, 0, 1 } },
-        { { -1.0f, 1.0f,-1.0f },    { 0, 1, 0 } },
-        { { -1.0f, 1.0f, 1.0f },    { 0, 1, 1 } },
+        { { -0.5f,-0.5f,-0.5f },    { 0, 0, 0 } },
+        { { -0.5f,-0.5f, 0.5f },    { 0, 0, 1 } },
+        { { -0.5f, 0.5f,-0.5f },    { 0, 1, 0 } },
+        { { -0.5f, 0.5f, 0.5f },    { 0, 1, 1 } },
 
-        { { 1.0f, -1.0f, -1.0f },   { 1, 0, 0 } },
-        { { 1.0f, -1.0f, 1.0f },    { 1, 0, 1 } },
-        { { 1.0f, 1.0f, -1.0f },    { 1, 1, 0 } },
-        { { 1.0f, 1.0f, 1.0f },     { 1, 1, 1 } },
+        { { 0.5f, -0.5f, -0.5f },   { 1, 0, 0 } },
+        { { 0.5f, -0.5f, 0.5f },    { 1, 0, 1 } },
+        { { 0.5f, 0.5f, -0.5f },    { 1, 1, 0 } },
+        { { 0.5f, 0.5f, 0.5f },     { 1, 1, 1 } },
     };
 
     u32 CubeIndices[CUBE_INDEX_COUNT] =
@@ -78,15 +78,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     VertexBuffer->IndexCount = CUBE_INDEX_COUNT;
 
     r32 Near = 1000.0f;
-    r32 Far = 1000000.0f;
+    r32 Far = 2048.0f;
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
-    vector_float_3 ModelScale = { 400.0f, 400.0f, 400.0f };
+    vector_float_3 ModelScale = { 200.0f, 200.0f, 200.0f };
 
     vector_float_3 ModelTranslations[3];
     ModelTranslations[0] = { 0.0f, 0.0f, 0.0f };
-    ModelTranslations[1] = { 100.0f, 0.0f, 0.0f };
-    ModelTranslations[2] = { -100.0f, 0.0f, 0.0f };
 
     ModelRotation.X += 0.005f;
     ModelRotation.Y += 0.009f;
@@ -115,7 +113,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    vector_float_3 Eye = { 0.0f,  0.0f, 1500.0f };
+    vector_float_3 Eye = { 0.0f,  0.0f, 1200.0f };
     vector_float_3 At = {  0.0f,  0.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
