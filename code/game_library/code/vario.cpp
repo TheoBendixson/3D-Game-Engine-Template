@@ -119,15 +119,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
-    local_persist r32 Counter = 0;
-    Counter += 0.01f;
+    r32 MiddleOfTheWorld = CubeMap->CountX*CubeSideInMeters/2.0f;
 
-    r32 EyeX = -cos(Counter)*500.0f;
-    r32 EyeY = -sin(Counter)*400.0f;
-    r32 EyeZ = -2000.0f;
+    vector_float_3 Eye = { MiddleOfTheWorld,  -MiddleOfTheWorld, -2000.0f };
+    vector_float_3 At = {  MiddleOfTheWorld,  MiddleOfTheWorld,  0.0f };
 
-    vector_float_3 Eye = { EyeX,  EyeY, EyeZ };
-    vector_float_3 At = {  5.0f,  5.0f,  0.0f };
     vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
 
     r32 Near = 1000.0f;
