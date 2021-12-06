@@ -17,8 +17,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         CubeMap->CountY = CUBE_COUNT_Y;
         CubeMap->CountZ = CUBE_COUNT_Z;
 
-        u32 IterationCount = 0;
-
         for (u32 Layer = 0;
              Layer < CubeMap->CountZ;
              Layer++)
@@ -33,7 +31,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                 {
                     u32 Value = (Layer + Row + Column)%3;
                     CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column] = Value;
-                    IterationCount++;
                 }
             }
         }
@@ -74,6 +71,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     vector_float_3 *ModelTranslations = GameState->ModelTranslations;
     u32 TranslationIndex = 0;
 
+    // TODO: (Ted)  Create the notion of a push buffer here.
+    //              
+    //              1. Read the value of the cube map.
+    //              2. If the value is some no-draw number, don't put it in the push buffer.
+    //              3. Otherwise, put it in the push buffer with a translation to that point.
     cube_map *CubeMap = &GameState->CubeMap;
 
     for (u32 Layer = 0;
@@ -142,6 +144,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
+    // TODO: (Ted)  This should just read the push buffer instead.
     u32 DrawCount = CUBE_MAP_SIZE;
 
     for (u32 InstanceIndex = 0;
