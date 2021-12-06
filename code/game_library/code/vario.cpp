@@ -4,6 +4,10 @@
 #include "cube_map.cpp"
 #include "model_loader.cpp"
 
+#define RED_CUBE            1
+#define GREEN_CUBE          2
+#define BLUE_CUBE           3
+
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
@@ -29,7 +33,19 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                      Column < CubeMap->CountX;
                      Column++)
                 {
-                    u32 Value = (Layer + Row + Column)%3;
+                    u32 Value = 0; 
+                    
+                    if (Layer == 0)
+                    {
+                        Value = GREEN_CUBE;
+                    } else if (Layer == 1)
+                    {
+                        if (Row == 2 && Column == 5)
+                        {
+                            Value = RED_CUBE;
+                        }
+                    }
+
                     CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column] = Value;
                 }
             }
@@ -68,8 +84,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
+    // TODO: (Ted) Make this the push buffer.
     vector_float_3 *ModelTranslations = GameState->ModelTranslations;
-    u32 TranslationIndex = 0;
+
+    u32 PushBufferIndex = 0;
 
     // TODO: (Ted)  Create the notion of a push buffer here.
     //              
@@ -95,8 +113,14 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                 Pos.Y = Row;
                 Pos.Z = Layer;
 
-                ModelTranslations[TranslationIndex] = ConvertCubeMapPositionToModelTranslation(Pos);
-                TranslationIndex++;
+
+                u32 CubeValue = CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column];
+
+                if (CubeValue > 0)
+                {
+                    ModelTranslations[PushBufferIndex] = ConvertCubeMapPositionToModelTranslation(Pos);
+                    PushBufferIndex++;
+                }
             }
         }
     }
@@ -144,8 +168,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                       XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
                       -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
 
-    // TODO: (Ted)  This should just read the push buffer instead.
-    u32 DrawCount = CUBE_MAP_SIZE;
+    u32 DrawCount = PushBufferIndex;
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < DrawCount;
@@ -169,8 +192,19 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         Constants->LightVector = { 1.0f, -1.0f, -1.0f };
 
-        u32 Value = GameState->CubeMap.Cubes[InstanceIndex];
-        RenderCommands->InstanceModelIndices[InstanceIndex] = Value;
+        u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
+
+        u32 ModelIndex = 0;
+
+        if (CubeValue == 2)
+        {
+            ModelIndex = 1;
+        } else if (CubeValue == 3)
+        {
+            ModelIndex = 2;
+        }
+
+        RenderCommands->InstanceModelIndices[InstanceIndex] = ModelIndex;
     }
 
     RenderCommands->InstancedMeshCount = DrawCount;
