@@ -17,6 +17,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         CubeMap->CountY = CUBE_COUNT_Y;
         CubeMap->CountZ = CUBE_COUNT_Z;
 
+        u32 IterationCount = 0;
+
         for (u32 Layer = 0;
              Layer < CubeMap->CountZ;
              Layer++)
@@ -30,7 +32,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                      Column++)
                 {
                     u32 Value = (Layer + Row + Column)%3;
-                    CubeMap->Cubes[Layer*CubeMap->CountY + Row*CubeMap->CountX + Column] = Value;
+                    CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column] = Value;
+                    IterationCount++;
                 }
             }
         }
