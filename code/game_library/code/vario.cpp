@@ -123,9 +123,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 EyeX = MiddleOfTheWorld;
 
-    vector_float_3 Eye = { EyeX,  -MiddleOfTheWorld, -MiddleOfTheWorld };
+    vector_float_3 Eye = { EyeX,  -MiddleOfTheWorld, MiddleOfTheWorld };
     vector_float_3 At = {  EyeX,  MiddleOfTheWorld,  0.0f };
-    vector_float_3 Up = {  0.0f,  0.0f,  -1.0f };
+    vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
@@ -161,7 +161,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                        0,                         Far / (Far - Near),          1,
                                   0,                        0,                         Near*Far / (Near - Far),     0 };
 
-        Constants->LightVector = { 1.0f, -1.0f, 1.0f };
+        Constants->LightVector = { 1.0f, -1.0f, -1.0f };
 
         u32 Value = GameState->CubeMap.Cubes[InstanceIndex];
         RenderCommands->InstanceModelIndices[InstanceIndex] = Value;
