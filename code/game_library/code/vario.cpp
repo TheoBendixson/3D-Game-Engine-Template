@@ -121,10 +121,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 MiddleOfTheWorld = CubeMap->CountX*CubeSideInMeters/2.0f;
 
-    vector_float_3 Eye = { MiddleOfTheWorld,  -MiddleOfTheWorld, -2000.0f };
-    vector_float_3 At = {  MiddleOfTheWorld,  MiddleOfTheWorld,  0.0f };
+    r32 EyeX = MiddleOfTheWorld;
 
-    vector_float_3 Up = {  0.0f,  1.0f,  0.0f };
+    vector_float_3 Eye = { EyeX,  -MiddleOfTheWorld, -MiddleOfTheWorld };
+    vector_float_3 At = {  EyeX,  MiddleOfTheWorld,  0.0f };
+    vector_float_3 Up = {  0.0f,  0.0f,  -1.0f };
 
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
@@ -152,8 +153,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                              ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
-        //Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->Transform = Scale * Translate;
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = LookAt;
 
         Constants->Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
