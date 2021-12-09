@@ -118,7 +118,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
                 if (CubeValue > 0)
                 {
-                    ModelTranslations[PushBufferIndex] = ConvertCubeMapPositionToModelTranslation(Pos);
+                    ModelTranslations[PushBufferIndex] = ConvertCubeMapPositionToModelTranslation(Pos, CubeSideInMeters);
                     PushBufferIndex++;
                 }
             }

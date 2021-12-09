@@ -1,12 +1,9 @@
 
-// TODO: (Ted)  Move the tile side into this.
 vector_float_3
-ConvertCubeMapPositionToModelTranslation(cube_map_position Position)
+ConvertCubeMapPositionToModelTranslation(cube_map_position Position, r32 CubeSideInMeters)
 {
-    r32 Space = 200.0f;
-
-    vector_float_3 Result = { ((Position.X*Space) + Position.Offset.X), 
-                              ((Position.Y*Space) + Position.Offset.Y), 
-                              ((Position.Z*Space) + Position.Offset.Z) };
+    vector_float_3 Result = { (Position.X*CubeSideInMeters + Position.Offset.X*CubeSideInMeters), 
+                              (Position.Y*CubeSideInMeters + Position.Offset.Y*CubeSideInMeters), 
+                              (Position.Z*CubeSideInMeters + Position.Offset.Z*CubeSideInMeters) };
     return (Result);
 }
