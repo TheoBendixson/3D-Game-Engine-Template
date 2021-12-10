@@ -266,7 +266,7 @@ WinMain(HINSTANCE Instance,
     RenderCommands.ViewportWidth = WindowWidth;
     RenderCommands.ViewportHeight = WindowHeight;
 
-    u32 InstancedMeshBufferSize = 10;
+    u32 InstancedMeshBufferSize = 200;
     RenderCommands.Constants = (game_constants *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(game_constants),
                                                               MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -377,7 +377,7 @@ WinMain(HINSTANCE Instance,
         SwapChainDescription.BufferCount = 2;
         SwapChainDescription.OutputWindow = WindowHandle;
         SwapChainDescription.Windowed = TRUE;
-
+    
         // use more efficient flip model, available in Windows 10
         // if Windows 8 compatibility required, use DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
         // if Windows 7/Vista compatibility required, use DXGI_SWAP_EFFECT_DISCARD
@@ -426,7 +426,7 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_vertex)*100;
+    u32 VertexBufferSize = sizeof(game_vertex)*2000;
     RenderCommands.VertexBuffer.Vertices = (game_vertex *)VirtualAlloc(0, VertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
@@ -486,6 +486,7 @@ WinMain(HINSTANCE Instance,
         *Byte++ = 0;
     }
 
+    /*
     ID3D11BlendState* BlendState;
     {
         // enable alpha blending
@@ -503,7 +504,7 @@ WinMain(HINSTANCE Instance,
 
         HR = D11Device->CreateBlendState(&Desc, &BlendState);
         AssertHR(HR);
-    }
+    }*/
 
     ID3D11RasterizerState* RasterizerState;
     {
@@ -839,8 +840,8 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->PSSetShader(PShader, NULL, 0);
 
                 // Output Merger
-                DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
+                DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
@@ -858,7 +859,9 @@ WinMain(HINSTANCE Instance,
                         DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
                     }
 
-                    DeviceContext->Draw(RenderCommands.VertexBuffer.VertexCount, 0);
+                    u32 ModelIndex = RenderCommands.InstanceModelIndices[InstanceMeshIndex];
+                    model_range Range = RenderCommands.VertexBuffer.ModelRanges[ModelIndex];
+                    DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
                 }
 
                 LARGE_INTEGER WithinFrameCounter2;
