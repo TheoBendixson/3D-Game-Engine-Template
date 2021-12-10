@@ -152,13 +152,29 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 EyeX = MiddleOfTheWorld;
 
-    vector_float_3 Eye = { EyeX,  -MiddleOfTheWorld, MiddleOfTheWorld };
-    vector_float_3 At = {  EyeX,  MiddleOfTheWorld,  0.0f };
+    vector_float_3 Eye = { EyeX,  -2*MiddleOfTheWorld, 2*MiddleOfTheWorld };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
+
+    local_persist r32 CameraRotation = 0.0f;
+    CameraRotation += 0.010f;
+
+    matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
+                             (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
+                             0,                           0,                            1,  0,
+                             0,                           0,                            0,  1 };
+
+    r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
+
+    matrix CameraTranslate = { 1,                           0,                          0,                  0,
+                               0,                           1,                          0,                  0,
+                               0,                           0,                          1,                  0,
+                               -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
+
+    vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
     vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
     vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
     vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
@@ -183,7 +199,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->View = LookAt;
+        Constants->View = CameraTranslate*CameraRotateZ*LookAt;
 
         Constants->Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
                                   0,                        2 * Near / ViewportHeight, 0,                           0,
