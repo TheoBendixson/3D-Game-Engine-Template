@@ -40,9 +40,19 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                         Value = GREEN_CUBE;
                     } else if (Layer == 1)
                     {
+                        /*
                         if (Row == 2 && Column == 5)
                         {
                             Value = RED_CUBE;
+                        }*/
+
+                        Value = (Row + Column)%4;
+
+                        if (Value == GREEN_CUBE ||
+                            Row == 0 ||
+                            Column == 0)
+                        {
+                            Value = 0;
                         }
                     }
 
@@ -174,6 +184,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                0,                           0,                          1,                  0,
                                -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
 
+    // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
     vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
     vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
     vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
