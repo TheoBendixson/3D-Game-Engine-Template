@@ -187,6 +187,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     u32 DrawCount = PushBufferIndex;
 
     matrix View = CameraTranslate*CameraRotateZ*LookAt;
+    matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
+                          0,                        2 * Near / ViewportHeight, 0,                           0,
+                          0,                        0,                         Far / (Far - Near),          1,
+                          0,                        0,                         Near*Far / (Near - Far),     0 };
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < DrawCount;
@@ -202,12 +206,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
-
-        Constants->Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
-                                  0,                        2 * Near / ViewportHeight, 0,                           0,
-                                  0,                        0,                         Far / (Far - Near),          1,
-                                  0,                        0,                         Near*Far / (Near - Far),     0 };
-
+        Constants->Projection = Projection;
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
