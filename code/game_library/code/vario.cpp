@@ -40,12 +40,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                         Value = GREEN_CUBE;
                     } else if (Layer == 1)
                     {
-                        /*
-                        if (Row == 2 && Column == 5)
-                        {
-                            Value = RED_CUBE;
-                        }*/
-
                         if (Row%2 == 0 && Column%3 == 0)
                         {
                             Value = (Row + Column)%4;
@@ -55,7 +49,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                 Value = 0;
                             }
                         }
-
                     }
 
                     CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column] = Value;
@@ -96,16 +89,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
-    // TODO: (Ted) Make this the push buffer.
     vector_float_3 *ModelTranslations = GameState->ModelTranslations;
 
     u32 PushBufferIndex = 0;
 
-    // TODO: (Ted)  Create the notion of a push buffer here.
-    //              
-    //              1. Read the value of the cube map.
-    //              2. If the value is some no-draw number, don't put it in the push buffer.
-    //              3. Otherwise, put it in the push buffer with a translation to that point.
     cube_map *CubeMap = &GameState->CubeMap;
 
     for (u32 Layer = 0;
@@ -199,6 +186,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     u32 DrawCount = PushBufferIndex;
 
+    matrix View = CameraTranslate*CameraRotateZ*LookAt;
+
     for (u32 InstanceIndex = 0;
          InstanceIndex < DrawCount;
          InstanceIndex++)
@@ -212,7 +201,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->View = CameraTranslate*CameraRotateZ*LookAt;
+        Constants->View = View;
 
         Constants->Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
                                   0,                        2 * Near / ViewportHeight, 0,                           0,
