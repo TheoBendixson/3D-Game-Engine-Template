@@ -8,6 +8,21 @@
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
 
+internal
+matrix GenerateLookAtMatrix(vector_float_3 At, vector_float_3 Eye, vector_float_3 Up)
+{
+    vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
+    vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
+    vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
+
+    matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
+                      XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
+                      XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
+                      -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
+
+    return LookAt;
+}
+
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
@@ -157,10 +172,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
-
     matrix View = {};
 
-    b32 RotateCamera = false;
+    b32 RotateCamera = true;
 
     if (RotateCamera)
     {
@@ -181,30 +195,12 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
         vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
-
-        vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
-        vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
-        vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
-
-        matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
-                          XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
-                          XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
-                          -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
-
+        matrix LookAt = GenerateLookAtMatrix(At, Eye, Up);
         View = CameraTranslate*CameraRotateZ*LookAt;
     } else
     {
         vector_float_3 At = { EyeX, MiddleOfTheWorld, 0.0f };
-        vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
-        vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
-        vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
-
-        matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
-                          XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
-                          XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
-                          -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
-
-        View = LookAt;
+        View = GenerateLookAtMatrix(At, Eye, Up);
     }
 
     matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
