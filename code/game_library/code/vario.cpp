@@ -158,39 +158,61 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Far = 10000.0f;
 
 
-    local_persist r32 CameraRotation = 0.0f;
-    CameraRotation += 0.010f;
+    matrix View = {};
 
-    matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
-                             (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
-                             0,                           0,                            1,  0,
-                             0,                           0,                            0,  1 };
+    b32 RotateCamera = false;
 
-    r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
+    if (RotateCamera)
+    {
+        local_persist r32 CameraRotation = 0.0f;
+        CameraRotation += 0.010f;
 
-    matrix CameraTranslate = { 1,                           0,                          0,                  0,
-                               0,                           1,                          0,                  0,
-                               0,                           0,                          1,                  0,
-                               -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
+        matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
+                                 (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
+                                 0,                           0,                            1,  0,
+                                 0,                           0,                            0,  1 };
 
-    // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
-    vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
-    vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
-    vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
-    vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
+        r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
 
-    matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
-                      XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
-                      XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
-                      -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
+        matrix CameraTranslate = { 1,                           0,                          0,                  0,
+                                   0,                           1,                          0,                  0,
+                                   0,                           0,                          1,                  0,
+                                   -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
 
-    u32 DrawCount = PushBufferIndex;
+        // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
+        vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
 
-    matrix View = CameraTranslate*CameraRotateZ*LookAt;
+        vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
+        vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
+        vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
+
+        matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
+                          XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
+                          XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
+                          -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
+
+        View = CameraTranslate*CameraRotateZ*LookAt;
+    } else
+    {
+        vector_float_3 At = { EyeX, MiddleOfTheWorld, 0.0f };
+        vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
+        vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
+        vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
+
+        matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
+                          XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
+                          XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
+                          -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
+
+        View = LookAt;
+    }
+
     matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
                           0,                        2 * Near / ViewportHeight, 0,                           0,
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
+
+    u32 DrawCount = PushBufferIndex;
 
     for (u32 InstanceIndex = 0;
          InstanceIndex < DrawCount;
