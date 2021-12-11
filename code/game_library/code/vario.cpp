@@ -46,14 +46,16 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                             Value = RED_CUBE;
                         }*/
 
-                        Value = (Row + Column)%4;
-
-                        if (Value == GREEN_CUBE ||
-                            Row == 0 ||
-                            Column == 0)
+                        if (Row%2 == 0 && Column%3 == 0)
                         {
-                            Value = 0;
+                            Value = (Row + Column)%4;
+
+                            if (Value == GREEN_CUBE)
+                            {
+                                Value = 0;
+                            }
                         }
+
                     }
 
                     CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column] = Value;
@@ -217,7 +219,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                   0,                        0,                         Far / (Far - Near),          1,
                                   0,                        0,                         Near*Far / (Near - Far),     0 };
 
-        Constants->LightVector = { 1.0f, -1.0f, -1.0f };
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
 
