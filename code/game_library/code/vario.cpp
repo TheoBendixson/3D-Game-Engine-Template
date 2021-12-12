@@ -3,6 +3,7 @@
 #include "game_math.cpp"
 #include "cube_map.cpp"
 #include "model_loader.cpp"
+#include "camera.cpp"
 
 #define RED_CUBE            1
 #define GREEN_CUBE          2
@@ -40,9 +41,14 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                         Value = GREEN_CUBE;
                     } else if (Layer == 1)
                     {
-                        if (Row == 2 && Column == 5)
+                        if (Row%2 == 0 && Column%3 == 0)
                         {
-                            Value = RED_CUBE;
+                            Value = (Row + Column)%4;
+
+                            if (Value == GREEN_CUBE)
+                            {
+                                Value = 0;
+                            }
                         }
                     }
 
@@ -84,16 +90,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
-    // TODO: (Ted) Make this the push buffer.
     vector_float_3 *ModelTranslations = GameState->ModelTranslations;
 
     u32 PushBufferIndex = 0;
 
-    // TODO: (Ted)  Create the notion of a push buffer here.
-    //              
-    //              1. Read the value of the cube map.
-    //              2. If the value is some no-draw number, don't put it in the push buffer.
-    //              3. Otherwise, put it in the push buffer with a translation to that point.
     cube_map *CubeMap = &GameState->CubeMap;
 
     for (u32 Layer = 0;
@@ -152,21 +152,47 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 EyeX = MiddleOfTheWorld;
 
-    vector_float_3 Eye = { EyeX,  -MiddleOfTheWorld, MiddleOfTheWorld };
-    vector_float_3 At = {  EyeX,  MiddleOfTheWorld,  0.0f };
+    vector_float_3 Eye = { EyeX,  -2*MiddleOfTheWorld, 2*MiddleOfTheWorld };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
-    vector_float_3 ZAxis = Normalize(SubtractVector3(At, Eye)); 
-    vector_float_3 XAxis = Normalize(CrossProduct(Up, ZAxis));
-    vector_float_3 YAxis = CrossProduct(ZAxis, XAxis);
+    matrix View = {};
 
-    matrix LookAt = { XAxis.X,                  YAxis.X,                    ZAxis.X,                    0,
-                      XAxis.Y,                  YAxis.Y,                    ZAxis.Y,                    0,
-                      XAxis.Z,                  YAxis.Z,                    ZAxis.Z,                    0,
-                      -DotProduct(XAxis, Eye),  -DotProduct(YAxis, Eye),    -DotProduct(ZAxis, Eye),    1 };
+    b32 RotateCamera = true;
+
+    if (RotateCamera)
+    {
+        local_persist r32 CameraRotation = 0.0f;
+        CameraRotation += 0.010f;
+
+        matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
+                                 (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
+                                 0,                           0,                            1,  0,
+                                 0,                           0,                            0,  1 };
+
+        r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
+
+        matrix CameraTranslate = { 1,                           0,                          0,                  0,
+                                   0,                           1,                          0,                  0,
+                                   0,                           0,                          1,                  0,
+                                   -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
+
+        // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
+        vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
+        matrix LookAt = GenerateLookAtMatrix(At, Eye, Up);
+        View = CameraTranslate*CameraRotateZ*LookAt;
+    } else
+    {
+        vector_float_3 At = { EyeX, MiddleOfTheWorld, 0.0f };
+        View = GenerateLookAtMatrix(At, Eye, Up);
+    }
+
+    matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
+                          0,                        2 * Near / ViewportHeight, 0,                           0,
+                          0,                        0,                         Far / (Far - Near),          1,
+                          0,                        0,                         Near*Far / (Near - Far),     0 };
 
     u32 DrawCount = PushBufferIndex;
 
@@ -183,14 +209,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->View = LookAt;
-
-        Constants->Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
-                                  0,                        2 * Near / ViewportHeight, 0,                           0,
-                                  0,                        0,                         Far / (Far - Near),          1,
-                                  0,                        0,                         Near*Far / (Near - Far),     0 };
-
-        Constants->LightVector = { 1.0f, -1.0f, -1.0f };
+        Constants->View = View;
+        Constants->Projection = Projection;
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
 
