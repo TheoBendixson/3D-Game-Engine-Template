@@ -433,12 +433,12 @@ WinMain(HINSTANCE Instance,
                                                                 RenderCommands.VertexBuffer.Vertices);
     
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
-    ID3D11InputLayout* Layout;
-    ID3D11VertexShader* VShader;
-    ID3D11PixelShader* PShader;
+    ID3D11InputLayout* FlatColorLayout;
+    ID3D11VertexShader* FlatColorVShader;
+    ID3D11PixelShader* FlatColorPShader;
     {
         // these must match vertex shader input layout
-        D3D11_INPUT_ELEMENT_DESC Desc[] =
+        D3D11_INPUT_ELEMENT_DESC FlatColorLayoutDesc[] =
         {
             { 
                 "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
@@ -454,15 +454,16 @@ WinMain(HINSTANCE Instance,
             }
         };
 
-        #include "d3d11_vshader.h"
-        HR = D11Device->CreateVertexShader(d3d11_vshader, sizeof(d3d11_vshader), NULL, &VShader);
+        #include "d3d11_vshader_flat.h"
+        HR = D11Device->CreateVertexShader(d3d11_vshader_flat, sizeof(d3d11_vshader_flat), NULL, &FlatColorVShader);
         AssertHR(HR);
 
-        #include "d3d11_pshader.h"
-        HR = D11Device->CreatePixelShader(d3d11_pshader, sizeof(d3d11_pshader), NULL, &PShader);
+        #include "d3d11_pshader_flat.h"
+        HR = D11Device->CreatePixelShader(d3d11_pshader_flat, sizeof(d3d11_pshader_flat), NULL, &FlatColorPShader);
         AssertHR(HR);
 
-        HR = D11Device->CreateInputLayout(Desc, _countof(Desc), d3d11_vshader, sizeof(d3d11_vshader), &Layout);
+        HR = D11Device->CreateInputLayout(FlatColorLayoutDesc, _countof(FlatColorLayoutDesc), d3d11_vshader_flat, 
+                                          sizeof(d3d11_vshader_flat), &FlatColorLayout);
         AssertHR(HR);
     }
 
@@ -823,21 +824,21 @@ WinMain(HINSTANCE Instance,
                                              RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
                 // Input Assembler
-                DeviceContext->IASetInputLayout(Layout);
+                DeviceContext->IASetInputLayout(FlatColorLayout);
                 DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                 UINT Stride = sizeof(struct game_vertex);
                 UINT Offset = 0;
 
                 // Vertex Shader
                 DeviceContext->VSSetConstantBuffers(0, 1, &ConstantsBuffer);
-                DeviceContext->VSSetShader(VShader, NULL, 0);
+                DeviceContext->VSSetShader(FlatColorVShader, NULL, 0);
 
                 // Rasterizer Stage
                 DeviceContext->RSSetViewports(1, &Viewport);
                 DeviceContext->RSSetState(RasterizerState);
 
                 // Pixel Shader
-                DeviceContext->PSSetShader(PShader, NULL, 0);
+                DeviceContext->PSSetShader(FlatColorPShader, NULL, 0);
 
                 // Output Merger
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);

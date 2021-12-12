@@ -37,7 +37,6 @@ PS_INPUT vs(VS_INPUT input)
 
 float4 ps(PS_INPUT input) : SV_TARGET                                          
 {                                                                              
-    //return float4(input.Position.zzz, 1.0f);
     return input.Color;
 }
 

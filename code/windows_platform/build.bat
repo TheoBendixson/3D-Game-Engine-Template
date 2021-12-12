@@ -14,8 +14,8 @@ set sdl_library_path=c:/SDL2-devel-2.0.16-VC/SDL2-2.0.16
 set sdl_dll_path=.\resources\SDL2.dll
 
 :: Compile the game's shaders
-fxc.exe /nologo /T vs_5_0 /E vs /O3 /WX /Zpc /Ges /Fh d3d11_vshader.h /Vn d3d11_vshader /Qstrip_reflect /Qstrip_debug /Qstrip_priv shader.hlsl
-fxc.exe /nologo /T ps_5_0 /E ps /O3 /WX /Zpc /Ges /Fh d3d11_pshader.h /Vn d3d11_pshader /Qstrip_reflect /Qstrip_debug /Qstrip_priv shader.hlsl
+fxc.exe /nologo /T vs_5_0 /E vs /O3 /WX /Zpc /Ges /Fh d3d11_vshader_flat.h /Vn d3d11_vshader_flat /Qstrip_reflect /Qstrip_debug /Qstrip_priv shader_flat.hlsl
+fxc.exe /nologo /T ps_5_0 /E ps /O3 /WX /Zpc /Ges /Fh d3d11_pshader_flat.h /Vn d3d11_pshader_flat /Qstrip_reflect /Qstrip_debug /Qstrip_priv shader_flat.hlsl
 
 mkdir %windows_build_path%
 pushd %windows_build_path%
