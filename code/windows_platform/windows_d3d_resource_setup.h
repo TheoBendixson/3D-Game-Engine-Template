@@ -1,6 +1,6 @@
 internal ID3D11Buffer*
 SetupVertexBufferFromGameVertexBuffer(ID3D11Device* D11Device, u32 VertexBufferSize, 
-                                      game_flat_color_vertex *GameVertexBuffer)
+                                      void *GameVertexBuffer)
 {
     ID3D11Buffer* VertexBuffer;
     {

@@ -24,7 +24,7 @@ struct model_range
 
 struct game_vertex_buffer
 {
-    game_flat_color_vertex *Vertices;
+    void *Vertices;
     u32 VertexCount;
 
     model_range ModelRanges[MAX_MODELS];

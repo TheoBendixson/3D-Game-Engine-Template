@@ -82,7 +82,7 @@ void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor
     };
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
-    game_flat_color_vertex *Vertices = VertexBuffer->Vertices;
+    game_flat_color_vertex *Vertices = (game_flat_color_vertex *)VertexBuffer->Vertices;
 
     model_range Range = {};
     Range.StartVertex = VertexBuffer->VertexCount;
