@@ -511,26 +511,6 @@ WinMain(HINSTANCE Instance,
         *Byte++ = 0;
     }
 
-    /*
-    ID3D11BlendState* BlendState;
-    {
-        // enable alpha blending
-        D3D11_BLEND_DESC Desc = {};
-        D3D11_RENDER_TARGET_BLEND_DESC RenderTarget = {};
-        RenderTarget.BlendEnable = TRUE;
-        RenderTarget.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-        RenderTarget.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-        RenderTarget.BlendOp = D3D11_BLEND_OP_ADD;
-        RenderTarget.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-        RenderTarget.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-        RenderTarget.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        RenderTarget.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        Desc.RenderTarget[0] = RenderTarget;
-
-        HR = D11Device->CreateBlendState(&Desc, &BlendState);
-        AssertHR(HR);
-    }*/
-
     ID3D11RasterizerState* RasterizerState;
     {
         D3D11_RASTERIZER_DESC Desc = {};
@@ -564,6 +544,7 @@ WinMain(HINSTANCE Instance,
     float Angle = 0;
     DWORD CurrentWidth = 0;
     DWORD CurrentHeight = 0;
+
 
     update_interval = 10;
     next_update = GetTickCount();
@@ -842,7 +823,6 @@ WinMain(HINSTANCE Instance,
                     }
                 }*/
                 
-
                 // NOTE: (Ted)  Transfer Vertex Buffer.
                 TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
                                              RenderCommands.VertexBuffer.Vertices, VertexBufferSize);

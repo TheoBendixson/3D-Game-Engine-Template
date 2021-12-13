@@ -36,7 +36,6 @@ struct clear_color
     r32 RGBA[4];
 };
 
-
 struct game_render_commands
 {
     s32 ViewportWidth;
