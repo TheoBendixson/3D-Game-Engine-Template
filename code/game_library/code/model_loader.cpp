@@ -81,7 +81,7 @@ void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor
         { { 0.5f, -0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, { RGBColor[0], RGBColor[1], RGBColor[2] } }
     };
 
-    game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
+    game_vertex_buffer *VertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     game_flat_color_vertex *Vertices = (game_flat_color_vertex *)VertexBuffer->Vertices;
 
     model_range Range = {};
@@ -100,13 +100,12 @@ void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor
     VertexBuffer->ModelCount += 1;
 }
 
-
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
-    game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
-    VertexBuffer->VertexCount = 0;
-    VertexBuffer->ModelCount = 0;
+    game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
+    FlatColorVertexBuffer->VertexCount = 0;
+    FlatColorVertexBuffer->ModelCount = 0;
 
     r32 Red[3];
     Red[0] = 1;

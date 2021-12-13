@@ -14,6 +14,13 @@ struct game_flat_color_vertex
     r32 Color[3];
 };
 
+struct game_texture_vertex
+{
+    r32 Position[3];
+    r32 Normal[3];
+    r32 UV[2];
+};
+
 #define MAX_MODELS  3
 
 struct model_range
@@ -42,7 +49,7 @@ struct game_render_commands
     s32 ViewportHeight;
     clear_color ClearColor;
 
-    game_vertex_buffer VertexBuffer;
+    game_vertex_buffer FlatColorVertexBuffer;
 
     // TODO: (Ted)  It's pretty clear an instance of constants
     //              will always be coupled with a model index.
