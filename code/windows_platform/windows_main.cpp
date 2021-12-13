@@ -192,7 +192,7 @@ void CALLBACK MessageFiberProc(void *)
     }
 }
 
-global_variable ID3D11Buffer* WindowsVertexBuffer;
+global_variable ID3D11Buffer* WindowsFlatColorVertexBuffer;
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
@@ -429,8 +429,8 @@ WinMain(HINSTANCE Instance,
     u32 VertexBufferSize = sizeof(game_flat_color_vertex)*2000;
     RenderCommands.VertexBuffer.Vertices = (game_flat_color_vertex *)VirtualAlloc(0, VertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
-                                                                RenderCommands.VertexBuffer.Vertices);
+    WindowsFlatColorVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
+                                                                         RenderCommands.VertexBuffer.Vertices);
     
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* FlatColorLayout;
@@ -547,8 +547,7 @@ WinMain(HINSTANCE Instance,
 
     GameLoad3DModels(&RenderCommands);
 
-    // NOTE: (Ted)  Transfer Vertex Buffer.
-    TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
+    TransferVertexBufferContents(DeviceContext, WindowsFlatColorVertexBuffer, 
                                  RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
     update_interval = 10;
@@ -851,7 +850,7 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
-                DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetVertexBuffers(0, 1, &WindowsFlatColorVertexBuffer, &Stride, &Offset);
 
                 for (u32 InstanceMeshIndex = 0;
                      InstanceMeshIndex < RenderCommands.InstancedMeshCount;

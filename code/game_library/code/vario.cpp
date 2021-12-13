@@ -9,7 +9,6 @@
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
 
-
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
