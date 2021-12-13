@@ -426,8 +426,8 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_vertex)*2000;
-    RenderCommands.VertexBuffer.Vertices = (game_vertex *)VirtualAlloc(0, VertexBufferSize, 
+    u32 VertexBufferSize = sizeof(game_flat_color_vertex)*2000;
+    RenderCommands.VertexBuffer.Vertices = (game_flat_color_vertex *)VirtualAlloc(0, VertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
                                                                 RenderCommands.VertexBuffer.Vertices);
@@ -442,15 +442,15 @@ WinMain(HINSTANCE Instance,
         {
             { 
                 "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_flat_color_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "NORMAL",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_flat_color_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "COLOR",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_flat_color_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
 
@@ -466,6 +466,30 @@ WinMain(HINSTANCE Instance,
                                           sizeof(d3d11_vshader_flat), &FlatColorLayout);
         AssertHR(HR);
     }
+
+    /*
+    ID3D11InputLayout* TexturedLayout;
+    ID3D11VertexShader* TexturedVShader;
+    ID3D11PixelShader* TexturedPShader;
+    {
+        // these must match vertex shader input layout
+        D3D11_INPUT_ELEMENT_DESC TexturedLayoutDesc[] =
+        {
+            { 
+                "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
+            },
+            { 
+                "NORMAL",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                offsetof(struct game_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
+            },
+            { 
+                "COLOR",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                offsetof(struct game_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
+            }
+        };
+
+    }*/
 
     ID3D11Buffer* ConstantsBuffer;
     {
@@ -826,7 +850,7 @@ WinMain(HINSTANCE Instance,
                 // Input Assembler
                 DeviceContext->IASetInputLayout(FlatColorLayout);
                 DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                UINT Stride = sizeof(struct game_vertex);
+                UINT Stride = sizeof(struct game_flat_color_vertex);
                 UINT Offset = 0;
 
                 // Vertex Shader

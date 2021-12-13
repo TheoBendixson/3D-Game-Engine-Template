@@ -14,13 +14,11 @@
 #define GREEN   { 0, 1, 0 }
 #define BLUE    { 0, 0, 1 }
 
-// TODO: (Ted)  Create some notion of a push buffer so we can tell the instancing system
-//              which mesh to draw and with what color.
 void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor)
 {
     // XYZ Vertices, RGB Color
     // NOTE: (Ted) Counter-Clockwise Winding
-    game_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
+    game_flat_color_vertex ColoredCube[CUBE_VERTEX_COUNT] = 
     {
         // Index 0, 2, 1
         { { -0.5f,-0.5f,-0.5f }, NEGATIVE_X_FACE_NORMAL, { RGBColor[0], RGBColor[1], RGBColor[2] } },
@@ -84,7 +82,7 @@ void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor
     };
 
     game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
-    game_vertex *Vertices = VertexBuffer->Vertices;
+    game_flat_color_vertex *Vertices = VertexBuffer->Vertices;
 
     model_range Range = {};
     Range.StartVertex = VertexBuffer->VertexCount;

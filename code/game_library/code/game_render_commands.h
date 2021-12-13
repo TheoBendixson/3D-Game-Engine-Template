@@ -7,7 +7,7 @@ struct game_constants
     vector_float_3 LightVector;
 };
 
-struct game_vertex
+struct game_flat_color_vertex
 {
     r32 Position[3];
     r32 Normal[3];
@@ -24,7 +24,7 @@ struct model_range
 
 struct game_vertex_buffer
 {
-    game_vertex *Vertices;
+    game_flat_color_vertex *Vertices;
     u32 VertexCount;
 
     model_range ModelRanges[MAX_MODELS];
@@ -37,7 +37,6 @@ struct clear_color
 };
 
 
-// TODO: (Ted)  Tie this more closely to the cube map
 struct game_render_commands
 {
     s32 ViewportWidth;
