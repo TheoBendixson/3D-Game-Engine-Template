@@ -50,6 +50,7 @@ struct game_render_commands
     clear_color ClearColor;
 
     game_vertex_buffer FlatColorVertexBuffer;
+    game_vertex_buffer TextureVertexBuffer;
 
     // TODO: (Ted)  It's pretty clear an instance of constants
     //              will always be coupled with a model index.

@@ -193,6 +193,7 @@ void CALLBACK MessageFiberProc(void *)
 }
 
 global_variable ID3D11Buffer* WindowsFlatColorVertexBuffer;
+global_variable ID3D11Buffer* WindowsTextureVertexBuffer;
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
@@ -426,12 +427,21 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_flat_color_vertex)*2000;
-    RenderCommands.FlatColorVertexBuffer.Vertices = (game_flat_color_vertex *)VirtualAlloc(0, VertexBufferSize, 
-                                                     MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    WindowsFlatColorVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
-                                                                         RenderCommands.FlatColorVertexBuffer.Vertices);
+    u32 FlatColorVertexBufferSize = sizeof(game_flat_color_vertex)*2000;
+    game_flat_color_vertex *FlatColorVertices = 
+        (game_flat_color_vertex *)VirtualAlloc(0, FlatColorVertexBufferSize, 
+                                               MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.FlatColorVertexBuffer.Vertices = FlatColorVertices;
+    WindowsFlatColorVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, FlatColorVertexBufferSize, 
+                                                                         FlatColorVertices);
+
+    /*
+    u32 TextureVertexBufferSize = sizeof(game_texture_vertex)*2000;
+    RenderCommands.TextureVertexBuffer.Vertices = (game_flat_color_vertex *)VirtualAlloc(0, TextureVertexBufferSize, 
+                                                   MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     
+    WindowsTextureVertexBuffer*/
+
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* FlatColorLayout;
     ID3D11VertexShader* FlatColorVShader;
@@ -477,18 +487,17 @@ WinMain(HINSTANCE Instance,
         {
             { 
                 "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_texture_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "NORMAL",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_texture_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
-                "COLOR",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                "UV",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                offsetof(struct game_texture_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
-
     }*/
 
     ID3D11Buffer* ConstantsBuffer;
@@ -548,7 +557,7 @@ WinMain(HINSTANCE Instance,
     GameLoad3DModels(&RenderCommands);
 
     TransferVertexBufferContents(DeviceContext, WindowsFlatColorVertexBuffer, 
-                                 RenderCommands.FlatColorVertexBuffer.Vertices, VertexBufferSize);
+                                 RenderCommands.FlatColorVertexBuffer.Vertices, FlatColorVertexBufferSize);
 
     update_interval = 10;
     next_update = GetTickCount();
