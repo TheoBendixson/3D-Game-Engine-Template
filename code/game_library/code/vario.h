@@ -18,6 +18,9 @@ typedef PLATFORM_WRITE_ENTIRE_FILE(platform_write_entire_file);
 #define PLATFORM_QUIT_GAME(name) void name()
 typedef PLATFORM_QUIT_GAME(platform_quit_game);
 
+#define GAME_LOAD_3D_MODELS(name) void name(game_render_commands *RenderCommands)
+typedef GAME_LOAD_3D_MODELS(game_load_3D_models);
+
 #define GAME_UPDATE_AND_RENDER(name) void name(thread_context *Thread, game_memory *Memory, game_input *Input, game_render_commands *RenderCommands)
 typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 

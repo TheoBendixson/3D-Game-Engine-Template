@@ -10,6 +10,35 @@
 #define BLUE_CUBE           3
 
 extern "C"
+GAME_LOAD_3D_MODELS(GameLoad3DModels)
+{
+    game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
+    VertexBuffer->VertexCount = 0;
+    VertexBuffer->ModelCount = 0;
+
+    r32 Red[3];
+    Red[0] = 1;
+    Red[1] = 0;
+    Red[2] = 0;
+
+    LoadColoredCubeVertices(RenderCommands, Red);
+
+    r32 Green[3];
+    Green[0] = 0;
+    Green[1] = 1;
+    Green[2] = 0;
+
+    LoadColoredCubeVertices(RenderCommands, Green);
+
+    r32 Blue[3];
+    Blue[0] = 0;
+    Blue[1] = 0;
+    Blue[2] = 1;
+
+    LoadColoredCubeVertices(RenderCommands, Blue);
+}
+
+extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
@@ -57,30 +86,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             }
         }
 
-        game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
-        VertexBuffer->VertexCount = 0;
-        VertexBuffer->ModelCount = 0;
-
-        r32 Red[3];
-        Red[0] = 1;
-        Red[1] = 0;
-        Red[2] = 0;
-
-        LoadColoredCubeVertices(RenderCommands, Red);
-
-        r32 Green[3];
-        Green[0] = 0;
-        Green[1] = 1;
-        Green[2] = 0;
-
-        LoadColoredCubeVertices(RenderCommands, Green);
-
-        r32 Blue[3];
-        Blue[0] = 0;
-        Blue[1] = 0;
-        Blue[2] = 1;
-
-        LoadColoredCubeVertices(RenderCommands, Blue);
 
         Memory->IsInitialized = true;
     }

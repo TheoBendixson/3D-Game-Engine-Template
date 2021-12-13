@@ -545,6 +545,11 @@ WinMain(HINSTANCE Instance,
     DWORD CurrentWidth = 0;
     DWORD CurrentHeight = 0;
 
+    GameLoad3DModels(&RenderCommands);
+
+    // NOTE: (Ted)  Transfer Vertex Buffer.
+    TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
+                                 RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
     update_interval = 10;
     next_update = GetTickCount();
@@ -823,9 +828,6 @@ WinMain(HINSTANCE Instance,
                     }
                 }*/
                 
-                // NOTE: (Ted)  Transfer Vertex Buffer.
-                TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
-                                             RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
 
                 // Input Assembler
                 DeviceContext->IASetInputLayout(FlatColorLayout);
