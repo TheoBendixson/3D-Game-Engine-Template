@@ -949,6 +949,8 @@ WinMain(HINSTANCE Instance,
 
                 // Pixel Shader
                 DeviceContext->PSSetShader(FlatColorPShader, NULL, 0);
+                //DeviceContext->PSSetSamplers(0, 1, NULL);
+                //DeviceContext->PSSetShaderResources(0, 1, NULL);
 
                 // Output Merger
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
