@@ -81,7 +81,6 @@ void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
         { { 0.5f, -0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, { RGBColor[0], RGBColor[1], RGBColor[2] } }
     };
 
-    //game_vertex_buffer *VertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     game_flat_color_vertex *Vertices = (game_flat_color_vertex *)VertexBuffer->Vertices;
 
     model_range Range = {};
