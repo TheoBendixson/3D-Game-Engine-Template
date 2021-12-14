@@ -190,4 +190,25 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         { { 0.5f, 0.5f, 0.5f },  POSITIVE_Z_FACE_NORMAL, { 1.0f, 1.0f } },
         { { 0.5f, -0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, { 0.0f, 1.0f } }
     };
+
+    game_vertex_buffer *TextureVertexBuffer = &RenderCommands->TextureVertexBuffer;
+    TextureVertexBuffer->VertexCount = 0;
+    TextureVertexBuffer->ModelCount = 0;
+
+    game_texture_vertex *Vertices = (game_texture_vertex *)TextureVertexBuffer->Vertices;
+
+    model_range Range = {};
+    Range.StartVertex = TextureVertexBuffer->VertexCount;
+    Range.VertexCount = CUBE_VERTEX_COUNT;
+    TextureVertexBuffer->ModelRanges[TextureVertexBuffer->ModelCount] = Range;
+
+    for (u32 Index = 0;
+         Index < CUBE_VERTEX_COUNT;
+         Index++)
+    {
+        Vertices[Index + Range.StartVertex] = TexturedCube[Index];
+    }
+
+    TextureVertexBuffer->VertexCount += CUBE_VERTEX_COUNT;
+    TextureVertexBuffer->ModelCount += 1;
 }
