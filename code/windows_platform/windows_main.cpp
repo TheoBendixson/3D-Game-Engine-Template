@@ -435,12 +435,13 @@ WinMain(HINSTANCE Instance,
     WindowsFlatColorVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, FlatColorVertexBufferSize, 
                                                                          FlatColorVertices);
 
-    /*
     u32 TextureVertexBufferSize = sizeof(game_texture_vertex)*2000;
-    RenderCommands.TextureVertexBuffer.Vertices = (game_flat_color_vertex *)VirtualAlloc(0, TextureVertexBufferSize, 
-                                                   MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    
-    WindowsTextureVertexBuffer*/
+    game_texture_vertex *TextureVertices =
+        (game_texture_vertex *)VirtualAlloc(0, TextureVertexBufferSize, 
+                                            MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.TextureVertexBuffer.Vertices = TextureVertices;
+    WindowsTextureVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, TextureVertexBufferSize, 
+                                                                       TextureVertices);
 
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* FlatColorLayout;
@@ -477,7 +478,6 @@ WinMain(HINSTANCE Instance,
         AssertHR(HR);
     }
 
-    /*
     ID3D11InputLayout* TexturedLayout;
     ID3D11VertexShader* TexturedVShader;
     ID3D11PixelShader* TexturedPShader;
@@ -495,10 +495,22 @@ WinMain(HINSTANCE Instance,
             },
             { 
                 "UV",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_texture_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_texture_vertex, UV), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
-    }*/
+
+        #include "d3d11_vshader_textured.h"
+        HR = D11Device->CreateVertexShader(d3d11_vshader_textured, sizeof(d3d11_vshader_textured), NULL, &TexturedVShader);
+        AssertHR(HR);
+
+        #include "d3d11_pshader_textured.h"
+        HR = D11Device->CreatePixelShader(d3d11_pshader_textured, sizeof(d3d11_pshader_textured), NULL, &TexturedPShader);
+        AssertHR(HR);
+
+        HR = D11Device->CreateInputLayout(TexturedLayoutDesc, _countof(TexturedLayoutDesc), d3d11_vshader_textured, 
+                                          sizeof(d3d11_vshader_textured), &TexturedLayout);
+        AssertHR(HR);
+    }
 
     ID3D11Buffer* ConstantsBuffer;
     {
@@ -537,6 +549,53 @@ WinMain(HINSTANCE Instance,
         Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
         Desc.DepthFunc = D3D11_COMPARISON_LESS;
         HR = D11Device->CreateDepthStencilState(&Desc, &DepthState);
+        AssertHR(HR);
+    }
+
+    ID3D11SamplerState* SamplerState;
+    {
+        D3D11_SAMPLER_DESC Desc = {};
+        Desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        Desc.AddressU       = D3D11_TEXTURE_ADDRESS_WRAP;
+        Desc.AddressV       = D3D11_TEXTURE_ADDRESS_WRAP;
+        Desc.AddressW       = D3D11_TEXTURE_ADDRESS_WRAP;
+        Desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        HR = D11Device->CreateSamplerState(&Desc, &SamplerState);
+        AssertHR(HR);
+    }
+
+    UINT TextureData[] =
+    {
+        0xffffffff, 0xff7f7f7f,
+        0xff7f7f7f, 0xffffffff,
+    };
+
+    u32 TextureWidth = 2;
+    u32 TextureHeight = 2;
+
+    ID3D11Texture2D* Texture;
+    {
+        D3D11_TEXTURE2D_DESC Desc = {};
+        Desc.Width              = TextureWidth;
+        Desc.Height             = TextureHeight;
+        Desc.MipLevels          = 1;
+        Desc.ArraySize          = 1;
+        Desc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        Desc.SampleDesc.Count   = 1;
+        Desc.Usage              = D3D11_USAGE_IMMUTABLE;
+        Desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+
+        D3D11_SUBRESOURCE_DATA Data = {};
+        Data.pSysMem            = TextureData;
+        Data.SysMemPitch        = TextureWidth * 4; // 4 bytes per pixel
+
+        HR = D11Device->CreateTexture2D(&Desc, &Data, &Texture);
+        AssertHR(HR);
+    }
+
+    ID3D11ShaderResourceView* TextureView;
+    {
+        HR = D11Device->CreateShaderResourceView(Texture, nullptr, &TextureView);
         AssertHR(HR);
     }
 
