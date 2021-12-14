@@ -504,7 +504,7 @@ WinMain(HINSTANCE Instance,
                 offsetof(struct game_texture_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
-                "UV",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                "UV",0, DXGI_FORMAT_R32G32_FLOAT, 0, 
                 offsetof(struct game_texture_vertex, UV), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
@@ -627,6 +627,9 @@ WinMain(HINSTANCE Instance,
 
     TransferVertexBufferContents(DeviceContext, WindowsFlatColorVertexBuffer, 
                                  RenderCommands.FlatColorVertexBuffer.Vertices, FlatColorVertexBufferSize);
+
+    TransferVertexBufferContents(DeviceContext, WindowsTextureVertexBuffer, 
+                                 RenderCommands.TextureVertexBuffer.Vertices, TextureVertexBufferSize);
 
     update_interval = 10;
     next_update = GetTickCount();
@@ -922,6 +925,8 @@ WinMain(HINSTANCE Instance,
 
                 // Pixel Shader
                 DeviceContext->PSSetShader(FlatColorPShader, NULL, 0);
+                //DeviceContext->PSSetSamplers(0, 1, NULL);
+                //DeviceContext->PSSetShaderResources(0, 1, NULL);
 
                 // Output Merger
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
@@ -948,6 +953,38 @@ WinMain(HINSTANCE Instance,
                     model_range Range = RenderCommands.FlatColorVertexBuffer.ModelRanges[MeshInstance->ModelIndex];
                     DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
                 }
+
+                DeviceContext->IASetInputLayout(TexturedLayout);
+                Stride = sizeof(struct game_texture_vertex);
+                DeviceContext->IASetVertexBuffers(0, 1, &WindowsTextureVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+                DeviceContext->VSSetShader(TexturedVShader, NULL, 0);
+                DeviceContext->VSSetConstantBuffers(0, 1, &ConstantsBuffer);
+
+                DeviceContext->PSSetShader(TexturedPShader, NULL, 0);
+                DeviceContext->PSSetSamplers(0, 1, &SamplerState);
+                DeviceContext->PSSetShaderResources(0, 1, &TextureView);
+
+                for (u32 Index = 0;
+                     Index < RenderCommands.TexturedMeshInstances.MeshCount;
+                     Index++)
+                {
+                    mesh_instance *MeshInstance = &RenderCommands.TexturedMeshInstances.Meshes[Index];
+
+                    {
+                        D3D11_MAPPED_SUBRESOURCE Mapped;
+                        HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
+                                                0, &Mapped);
+                        AssertHR(HR);
+                        memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
+                        DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
+                    }
+
+                    model_range Range = RenderCommands.TextureVertexBuffer.ModelRanges[MeshInstance->ModelIndex];
+                    DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
+                }
+
 
                 LARGE_INTEGER WithinFrameCounter2;
                 QueryPerformanceCounter(&WithinFrameCounter2);
