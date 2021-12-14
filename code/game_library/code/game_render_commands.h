@@ -43,6 +43,19 @@ struct clear_color
     r32 RGBA[4];
 };
 
+struct mesh_instance
+{
+    game_constants Constants;
+    u32 ModelIndex;
+};
+
+struct mesh_instance_buffer
+{
+    mesh_instance *Meshes;
+    u32 MeshCount;
+    u32 MeshMax;
+};
+
 struct game_render_commands
 {
     s32 ViewportWidth;
@@ -52,9 +65,6 @@ struct game_render_commands
     game_vertex_buffer FlatColorVertexBuffer;
     game_vertex_buffer TextureVertexBuffer;
 
-    // TODO: (Ted)  It's pretty clear an instance of constants
-    //              will always be coupled with a model index.
-    game_constants *Constants;
-    u32 InstanceModelIndices[200];
-    u32 InstancedMeshCount;
+    mesh_instance_buffer FlatColorMeshInstances;
+    mesh_instance_buffer TexturedMeshInstances;
 };

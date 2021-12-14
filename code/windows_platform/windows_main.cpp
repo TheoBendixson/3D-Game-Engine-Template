@@ -268,8 +268,11 @@ WinMain(HINSTANCE Instance,
     RenderCommands.ViewportHeight = WindowHeight;
 
     u32 InstancedMeshBufferSize = 200;
-    RenderCommands.Constants = (game_constants *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(game_constants),
-                                                              MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.FlatColorMeshInstances.MeshCount = 0;
+    RenderCommands.FlatColorMeshInstances.Meshes = 
+        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
+                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
     HDC RefreshDC = GetDC(WindowHandle);
     int RefreshRate = GetDeviceCaps(RefreshDC, VREFRESH);
@@ -920,21 +923,23 @@ WinMain(HINSTANCE Instance,
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsFlatColorVertexBuffer, &Stride, &Offset);
 
-                for (u32 InstanceMeshIndex = 0;
-                     InstanceMeshIndex < RenderCommands.InstancedMeshCount;
-                     InstanceMeshIndex++)
+                for (u32 Index = 0;
+                     Index < RenderCommands.FlatColorMeshInstances.MeshCount;
+                     Index++)
                 {
+
+                    mesh_instance *MeshInstance = &RenderCommands.FlatColorMeshInstances.Meshes[Index];
+
                     {
                         D3D11_MAPPED_SUBRESOURCE Mapped;
                         HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
                                                 0, &Mapped);
                         AssertHR(HR);
-                        memcpy(Mapped.pData, &RenderCommands.Constants[InstanceMeshIndex], sizeof(game_constants));
+                        memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
                         DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
                     }
 
-                    u32 ModelIndex = RenderCommands.InstanceModelIndices[InstanceMeshIndex];
-                    model_range Range = RenderCommands.FlatColorVertexBuffer.ModelRanges[ModelIndex];
+                    model_range Range = RenderCommands.FlatColorVertexBuffer.ModelRanges[MeshInstance->ModelIndex];
                     DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
                 }
 

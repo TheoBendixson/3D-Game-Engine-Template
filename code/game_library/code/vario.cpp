@@ -172,6 +172,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     u32 DrawCount = PushBufferIndex;
 
+    mesh_instance_buffer *MeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
+
     for (u32 InstanceIndex = 0;
          InstanceIndex < DrawCount;
          InstanceIndex++)
@@ -183,7 +185,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                              0,                  0,                  1,                  0,
                              ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
 
-        game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
+        mesh_instance *MeshInstance = &MeshInstanceBuffer->Meshes[InstanceIndex];
+        game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
@@ -201,10 +204,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             ModelIndex = 2;
         }
 
-        RenderCommands->InstanceModelIndices[InstanceIndex] = ModelIndex;
+        MeshInstance->ModelIndex = ModelIndex;
     }
 
-    RenderCommands->InstancedMeshCount = DrawCount;
+    MeshInstanceBuffer->MeshCount = DrawCount;
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;
