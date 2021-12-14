@@ -34,6 +34,8 @@ struct game_state
 {
     cube_map CubeMap;
 
+    // TODO: (Ted)  This needs to move to game render commands. It makes more sense
+    //              in that memory space.
     push_buffer ColoredCubePushBuffer;
     push_buffer TexturedCubePushBuffer;
 };
