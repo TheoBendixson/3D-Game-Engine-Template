@@ -192,8 +192,32 @@ void CALLBACK MessageFiberProc(void *)
     }
 }
 
-global_variable ID3D11Buffer* WindowsFlatColorVertexBuffer;
-global_variable ID3D11Buffer* WindowsTextureVertexBuffer;
+global_variable ID3D11Buffer *WindowsFlatColorVertexBuffer;
+global_variable ID3D11Buffer *WindowsTextureVertexBuffer;
+
+internal
+void DrawMeshesFromInstanceBuffer(ID3D11DeviceContext *DeviceContext, ID3D11Buffer *ConstantsBuffer,
+                                  mesh_instance_buffer *MeshBuffer, game_vertex_buffer *VertexBuffer)
+{
+    for (u32 Index = 0;
+         Index < MeshBuffer->MeshCount;
+         Index++)
+    {
+        mesh_instance *MeshInstance = &MeshBuffer->Meshes[Index];
+
+        {
+            D3D11_MAPPED_SUBRESOURCE Mapped;
+            HRESULT HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
+                                             0, &Mapped);
+            AssertHR(HR);
+            memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
+            DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
+        }
+
+        model_range Range = VertexBuffer->ModelRanges[MeshInstance->ModelIndex];
+        DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
+    }
+}
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
@@ -925,8 +949,6 @@ WinMain(HINSTANCE Instance,
 
                 // Pixel Shader
                 DeviceContext->PSSetShader(FlatColorPShader, NULL, 0);
-                //DeviceContext->PSSetSamplers(0, 1, NULL);
-                //DeviceContext->PSSetShaderResources(0, 1, NULL);
 
                 // Output Merger
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
@@ -935,24 +957,8 @@ WinMain(HINSTANCE Instance,
 
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsFlatColorVertexBuffer, &Stride, &Offset);
 
-                for (u32 Index = 0;
-                     Index < RenderCommands.FlatColorMeshInstances.MeshCount;
-                     Index++)
-                {
-                    mesh_instance *MeshInstance = &RenderCommands.FlatColorMeshInstances.Meshes[Index];
-
-                    {
-                        D3D11_MAPPED_SUBRESOURCE Mapped;
-                        HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
-                                                0, &Mapped);
-                        AssertHR(HR);
-                        memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
-                        DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
-                    }
-
-                    model_range Range = RenderCommands.FlatColorVertexBuffer.ModelRanges[MeshInstance->ModelIndex];
-                    DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
-                }
+                DrawMeshesFromInstanceBuffer(DeviceContext, ConstantsBuffer, &RenderCommands.FlatColorMeshInstances, 
+                                             &RenderCommands.FlatColorVertexBuffer);
 
                 DeviceContext->IASetInputLayout(TexturedLayout);
                 Stride = sizeof(struct game_texture_vertex);
@@ -966,25 +972,8 @@ WinMain(HINSTANCE Instance,
                 DeviceContext->PSSetSamplers(0, 1, &SamplerState);
                 DeviceContext->PSSetShaderResources(0, 1, &TextureView);
 
-                for (u32 Index = 0;
-                     Index < RenderCommands.TexturedMeshInstances.MeshCount;
-                     Index++)
-                {
-                    mesh_instance *MeshInstance = &RenderCommands.TexturedMeshInstances.Meshes[Index];
-
-                    {
-                        D3D11_MAPPED_SUBRESOURCE Mapped;
-                        HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
-                                                0, &Mapped);
-                        AssertHR(HR);
-                        memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
-                        DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
-                    }
-
-                    model_range Range = RenderCommands.TextureVertexBuffer.ModelRanges[MeshInstance->ModelIndex];
-                    DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
-                }
-
+                DrawMeshesFromInstanceBuffer(DeviceContext, ConstantsBuffer, &RenderCommands.TexturedMeshInstances, 
+                                             &RenderCommands.TextureVertexBuffer);
 
                 LARGE_INTEGER WithinFrameCounter2;
                 QueryPerformanceCounter(&WithinFrameCounter2);
