@@ -57,7 +57,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             }
         }
 
-
         Memory->IsInitialized = true;
     }
 
@@ -66,9 +65,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
-    vector_float_3 *ModelTranslations = GameState->ModelTranslations;
+    //vector_float_3 *Translations = GameState->ModelTranslations;
+    //u32 PushBufferIndex = 0;
 
-    u32 PushBufferIndex = 0;
+    push_buffer *ColoredCubePushBuffer = &GameState->ColoredCubePushBuffer;
+    ColoredCubePushBuffer->DrawCount = 0;
 
     cube_map *CubeMap = &GameState->CubeMap;
 
@@ -89,13 +90,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                 Pos.Y = Row;
                 Pos.Z = Layer;
 
-
                 u32 CubeValue = CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column];
 
                 if (CubeValue > 0)
                 {
-                    ModelTranslations[PushBufferIndex] = ConvertCubeMapPositionToModelTranslation(Pos, CubeSideInMeters);
-                    PushBufferIndex++;
+                    ColoredCubePushBuffer->Translations[ColoredCubePushBuffer->DrawCount] = 
+                        ConvertCubeMapPositionToModelTranslation(Pos, CubeSideInMeters);
+                    ColoredCubePushBuffer->DrawCount++;
                 }
             }
         }
@@ -170,15 +171,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
 
-    u32 DrawCount = PushBufferIndex;
-
     mesh_instance_buffer *MeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
 
     for (u32 InstanceIndex = 0;
-         InstanceIndex < DrawCount;
+         InstanceIndex < ColoredCubePushBuffer->DrawCount;
          InstanceIndex++)
     {
-        vector_float_3 ModelTranslation = ModelTranslations[InstanceIndex];
+        vector_float_3 ModelTranslation = ColoredCubePushBuffer->Translations[InstanceIndex];
 
         matrix Translate = { 1,                  0,                  0,                  0,
                              0,                  1,                  0,                  0,
@@ -207,7 +206,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         MeshInstance->ModelIndex = ModelIndex;
     }
 
-    MeshInstanceBuffer->MeshCount = DrawCount;
+    MeshInstanceBuffer->MeshCount = ColoredCubePushBuffer->DrawCount;
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;

@@ -24,10 +24,16 @@ typedef GAME_LOAD_3D_MODELS(game_load_3D_models);
 #define GAME_UPDATE_AND_RENDER(name) void name(thread_context *Thread, game_memory *Memory, game_input *Input, game_render_commands *RenderCommands)
 typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 
+struct push_buffer
+{
+    vector_float_3 Translations[CUBE_MAP_SIZE];
+    u32 DrawCount;
+};
+
 struct game_state
 {
     cube_map CubeMap;
 
-    // NOTE: (Ted)  This isn't a part of the state per se. It's for the rendering phase.
-    vector_float_3 ModelTranslations[CUBE_MAP_SIZE];
+    push_buffer ColoredCubePushBuffer;
+    push_buffer TexturedCubePushBuffer;
 };
