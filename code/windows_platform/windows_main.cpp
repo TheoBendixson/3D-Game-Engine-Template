@@ -267,10 +267,17 @@ WinMain(HINSTANCE Instance,
     RenderCommands.ViewportWidth = WindowWidth;
     RenderCommands.ViewportHeight = WindowHeight;
 
+    // TODO: (Ted)  Once this is cross-platform, these buffers could be put on a single allocation up-front.
     u32 InstancedMeshBufferSize = 200;
     RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
     RenderCommands.FlatColorMeshInstances.MeshCount = 0;
     RenderCommands.FlatColorMeshInstances.Meshes = 
+        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
+                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+    RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.TexturedMeshInstances.MeshCount = 0;
+    RenderCommands.TexturedMeshInstances.Meshes = 
         (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
                                       MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
@@ -927,7 +934,6 @@ WinMain(HINSTANCE Instance,
                      Index < RenderCommands.FlatColorMeshInstances.MeshCount;
                      Index++)
                 {
-
                     mesh_instance *MeshInstance = &RenderCommands.FlatColorMeshInstances.Meshes[Index];
 
                     {

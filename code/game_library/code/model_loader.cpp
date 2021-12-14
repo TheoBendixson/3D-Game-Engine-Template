@@ -14,7 +14,7 @@
 #define GREEN   { 0, 1, 0 }
 #define BLUE    { 0, 0, 1 }
 
-void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor)
+void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
 {
     // XYZ Vertices, RGB Color
     // NOTE: (Ted) Counter-Clockwise Winding
@@ -81,7 +81,7 @@ void LoadColoredCubeVertices(game_render_commands *RenderCommands, r32 *RGBColor
         { { 0.5f, -0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, { RGBColor[0], RGBColor[1], RGBColor[2] } }
     };
 
-    game_vertex_buffer *VertexBuffer = &RenderCommands->FlatColorVertexBuffer;
+    //game_vertex_buffer *VertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     game_flat_color_vertex *Vertices = (game_flat_color_vertex *)VertexBuffer->Vertices;
 
     model_range Range = {};
@@ -112,19 +112,19 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
     Red[1] = 0;
     Red[2] = 0;
 
-    LoadColoredCubeVertices(RenderCommands, Red);
+    LoadColoredCubeVertices(FlatColorVertexBuffer, Red);
 
     r32 Green[3];
     Green[0] = 0;
     Green[1] = 1;
     Green[2] = 0;
 
-    LoadColoredCubeVertices(RenderCommands, Green);
+    LoadColoredCubeVertices(FlatColorVertexBuffer, Green);
 
     r32 Blue[3];
     Blue[0] = 0;
     Blue[1] = 0;
     Blue[2] = 1;
 
-    LoadColoredCubeVertices(RenderCommands, Blue);
+    LoadColoredCubeVertices(FlatColorVertexBuffer, Blue);
 }
