@@ -8,6 +8,7 @@
 #define RED_CUBE            1
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
+#define TEXTURED_CUBE       4
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -47,7 +48,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
                             if (Value == GREEN_CUBE)
                             {
-                                Value = 0;
+                                Value = TEXTURED_CUBE;
                             }
                         }
                     }
@@ -57,31 +58,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             }
         }
 
-        game_vertex_buffer *VertexBuffer = &RenderCommands->VertexBuffer;
-        VertexBuffer->VertexCount = 0;
-        VertexBuffer->ModelCount = 0;
-
-        r32 Red[3];
-        Red[0] = 1;
-        Red[1] = 0;
-        Red[2] = 0;
-
-        LoadColoredCubeVertices(RenderCommands, Red);
-
-        r32 Green[3];
-        Green[0] = 0;
-        Green[1] = 1;
-        Green[2] = 0;
-
-        LoadColoredCubeVertices(RenderCommands, Green);
-
-        r32 Blue[3];
-        Blue[0] = 0;
-        Blue[1] = 0;
-        Blue[2] = 1;
-
-        LoadColoredCubeVertices(RenderCommands, Blue);
-
         Memory->IsInitialized = true;
     }
 
@@ -90,9 +66,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
-    vector_float_3 *ModelTranslations = GameState->ModelTranslations;
+    push_buffer *ColoredCubePushBuffer = &GameState->ColoredCubePushBuffer;
+    ColoredCubePushBuffer->DrawCount = 0;
 
-    u32 PushBufferIndex = 0;
+    push_buffer *TexturedCubePushBuffer = &GameState->TexturedCubePushBuffer;
+    TexturedCubePushBuffer->DrawCount = 0;
 
     cube_map *CubeMap = &GameState->CubeMap;
 
@@ -113,14 +91,22 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                 Pos.Y = Row;
                 Pos.Z = Layer;
 
-
                 u32 CubeValue = CubeMap->Cubes[Layer*CubeMap->CountY*CubeMap->CountX + Row*CubeMap->CountX + Column];
 
                 if (CubeValue > 0)
                 {
-                    ModelTranslations[PushBufferIndex] = ConvertCubeMapPositionToModelTranslation(Pos, CubeSideInMeters);
-                    PushBufferIndex++;
-                }
+                    vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(Pos, CubeSideInMeters);
+
+                    if (CubeValue == TEXTURED_CUBE)
+                    {
+                        TexturedCubePushBuffer->Translations[TexturedCubePushBuffer->DrawCount] = Translation;
+                        TexturedCubePushBuffer->DrawCount++;
+                    } else
+                    {
+                        ColoredCubePushBuffer->Translations[ColoredCubePushBuffer->DrawCount] = Translation;
+                        ColoredCubePushBuffer->DrawCount++;
+                    }
+                } 
             }
         }
     }
@@ -194,20 +180,21 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
 
-    u32 DrawCount = PushBufferIndex;
+    mesh_instance_buffer *FlatColorMeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
 
     for (u32 InstanceIndex = 0;
-         InstanceIndex < DrawCount;
+         InstanceIndex < ColoredCubePushBuffer->DrawCount;
          InstanceIndex++)
     {
-        vector_float_3 ModelTranslation = ModelTranslations[InstanceIndex];
+        vector_float_3 ModelTranslation = ColoredCubePushBuffer->Translations[InstanceIndex];
 
         matrix Translate = { 1,                  0,                  0,                  0,
                              0,                  1,                  0,                  0,
                              0,                  0,                  1,                  0,
                              ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
 
-        game_constants *Constants = &RenderCommands->Constants[InstanceIndex];
+        mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
+        game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
@@ -225,10 +212,34 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             ModelIndex = 2;
         }
 
-        RenderCommands->InstanceModelIndices[InstanceIndex] = ModelIndex;
+        MeshInstance->ModelIndex = ModelIndex;
     }
 
-    RenderCommands->InstancedMeshCount = DrawCount;
+    FlatColorMeshInstanceBuffer->MeshCount = ColoredCubePushBuffer->DrawCount;
+
+    mesh_instance_buffer *TexturedMeshInstanceBuffer = &RenderCommands->TexturedMeshInstances;
+
+    for (u32 InstanceIndex = 0;
+         InstanceIndex < TexturedCubePushBuffer->DrawCount;
+         InstanceIndex++)
+    {
+        vector_float_3 ModelTranslation = TexturedCubePushBuffer->Translations[InstanceIndex];
+
+        matrix Translate = { 1,                  0,                  0,                  0,
+                             0,                  1,                  0,                  0,
+                             0,                  0,                  1,                  0,
+                             ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
+
+        mesh_instance *MeshInstance = &TexturedMeshInstanceBuffer->Meshes[InstanceIndex];
+        game_constants *Constants = &MeshInstance->Constants;
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->View = View;
+        Constants->Projection = Projection;
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+        MeshInstance->ModelIndex = 0;
+    }
+
+    TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;

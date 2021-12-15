@@ -7,11 +7,18 @@ struct game_constants
     vector_float_3 LightVector;
 };
 
-struct game_vertex
+struct game_flat_color_vertex
 {
     r32 Position[3];
     r32 Normal[3];
     r32 Color[3];
+};
+
+struct game_texture_vertex
+{
+    r32 Position[3];
+    r32 Normal[3];
+    r32 UV[2];
 };
 
 #define MAX_MODELS  3
@@ -24,7 +31,7 @@ struct model_range
 
 struct game_vertex_buffer
 {
-    game_vertex *Vertices;
+    void *Vertices;
     u32 VertexCount;
 
     model_range ModelRanges[MAX_MODELS];
@@ -36,19 +43,28 @@ struct clear_color
     r32 RGBA[4];
 };
 
+struct mesh_instance
+{
+    game_constants Constants;
+    u32 ModelIndex;
+};
 
-// TODO: (Ted)  Tie this more closely to the cube map
+struct mesh_instance_buffer
+{
+    mesh_instance *Meshes;
+    u32 MeshCount;
+    u32 MeshMax;
+};
+
 struct game_render_commands
 {
     s32 ViewportWidth;
     s32 ViewportHeight;
     clear_color ClearColor;
 
-    game_vertex_buffer VertexBuffer;
+    game_vertex_buffer FlatColorVertexBuffer;
+    game_vertex_buffer TextureVertexBuffer;
 
-    // TODO: (Ted)  It's pretty clear an instance of constants
-    //              will always be coupled with a model index.
-    game_constants *Constants;
-    u32 InstanceModelIndices[200];
-    u32 InstancedMeshCount;
+    mesh_instance_buffer FlatColorMeshInstances;
+    mesh_instance_buffer TexturedMeshInstances;
 };

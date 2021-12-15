@@ -192,7 +192,32 @@ void CALLBACK MessageFiberProc(void *)
     }
 }
 
-global_variable ID3D11Buffer* WindowsVertexBuffer;
+global_variable ID3D11Buffer *WindowsFlatColorVertexBuffer;
+global_variable ID3D11Buffer *WindowsTextureVertexBuffer;
+
+internal
+void DrawMeshesFromInstanceBuffer(ID3D11DeviceContext *DeviceContext, ID3D11Buffer *ConstantsBuffer,
+                                  mesh_instance_buffer *MeshBuffer, game_vertex_buffer *VertexBuffer)
+{
+    for (u32 Index = 0;
+         Index < MeshBuffer->MeshCount;
+         Index++)
+    {
+        mesh_instance *MeshInstance = &MeshBuffer->Meshes[Index];
+
+        {
+            D3D11_MAPPED_SUBRESOURCE Mapped;
+            HRESULT HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
+                                             0, &Mapped);
+            AssertHR(HR);
+            memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
+            DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
+        }
+
+        model_range Range = VertexBuffer->ModelRanges[MeshInstance->ModelIndex];
+        DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
+    }
+}
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
@@ -266,9 +291,19 @@ WinMain(HINSTANCE Instance,
     RenderCommands.ViewportWidth = WindowWidth;
     RenderCommands.ViewportHeight = WindowHeight;
 
+    // TODO: (Ted)  Once this is cross-platform, these buffers could be put on a single allocation up-front.
     u32 InstancedMeshBufferSize = 200;
-    RenderCommands.Constants = (game_constants *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(game_constants),
-                                                              MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.FlatColorMeshInstances.MeshCount = 0;
+    RenderCommands.FlatColorMeshInstances.Meshes = 
+        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
+                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+    RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.TexturedMeshInstances.MeshCount = 0;
+    RenderCommands.TexturedMeshInstances.Meshes = 
+        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
+                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
     HDC RefreshDC = GetDC(WindowHandle);
     int RefreshRate = GetDeviceCaps(RefreshDC, VREFRESH);
@@ -426,43 +461,88 @@ WinMain(HINSTANCE Instance,
         Factory->Release();
     }
 
-    u32 VertexBufferSize = sizeof(game_vertex)*2000;
-    RenderCommands.VertexBuffer.Vertices = (game_vertex *)VirtualAlloc(0, VertexBufferSize, 
+    u32 FlatColorVertexBufferSize = sizeof(game_flat_color_vertex)*2000;
+    game_flat_color_vertex *FlatColorVertices = 
+        (game_flat_color_vertex *)VirtualAlloc(0, FlatColorVertexBufferSize, 
+                                               MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.FlatColorVertexBuffer.Vertices = FlatColorVertices;
+    WindowsFlatColorVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, FlatColorVertexBufferSize, 
+                                                                         FlatColorVertices);
+
+    u32 TextureVertexBufferSize = sizeof(game_texture_vertex)*2000;
+    game_texture_vertex *TextureVertices =
+        (game_texture_vertex *)VirtualAlloc(0, TextureVertexBufferSize, 
                                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    WindowsVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, VertexBufferSize, 
-                                                                RenderCommands.VertexBuffer.Vertices);
-    
+    RenderCommands.TextureVertexBuffer.Vertices = TextureVertices;
+    WindowsTextureVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, TextureVertexBufferSize, 
+                                                                       TextureVertices);
+
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
-    ID3D11InputLayout* Layout;
-    ID3D11VertexShader* VShader;
-    ID3D11PixelShader* PShader;
+    ID3D11InputLayout* FlatColorLayout;
+    ID3D11VertexShader* FlatColorVShader;
+    ID3D11PixelShader* FlatColorPShader;
     {
         // these must match vertex shader input layout
-        D3D11_INPUT_ELEMENT_DESC Desc[] =
+        D3D11_INPUT_ELEMENT_DESC FlatColorLayoutDesc[] =
         {
             { 
                 "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_flat_color_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "NORMAL",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_flat_color_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
             },
             { 
                 "COLOR",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
-                offsetof(struct game_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
+                offsetof(struct game_flat_color_vertex, Color), D3D11_INPUT_PER_VERTEX_DATA, 0 
             }
         };
 
-        #include "d3d11_vshader.h"
-        HR = D11Device->CreateVertexShader(d3d11_vshader, sizeof(d3d11_vshader), NULL, &VShader);
+        #include "d3d11_vshader_flat.h"
+        HR = D11Device->CreateVertexShader(d3d11_vshader_flat, sizeof(d3d11_vshader_flat), NULL, &FlatColorVShader);
         AssertHR(HR);
 
-        #include "d3d11_pshader.h"
-        HR = D11Device->CreatePixelShader(d3d11_pshader, sizeof(d3d11_pshader), NULL, &PShader);
+        #include "d3d11_pshader_flat.h"
+        HR = D11Device->CreatePixelShader(d3d11_pshader_flat, sizeof(d3d11_pshader_flat), NULL, &FlatColorPShader);
         AssertHR(HR);
 
-        HR = D11Device->CreateInputLayout(Desc, _countof(Desc), d3d11_vshader, sizeof(d3d11_vshader), &Layout);
+        HR = D11Device->CreateInputLayout(FlatColorLayoutDesc, _countof(FlatColorLayoutDesc), d3d11_vshader_flat, 
+                                          sizeof(d3d11_vshader_flat), &FlatColorLayout);
+        AssertHR(HR);
+    }
+
+    ID3D11InputLayout* TexturedLayout;
+    ID3D11VertexShader* TexturedVShader;
+    ID3D11PixelShader* TexturedPShader;
+    {
+        // these must match vertex shader input layout
+        D3D11_INPUT_ELEMENT_DESC TexturedLayoutDesc[] =
+        {
+            { 
+                "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                offsetof(struct game_texture_vertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 
+            },
+            { 
+                "NORMAL",0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 
+                offsetof(struct game_texture_vertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 
+            },
+            { 
+                "UV",0, DXGI_FORMAT_R32G32_FLOAT, 0, 
+                offsetof(struct game_texture_vertex, UV), D3D11_INPUT_PER_VERTEX_DATA, 0 
+            }
+        };
+
+        #include "d3d11_vshader_textured.h"
+        HR = D11Device->CreateVertexShader(d3d11_vshader_textured, sizeof(d3d11_vshader_textured), NULL, &TexturedVShader);
+        AssertHR(HR);
+
+        #include "d3d11_pshader_textured.h"
+        HR = D11Device->CreatePixelShader(d3d11_pshader_textured, sizeof(d3d11_pshader_textured), NULL, &TexturedPShader);
+        AssertHR(HR);
+
+        HR = D11Device->CreateInputLayout(TexturedLayoutDesc, _countof(TexturedLayoutDesc), d3d11_vshader_textured, 
+                                          sizeof(d3d11_vshader_textured), &TexturedLayout);
         AssertHR(HR);
     }
 
@@ -486,26 +566,6 @@ WinMain(HINSTANCE Instance,
         *Byte++ = 0;
     }
 
-    /*
-    ID3D11BlendState* BlendState;
-    {
-        // enable alpha blending
-        D3D11_BLEND_DESC Desc = {};
-        D3D11_RENDER_TARGET_BLEND_DESC RenderTarget = {};
-        RenderTarget.BlendEnable = TRUE;
-        RenderTarget.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-        RenderTarget.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-        RenderTarget.BlendOp = D3D11_BLEND_OP_ADD;
-        RenderTarget.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-        RenderTarget.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-        RenderTarget.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        RenderTarget.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-        Desc.RenderTarget[0] = RenderTarget;
-
-        HR = D11Device->CreateBlendState(&Desc, &BlendState);
-        AssertHR(HR);
-    }*/
-
     ID3D11RasterizerState* RasterizerState;
     {
         D3D11_RASTERIZER_DESC Desc = {};
@@ -526,6 +586,53 @@ WinMain(HINSTANCE Instance,
         AssertHR(HR);
     }
 
+    ID3D11SamplerState* SamplerState;
+    {
+        D3D11_SAMPLER_DESC Desc = {};
+        Desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        Desc.AddressU       = D3D11_TEXTURE_ADDRESS_WRAP;
+        Desc.AddressV       = D3D11_TEXTURE_ADDRESS_WRAP;
+        Desc.AddressW       = D3D11_TEXTURE_ADDRESS_WRAP;
+        Desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        HR = D11Device->CreateSamplerState(&Desc, &SamplerState);
+        AssertHR(HR);
+    }
+
+    UINT TextureData[] =
+    {
+        0xffffffff, 0xff7f7f7f,
+        0xff7f7f7f, 0xffffffff,
+    };
+
+    u32 TextureWidth = 2;
+    u32 TextureHeight = 2;
+
+    ID3D11Texture2D* Texture;
+    {
+        D3D11_TEXTURE2D_DESC Desc = {};
+        Desc.Width              = TextureWidth;
+        Desc.Height             = TextureHeight;
+        Desc.MipLevels          = 1;
+        Desc.ArraySize          = 1;
+        Desc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        Desc.SampleDesc.Count   = 1;
+        Desc.Usage              = D3D11_USAGE_IMMUTABLE;
+        Desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+
+        D3D11_SUBRESOURCE_DATA Data = {};
+        Data.pSysMem            = TextureData;
+        Data.SysMemPitch        = TextureWidth * 4; // 4 bytes per pixel
+
+        HR = D11Device->CreateTexture2D(&Desc, &Data, &Texture);
+        AssertHR(HR);
+    }
+
+    ID3D11ShaderResourceView* TextureView;
+    {
+        HR = D11Device->CreateShaderResourceView(Texture, nullptr, &TextureView);
+        AssertHR(HR);
+    }
+
     ID3D11RenderTargetView* RTView = NULL;
     ID3D11DepthStencilView* DSView = NULL;
 
@@ -539,6 +646,14 @@ WinMain(HINSTANCE Instance,
     float Angle = 0;
     DWORD CurrentWidth = 0;
     DWORD CurrentHeight = 0;
+
+    GameLoad3DModels(&RenderCommands);
+
+    TransferVertexBufferContents(DeviceContext, WindowsFlatColorVertexBuffer, 
+                                 RenderCommands.FlatColorVertexBuffer.Vertices, FlatColorVertexBufferSize);
+
+    TransferVertexBufferContents(DeviceContext, WindowsTextureVertexBuffer, 
+                                 RenderCommands.TextureVertexBuffer.Vertices, TextureVertexBufferSize);
 
     update_interval = 10;
     next_update = GetTickCount();
@@ -818,51 +933,49 @@ WinMain(HINSTANCE Instance,
                 }*/
                 
 
-                // NOTE: (Ted)  Transfer Vertex Buffer.
-                TransferVertexBufferContents(DeviceContext, WindowsVertexBuffer, 
-                                             RenderCommands.VertexBuffer.Vertices, VertexBufferSize);
-
                 // Input Assembler
-                DeviceContext->IASetInputLayout(Layout);
+                DeviceContext->IASetInputLayout(FlatColorLayout);
                 DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                UINT Stride = sizeof(struct game_vertex);
+                UINT Stride = sizeof(struct game_flat_color_vertex);
                 UINT Offset = 0;
 
                 // Vertex Shader
                 DeviceContext->VSSetConstantBuffers(0, 1, &ConstantsBuffer);
-                DeviceContext->VSSetShader(VShader, NULL, 0);
+                DeviceContext->VSSetShader(FlatColorVShader, NULL, 0);
 
                 // Rasterizer Stage
                 DeviceContext->RSSetViewports(1, &Viewport);
                 DeviceContext->RSSetState(RasterizerState);
 
                 // Pixel Shader
-                DeviceContext->PSSetShader(PShader, NULL, 0);
+                DeviceContext->PSSetShader(FlatColorPShader, NULL, 0);
+                //DeviceContext->PSSetSamplers(0, 1, NULL);
+                //DeviceContext->PSSetShaderResources(0, 1, NULL);
 
                 // Output Merger
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
                 DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
                 DeviceContext->OMSetRenderTargets(1, &RTView, DSView);
 
-                DeviceContext->IASetVertexBuffers(0, 1, &WindowsVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetVertexBuffers(0, 1, &WindowsFlatColorVertexBuffer, &Stride, &Offset);
 
-                for (u32 InstanceMeshIndex = 0;
-                     InstanceMeshIndex < RenderCommands.InstancedMeshCount;
-                     InstanceMeshIndex++)
-                {
-                    {
-                        D3D11_MAPPED_SUBRESOURCE Mapped;
-                        HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
-                                                0, &Mapped);
-                        AssertHR(HR);
-                        memcpy(Mapped.pData, &RenderCommands.Constants[InstanceMeshIndex], sizeof(game_constants));
-                        DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
-                    }
+                DrawMeshesFromInstanceBuffer(DeviceContext, ConstantsBuffer, &RenderCommands.FlatColorMeshInstances, 
+                                             &RenderCommands.FlatColorVertexBuffer);
 
-                    u32 ModelIndex = RenderCommands.InstanceModelIndices[InstanceMeshIndex];
-                    model_range Range = RenderCommands.VertexBuffer.ModelRanges[ModelIndex];
-                    DeviceContext->Draw(Range.VertexCount, Range.StartVertex);
-                }
+                DeviceContext->IASetInputLayout(TexturedLayout);
+                Stride = sizeof(struct game_texture_vertex);
+                DeviceContext->IASetVertexBuffers(0, 1, &WindowsTextureVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+                DeviceContext->VSSetShader(TexturedVShader, NULL, 0);
+                DeviceContext->VSSetConstantBuffers(0, 1, &ConstantsBuffer);
+
+                DeviceContext->PSSetShader(TexturedPShader, NULL, 0);
+                DeviceContext->PSSetSamplers(0, 1, &SamplerState);
+                DeviceContext->PSSetShaderResources(0, 1, &TextureView);
+
+                DrawMeshesFromInstanceBuffer(DeviceContext, ConstantsBuffer, &RenderCommands.TexturedMeshInstances, 
+                                             &RenderCommands.TextureVertexBuffer);
 
                 LARGE_INTEGER WithinFrameCounter2;
                 QueryPerformanceCounter(&WithinFrameCounter2);
