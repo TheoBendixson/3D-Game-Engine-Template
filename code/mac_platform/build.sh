@@ -15,7 +15,8 @@ OSX_LD_FLAGS="-framework AppKit
               -framework QuartzCore
               -framework AudioToolbox"
 
-COMMON_COMPILER_FLAGS="$OSX_LD_FLAGS"
+COMMON_COMPILER_FLAGS="-DMACOS=1
+                       ${OSX_LD_FLAGS}"
 
 GAME_BUNDLE_RESOURCES_PATH="Vario.app/Contents/Resources"
 

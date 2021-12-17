@@ -3,6 +3,13 @@
 #include "platform.h"
 #include "game_memory.h"
 #include "game_input.h"
+
+// NOTE: (Ted)  On the Mac platform, the game is compiled as a dynamic library and the math library
+//              isn't loaded from the platform layer.
+#if MACOS
+#import "math.h"
+#endif
+
 #include "game_math.h"
 #include "game_render_commands.h"
 #include "game_startup_config.h"
