@@ -18,6 +18,7 @@ OSX_LD_FLAGS="-framework AppKit
               -framework AudioToolbox"
 
 COMMON_COMPILER_FLAGS="-DMACOS=1
+                       -DINTERNAL=1
                        ${IGNORED_WARNINGS}
                        ${OSX_LD_FLAGS}"
 

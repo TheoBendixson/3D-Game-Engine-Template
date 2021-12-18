@@ -11,6 +11,8 @@
 #include "mac_window.m"
 #include "mac_file_path.cpp"
 #include "mac_game_code.h"
+#include "mac_recording.h"
+#include "mac_game_controller.h"
 
 global_variable b32 LKeyWasPressed = false;
 global_variable b32 MouseCursorHideAllowed = true;
@@ -180,6 +182,202 @@ global_variable b32 ExternalMouseCursorFlag = false;
 
 @end
 
+@interface MetalViewDelegate: NSObject<MTKViewDelegate>
+
+@property (retain) NSString *SourceGameCodeDLLFullPath;
+@property mac_game_code Game;
+@property game_memory GameMemory;
+@property game_render_commands RenderCommands;
+@property (retain) id<MTLRenderPipelineState> FlatColorPipelineState;
+@property (retain) id<MTLRenderPipelineState> TexturePipelineState;
+@property (retain) id<MTLCommandQueue> CommandQueue;
+@property (retain) id<MTLTexture> SampleTexture;
+@property (retain) id<MTLBuffer> FlatColorVertexBuffer;
+@property (retain) id<MTLBuffer> TextureVertexBuffer;
+
+- (void)configureMetal;
+- (void)setKeyboardControllerPtr: (mac_game_controller *)KeyboardControllerPtr;
+- (void)setMacStatePtr: (mac_state *)MacStatePtr;
+- (void)setNewInputPtr: (game_input *)NewInputPtr;
+- (void)setOldInputPtr: (game_input *)OldInputPtr;
+
+@end
+
+static const NSUInteger kMaxInflightBuffers = 3;
+
+
+@implementation MetalViewDelegate
+{
+    mac_game_controller *_KeyboardControllerPtr;
+    mac_state *_MacStatePtr;
+    game_input *_NewInputPtr;
+    game_input *_OldInputPtr;
+    dispatch_semaphore_t _frameBoundarySemaphore;
+    NSUInteger _currentFrameIndex;
+}
+
+- (void)configureMetal
+{
+    _frameBoundarySemaphore = dispatch_semaphore_create(kMaxInflightBuffers);
+    _currentFrameIndex = 0;
+}
+
+- (void)setKeyboardControllerPtr: (mac_game_controller *)KeyboardControllerPtr
+{
+    _KeyboardControllerPtr = KeyboardControllerPtr;
+}
+
+- (void)setMacStatePtr: (mac_state *)MacStatePtr
+{
+    _MacStatePtr = MacStatePtr;
+}
+
+- (void)setNewInputPtr: (game_input *)NewInputPtr
+{
+    _NewInputPtr = NewInputPtr;
+}
+
+- (void)setOldInputPtr: (game_input *)OldInputPtr
+{
+    _OldInputPtr = OldInputPtr;
+}
+
+- (void)drawInMTKView:(MTKView *)view 
+{
+    dispatch_semaphore_wait(_frameBoundarySemaphore, DISPATCH_TIME_FOREVER);
+    _currentFrameIndex = (_currentFrameIndex + 1) % kMaxInflightBuffers;
+
+    game_render_commands *RenderCommandsPtr = &_RenderCommands;
+    RenderCommandsPtr->FrameIndex = (u32)_currentFrameIndex;
+
+    game_memory *GameMemoryPtr = &_GameMemory;
+    mac_state MacState = *_MacStatePtr;
+
+    thread_context Thread = {};
+
+#if INTERNAL
+    if (LKeyWasPressed)
+    {
+        if (_MacStatePtr->InputPlayingIndex == 0)
+        {
+            if (_MacStatePtr->InputRecordingIndex == 0)
+            {
+                MacBeginRecordingInput(&Thread, _MacStatePtr, 1);
+                _MacStatePtr->InputRecordingIndex = 1;
+            } else 
+            {
+                MacEndRecordingInput(_MacStatePtr);
+                MacBeginInputPlayback(&Thread, _MacStatePtr, 1);
+                _MacStatePtr->InputRecordingIndex = 0;
+                _MacStatePtr->InputPlayingIndex = 1;
+            }
+        } else {
+            MacEndInputPlayback(_MacStatePtr);
+        }
+
+        LKeyWasPressed = false;
+
+        GameMemoryPtr->PermanentStorage = MacState.GameMemoryBlock; 
+    }
+#endif
+
+    _NewInputPtr->dtForFrame = 1.0f/view.preferredFramesPerSecond;
+
+    mac_game_controller *MacController;
+    MacController = _KeyboardControllerPtr;
+
+    game_controller_input *OldController = &_OldInputPtr->Controller;
+    game_controller_input *NewController = &_NewInputPtr->Controller;
+
+    MacProcessGameControllerButton(&(OldController->A),
+                                     &(NewController->A),
+                                     MacController->ButtonAState); 
+
+    MacProcessGameControllerButton(&(OldController->B),
+                                     &(NewController->B),
+                                     MacController->ButtonBState); 
+
+    MacProcessGameControllerButton(&(OldController->X),
+                                     &(NewController->X),
+                                     MacController->ButtonXState); 
+
+    MacProcessGameControllerButton(&(OldController->Y),
+                                     &(NewController->Y),
+                                     MacController->ButtonYState); 
+
+    MacProcessGameControllerButton(&(OldController->LeftShoulder1),
+                                     &(NewController->LeftShoulder1),
+                                     MacController->ButtonLeftShoulder1State); 
+
+    MacProcessGameControllerButton(&(OldController->LeftShoulder2),
+                                     &(NewController->LeftShoulder2),
+                                     MacController->ButtonLeftShoulder2State); 
+   
+    MacProcessGameControllerButton(&(OldController->RightShoulder1),
+                                     &(NewController->RightShoulder1),
+                                     MacController->ButtonRightShoulder1State); 
+
+    MacProcessGameControllerButton(&(OldController->RightShoulder2),
+                                     &(NewController->RightShoulder2),
+                                     MacController->ButtonRightShoulder2State); 
+
+    MacProcessGameControllerButton(&(OldController->Start),
+                                     &(NewController->Start),
+                                     MacController->ButtonStartState); 
+
+    MacProcessGameControllerButton(&(OldController->Select),
+                                     &(NewController->Select),
+                                     MacController->ButtonSelectState); 
+
+    b32 Right = MacController->DPadX > 0 ? true:false;
+    b32 Left = MacController->DPadX < 0 ? true:false;
+    b32 Up = MacController->DPadY > 0 ? true:false;
+    b32 Down = MacController->DPadY < 0 ? true:false;
+
+    MacProcessGameControllerButton(&(OldController->Right),
+                                   &(NewController->Right),
+                                   Right);
+    MacProcessGameControllerButton(&(OldController->Left),
+                                   &(NewController->Left),
+                                   Left);
+    MacProcessGameControllerButton(&(OldController->Up),
+                                   &(NewController->Up),
+                                   Up);
+    MacProcessGameControllerButton(&(OldController->Down),
+                                   &(NewController->Down),
+                                   Down);
+
+    char *GameCodeFilePath = (char *)[[self SourceGameCodeDLLFullPath] 
+                                       cStringUsingEncoding: NSUTF8StringEncoding];
+    time_t NewDLLWriteTime = MacGetLastWriteTime(GameCodeFilePath);
+    if(NewDLLWriteTime > _Game.DLLLastWriteTime)
+    {
+        MacUnloadGameCode(&_Game);
+        [self setGame: MacLoadGameCode(GameCodeFilePath)];
+    }
+
+#if INTERNAL
+    if (MacState.InputRecordingIndex)
+    {
+        MacRecordInput(_MacStatePtr, _NewInputPtr); 
+    }
+
+    if (MacState.InputPlayingIndex)
+    {
+        MacPlaybackInput(&Thread, _MacStatePtr, _NewInputPtr); 
+    }
+#endif
+
+
+}
+
+- (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size
+{
+
+}
+
+@end
+
 global_variable GameWindow *Window;
 
 int main(int argc, const char * argv[]) 
@@ -317,6 +515,17 @@ int main(int argc, const char * argv[])
         NSLog(@"Error creating flat shaded geometry pipeline state");
     }
 
+    id<MTLCommandQueue> CommandQueue = [MetalKitView.device newCommandQueue]; 
+
+#if INTERNAL
+    char* BaseAddress = (char*)Gigabytes(8);
+    u32 AllocationFlags = MAP_PRIVATE | MAP_ANON | MAP_FIXED;
+#else
+    void* BaseAddress = 0;
+    u32 AllocationFlags = MAP_PRIVATE | MAP_ANON;
+#endif
+
+    MetalViewDelegate *ViewDelegate = [[MetalViewDelegate alloc] init];
 
     return NSApplicationMain(argc, argv);
 }
