@@ -10,6 +10,25 @@
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
 
+internal 
+matrix GenerateTranslationMatrix(vector_float_3 ModelTranslation)
+{
+
+#if WINDOWS
+    matrix Translate = { 1,                  0,                  0,                  0,
+                         0,                  1,                  0,                  0,
+                         0,                  0,                  1,                  0,
+                         ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
+#elif MACOS
+    matrix Translate = { 1, 0, 0, ModelTranslation.X,
+                         0, 1, 0, ModelTranslation.Y,
+                         0, 0, 1, ModelTranslation.Z,
+                         0, 0, 0, 1 };
+#endif
+
+    return Translate;
+}
+
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
@@ -233,12 +252,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ColoredCubePushBuffer->Translations[InstanceIndex];
-
-        matrix Translate = { 1,                  0,                  0,                  0,
-                             0,                  1,                  0,                  0,
-                             0,                  0,                  1,                  0,
-                             ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
-
+        matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
@@ -270,12 +284,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = TexturedCubePushBuffer->Translations[InstanceIndex];
-
-        matrix Translate = { 1,                  0,                  0,                  0,
-                             0,                  1,                  0,                  0,
-                             0,                  0,                  1,                  0,
-                             ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
-
+        matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         mesh_instance *MeshInstance = &TexturedMeshInstanceBuffer->Meshes[InstanceIndex];
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
