@@ -1,7 +1,16 @@
 #import <AppKit/AppKit.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
+#include <mach/mach_init.h>
+#include <mach/mach_time.h>
+#include <dlfcn.h>
+#include <mach-o/dyld.h>
+#include <sys/stat.h>
 
 #include "mac_os_main.h"
 #include "mac_window.m"
+#include "mac_file_path.cpp"
+#include "mac_game_code.h"
 
 global_variable b32 LKeyWasPressed = false;
 global_variable b32 MouseCursorHideAllowed = true;
@@ -175,7 +184,6 @@ global_variable GameWindow *Window;
 
 int main(int argc, const char * argv[]) 
 {
-    /*
     mac_state MacState = {};
     mac_app_path Path = {};
     MacState.Path = &Path;
@@ -190,7 +198,7 @@ int main(int argc, const char * argv[])
     {
         [NSException raise: @"Game Code Not Loaded"
                      format: @"Game Code Not Loaded"];
-    }*/
+    }
 
     MainWindowDelegate *WindowDelegate = [[MainWindowDelegate alloc] init];
 

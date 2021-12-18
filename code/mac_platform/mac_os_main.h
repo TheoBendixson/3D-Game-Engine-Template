@@ -1,4 +1,6 @@
+
 #include "../game_library/code/vario.h"
+#include "mac_file_path.h"
 
 const unsigned short LeftArrowKeyCode = 0x7B;
 const unsigned short RightArrowKeyCode = 0x7C;
@@ -59,3 +61,39 @@ struct mac_game_controller
     b32 ButtonSelectState;
 };
 
+struct mac_replay_buffer
+{
+    FILE *FileHandle;
+    char ReplayFileName[MAC_MAX_FILENAME_SIZE];
+    void *MemoryBlock;
+};
+
+struct mac_state
+{
+    void *GameMemoryBlock;
+    u64 PermanentStorageSize;
+
+    mac_replay_buffer ReplayBuffers[4];
+
+    mac_app_path *Path;
+
+    FILE *RecordingHandle;
+    int InputRecordingIndex;
+
+    FILE *PlaybackHandle;
+	int InputPlayingIndex;
+
+	char ResourcesDirectory[MAC_MAX_FILENAME_SIZE];
+	int ResourcesDirectorySize;
+
+};
+
+struct mac_game_code 
+{
+    void *GameCodeDLL;
+    time_t DLLLastWriteTime;
+
+    // IMPORTANT:   Either of these can be null. Check before using.
+    game_update_and_render *UpdateAndRender;
+    b32 IsValid;
+};

@@ -8,6 +8,8 @@ pushd $MAC_BUILD_PATH
 MAC_PLATFORM_LAYER_PATH="../../code/mac_platform"
 GAME_LIBRARY_CODE_PATH="../../code/game_library/code"
 
+IGNORED_WARNINGS="-Wno-c++11-compat-deprecated-writable-strings"
+
 OSX_LD_FLAGS="-framework AppKit 
               -framework IOKit
               -framework Metal
@@ -16,6 +18,7 @@ OSX_LD_FLAGS="-framework AppKit
               -framework AudioToolbox"
 
 COMMON_COMPILER_FLAGS="-DMACOS=1
+                       ${IGNORED_WARNINGS}
                        ${OSX_LD_FLAGS}"
 
 GAME_BUNDLE_RESOURCES_PATH="Vario.app/Contents/Resources"
