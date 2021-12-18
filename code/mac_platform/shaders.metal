@@ -2,43 +2,68 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
 
-#import "shader_types.h"
+typedef struct
+{
+    matrix_float4x4 Transform;
+    matrix_float4x4 View;
+    matrix_float4x4 Projection;
+    float3 LightVector;
+} Uniforms;
 
-using namespace metal;
+typedef enum FlatColorVSAttribute
+{
+    FlatColorVSPosition  = 0,
+    FlatColorVSNormal = 1,
+    FlatColorVSColor = 2
+} FlatColorVSAttribute;
+
+typedef enum FlatColorPSAttribute
+{
+    FlatColorPSPosition  = 0,
+    FlatColorPSColor = 1
+} PSVertexAttribute;
+
+typedef enum BufferIndex
+{
+    BufferIndexUniforms = 0
+}BufferIndex;
 
 typedef struct
 {
-    float3 position [[attribute(VertexAttributePosition)]];
-    float2 texCoord [[attribute(VertexAttributeTexcoord)]];
-} Vertex;
+    float3 position [[attribute(FlatColorVSPosition)]];
+    float3 normal   [[attribute(FlatColorVSNormal)]];
+    float3 color    [[attribute(FlatColorVSColor)]];
+} FlatColorVSInput;
 
 typedef struct
 {
     float4 position [[position]];
-    float2 texCoord;
-} ColorInOut;
+    float4 color;                                                 
+} FlatColorPSInput;
 
-vertex ColorInOut vertexShader(Vertex in [[stage_in]],
-                               constant Uniforms & uniforms [[ buffer(BufferIndexUniforms) ]])
+using namespace metal;
+
+vertex FlatColorPSInput 
+flatColorVertexShader(FlatColorVSInput in [[stage_in]],
+                      constant Uniforms & uniforms [[ buffer(BufferIndexUniforms) ]])
 {
-    ColorInOut out;
+    FlatColorPSInput out;
 
-    float4 position = float4(in.position, 1.0);
-    out.position = uniforms.projectionMatrix * uniforms.modelViewMatrix * position;
-    out.texCoord = in.texCoord;
+    // NOTE: (Ted)  Don't calculate light for now.
+    /*
+    float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
+                            normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;*/
+
+    matrix_float4x4 ModelView = uniforms.Transform*uniforms.View;
+    matrix_float4x4 MVPMatrix = ModelView*uniforms.Projection;
+    out.position = float4(in.position.xyz, 1.0f)*MVPMatrix;
+    out.color = float4(in.color, 1.0f);
 
     return out;
 }
 
-fragment float4 fragmentShader(ColorInOut in [[stage_in]],
-                               constant Uniforms & uniforms [[ buffer(BufferIndexUniforms) ]],
-                               texture2d<half> colorMap     [[ texture(TextureIndexColor) ]])
+fragment float4 
+flatColorFragmentShader(FlatColorPSInput in [[stage_in]])
 {
-    constexpr sampler colorSampler(mip_filter::linear,
-                                   mag_filter::linear,
-                                   min_filter::linear);
-
-    half4 colorSample   = colorMap.sample(colorSampler, in.texCoord.xy);
-
-    return float4(colorSample);
+    return in.color;
 }

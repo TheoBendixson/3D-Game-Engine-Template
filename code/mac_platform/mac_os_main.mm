@@ -274,22 +274,11 @@ int main(int argc, const char * argv[])
 
     RenderCommands.TextureVertexBuffer.VertexCount = 0;
 
-    // TODO: (Ted)  Actually create this shader!
-    NSString *FlatColorShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"FlatColorShader" ofType: @"metallib"];
-    id<MTLLibrary> FlatColorShaderLibrary = [MetalKitView.device 
-                                                newLibraryWithFile: FlatColorShaderLibraryFile 
-                                                             error: nil];
-    id<MTLFunction> FlatColorShaderVertexFunction = [FlatColorShaderLibrary newFunctionWithName:@"vertexShader"];
-    id<MTLFunction> FlatColorShaderFragmentFunction = [FlatColorShaderLibrary newFunctionWithName:@"fragmentShader"];
-
-    // TODO: (Ted)  Actually create this shader!
-    NSString *TextureShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"TextureShader" ofType: @"metallib"];
-    id<MTLLibrary> TextureShaderLibrary = [MetalKitView.device 
-                                                newLibraryWithFile: TextureShaderLibraryFile 
-                                                             error: nil];
-    id<MTLFunction> TextureShaderVertexFunction = [TextureShaderLibrary newFunctionWithName:@"vertexShader"];
-    id<MTLFunction> TextureShaderFragmentFunction = [TextureShaderLibrary newFunctionWithName:@"fragmentShader"];
-
+    NSString *ShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"Shaders" ofType: @"metallib"];
+    id<MTLLibrary> ShaderLibrary = [MetalKitView.device newLibraryWithFile: ShaderLibraryFile 
+                                                                     error: nil];
+    id<MTLFunction> FlatColorVertexFunction = [ShaderLibrary newFunctionWithName:@"flatColorVertexShader"];
+    id<MTLFunction> FlatColorFragmentFunction = [ShaderLibrary newFunctionWithName:@"flatColorFragmentShader"];
 
     return NSApplicationMain(argc, argv);
 }
