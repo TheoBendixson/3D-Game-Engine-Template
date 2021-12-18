@@ -399,13 +399,12 @@ static const NSUInteger kMaxInflightBuffers = 3;
         id<MTLRenderCommandEncoder> RenderEncoder = 
             [CommandBuffer renderCommandEncoderWithDescriptor: RenderPassDescriptor];
         RenderEncoder.label = @"RenderEncoder";
-
         [RenderEncoder setViewport: Viewport];
+        [RenderEncoder setCullMode: MTLCullModeBack];
+        [RenderEncoder setFrontFacingWinding: MTLWindingCounterClockwise];
 
-        // TODO: (Ted)  Setup backface culling.
-        // TODO: (Ted)  Setup vertex winding order.
-        // TODO: (Ted)  Setup depth stencil state.
-
+        // TODO: (Ted)  Assign depth stencil state.
+        //[RenderEncoder setDepthStencilState: 
 
 // MARK:    Render Flat Shaded Geometry
         [RenderEncoder setRenderPipelineState: [self FlatColorPipelineState]];
