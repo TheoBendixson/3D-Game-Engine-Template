@@ -279,6 +279,44 @@ int main(int argc, const char * argv[])
                                                                      error: nil];
     id<MTLFunction> FlatColorVertexFunction = [ShaderLibrary newFunctionWithName:@"flatColorVertexShader"];
     id<MTLFunction> FlatColorFragmentFunction = [ShaderLibrary newFunctionWithName:@"flatColorFragmentShader"];
+    id<MTLFunction> TextureVertexFunction = [ShaderLibrary newFunctionWithName:@"textureVertexShader"];
+    id<MTLFunction> TextureFragmentFunction = [ShaderLibrary newFunctionWithName:@"textureFragmentShader"];
+
+    MTLRenderPipelineDescriptor *FlatColorPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    FlatColorPipelineDescriptor.label = @"Flat Shaded Colored Vertices";
+    FlatColorPipelineDescriptor.vertexFunction = FlatColorVertexFunction;
+    FlatColorPipelineDescriptor.fragmentFunction = FlatColorFragmentFunction; 
+    MTLRenderPipelineColorAttachmentDescriptor *FlatColorRenderBufferAttachment = 
+        FlatColorPipelineDescriptor.colorAttachments[0];
+    FlatColorRenderBufferAttachment.pixelFormat = MetalKitView.colorPixelFormat;
+
+    NSError *error = NULL;
+    id<MTLRenderPipelineState> FlatColorPipelineState = 
+        [MetalKitView.device newRenderPipelineStateWithDescriptor: FlatColorPipelineDescriptor
+                                                            error: &error];
+
+    if (error != nil)
+    {
+        NSLog(@"Error creating flat shaded geometry pipeline state");
+    }
+
+    MTLRenderPipelineDescriptor *TexturePipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    TexturePipelineDescriptor.label = @"Texture Sampled Vertices";
+    TexturePipelineDescriptor.vertexFunction = TextureVertexFunction;
+    TexturePipelineDescriptor.fragmentFunction = TextureFragmentFunction; 
+    MTLRenderPipelineColorAttachmentDescriptor *TextureRenderBufferAttachment = 
+        TexturePipelineDescriptor.colorAttachments[0];
+    TextureRenderBufferAttachment.pixelFormat = MetalKitView.colorPixelFormat;
+
+    id<MTLRenderPipelineState> TexturePipelineState = 
+        [MetalKitView.device newRenderPipelineStateWithDescriptor: TexturePipelineDescriptor
+                                                            error: &error];
+
+    if (error != nil)
+    {
+        NSLog(@"Error creating flat shaded geometry pipeline state");
+    }
+
 
     return NSApplicationMain(argc, argv);
 }
