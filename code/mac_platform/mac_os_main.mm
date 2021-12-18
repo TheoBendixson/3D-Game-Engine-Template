@@ -194,6 +194,7 @@ global_variable b32 ExternalMouseCursorFlag = false;
 @property (retain) id<MTLTexture> SampleTexture;
 @property (retain) id<MTLBuffer> FlatColorVertexBuffer;
 @property (retain) id<MTLBuffer> TextureVertexBuffer;
+@property (retain) id<MTLDepthStencilState> DepthStencilState;
 
 - (void)configureMetal;
 - (void)setKeyboardControllerPtr: (mac_game_controller *)KeyboardControllerPtr;
@@ -402,9 +403,7 @@ static const NSUInteger kMaxInflightBuffers = 3;
         [RenderEncoder setViewport: Viewport];
         [RenderEncoder setCullMode: MTLCullModeBack];
         [RenderEncoder setFrontFacingWinding: MTLWindingCounterClockwise];
-
-        // TODO: (Ted)  Assign depth stencil state.
-        //[RenderEncoder setDepthStencilState: 
+        [RenderEncoder setDepthStencilState: [self DepthStencilState]];
 
 // MARK:    Render Flat Shaded Geometry
         [RenderEncoder setRenderPipelineState: [self FlatColorPipelineState]];
@@ -432,6 +431,17 @@ static const NSUInteger kMaxInflightBuffers = 3;
         // TODO: (Ted)  Render textured cube primitives here.
 
         [RenderEncoder endEncoding];
+
+        // Schedule a present once the framebuffer is complete using the current drawable
+        id<CAMetalDrawable> NextDrawable = [view currentDrawable];
+        [CommandBuffer presentDrawable: NextDrawable];
+
+        __block dispatch_semaphore_t semaphore = _frameBoundarySemaphore;
+        [CommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> commandBuffer) {
+            dispatch_semaphore_signal(semaphore);
+        }];
+
+        [CommandBuffer commit];
     }
 }
 
@@ -578,6 +588,13 @@ int main(int argc, const char * argv[])
     {
         NSLog(@"Error creating flat shaded geometry pipeline state");
     }
+
+    MTLDepthStencilDescriptor *DepthStencilDesc = [[MTLDepthStencilDescriptor alloc] init];
+    DepthStencilDesc.depthCompareFunction = MTLCompareFunctionLess;
+    DepthStencilDesc.label = @"Depth Stencil";
+    id<MTLDepthStencilState> DepthStencilState = [MetalKitView.device newDepthStencilStateWithDescriptor: DepthStencilDesc];
+
+
 
     id<MTLCommandQueue> CommandQueue = [MetalKitView.device newCommandQueue]; 
 
