@@ -731,7 +731,29 @@ int main(int argc, const char * argv[])
     if (Game.Load3DModels)
     {
         Game.Load3DModels(&RenderCommands);
+    } else
+    {
+        [NSException raise: @"3D Models Not Loaded"
+                     format: @"Failed to load the game's 3D models"];
     }
+
+    NSString *GameCodeDLLPath = [[NSString alloc] initWithCString: SourceGameCodeDLLFullPath
+                                                         encoding: NSUTF8StringEncoding];
+    ViewDelegate.SourceGameCodeDLLFullPath = GameCodeDLLPath;
+    ViewDelegate.Game = Game; 
+    ViewDelegate.GameMemory = GameMemory; 
+    ViewDelegate.RenderCommands = RenderCommands; 
+    ViewDelegate.TexturePipelineState = TexturePipelineState;
+    ViewDelegate.FlatColorPipelineState = FlatColorPipelineState;
+    ViewDelegate.CommandQueue = CommandQueue;
+    ViewDelegate.FlatColorVertexBuffer = MacFlatColorVertexBuffer;
+    ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
+    ViewDelegate.DepthStencilState = DepthStencilState;
+
+    [ViewDelegate configureMetal];
+    [MetalKitView setDelegate: ViewDelegate];
+
+    [NSCursor hide];                                                      
 
     return NSApplicationMain(argc, argv);
 }
