@@ -10,6 +10,7 @@
 #include "mac_os_main.h"
 #include "mac_window.m"
 #include "mac_file_path.cpp"
+#include "mac_file.cpp"
 #include "mac_game_code.h"
 #include "mac_recording.h"
 #include "mac_game_controller.h"
@@ -181,6 +182,34 @@ global_variable b32 ExternalMouseCursorFlag = false;
 }
 
 @end
+
+// NOTE: (Ted)  Not sure how much we will need this. The file dialog is nicer.
+PLATFORM_WRITE_ENTIRE_FILE(PlatformWriteEntireFile)
+{
+    b32 Result = false;
+
+    mac_app_path Path = {};
+    MacBuildAppFilePath(&Path);
+
+    char BundleFilename[MAC_MAX_FILENAME_SIZE];
+    char LocalFilename[MAC_MAX_FILENAME_SIZE];
+
+    sprintf(LocalFilename, "Contents/%s", Filename);
+
+    MacBuildAppPathFileName(&Path, LocalFilename,
+                            sizeof(BundleFilename), BundleFilename);
+
+    Result = MacWriteEntireFile(BundleFilename, FileSize, Memory);
+
+    return(Result);
+}
+
+PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory) 
+{
+    if (Memory) {
+        free(Memory);
+    }
+}
 
 @interface MetalViewDelegate: NSObject<MTKViewDelegate>
 
@@ -594,8 +623,6 @@ int main(int argc, const char * argv[])
     DepthStencilDesc.label = @"Depth Stencil";
     id<MTLDepthStencilState> DepthStencilState = [MetalKitView.device newDepthStencilStateWithDescriptor: DepthStencilDesc];
 
-
-
     id<MTLCommandQueue> CommandQueue = [MetalKitView.device newCommandQueue]; 
 
 #if INTERNAL
@@ -607,6 +634,47 @@ int main(int argc, const char * argv[])
 #endif
 
     MetalViewDelegate *ViewDelegate = [[MetalViewDelegate alloc] init];
+
+	MacBuildAppPathFileName(MacState.Path, "../Resources/",
+							sizeof(MacState.ResourcesDirectory), MacState.ResourcesDirectory);
+	MacState.ResourcesDirectorySize = StringLength(MacState.ResourcesDirectory);
+
+    game_memory GameMemory = {};
+    GameMemory.PermanentStorageSize = Megabytes(1024);
+    GameMemory.TransientStorageSize = Megabytes(128);
+
+    MacState.PermanentStorageSize = GameMemory.PermanentStorageSize;
+    MacState.GameMemoryBlock = mmap(BaseAddress,
+                                    GameMemory.PermanentStorageSize,
+                                    PROT_READ | PROT_WRITE,
+                                    AllocationFlags, -1, 0); 
+
+    GameMemory.PermanentStorage = MacState.GameMemoryBlock; 
+
+    if (GameMemory.PermanentStorage == MAP_FAILED) 
+    {
+		printf("mmap error: %d  %s", errno, strerror(errno));
+        [NSException raise: @"Game Memory Not Allocated"
+                     format: @"Failed to allocate permanent storage"];
+    }
+
+    u8* TransientStorageAddress = ((u8*)GameMemory.PermanentStorage + GameMemory.PermanentStorageSize);
+    GameMemory.TransientStorage = mmap(TransientStorageAddress,
+                                       GameMemory.TransientStorageSize,
+                                       PROT_READ | PROT_WRITE,
+                                       AllocationFlags, -1, 0); 
+
+    if (GameMemory.TransientStorage == MAP_FAILED) {
+		printf("mmap error: %d  %s", errno, strerror(errno));
+        [NSException raise: @"Game Memory Not Allocated"
+                     format: @"Failed to allocate transient storage"];
+    }
+
+    GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
+    GameMemory.PlatformWriteEntireFile = PlatformWriteEntireFile;
+    GameMemory.PlatformFreeFileMemory = PlatformFreeFileMemory;
+
+    thread_context Thread = {};
 
     return NSApplicationMain(argc, argv);
 }
