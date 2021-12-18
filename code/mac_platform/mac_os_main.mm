@@ -205,7 +205,6 @@ global_variable b32 ExternalMouseCursorFlag = false;
 
 static const NSUInteger kMaxInflightBuffers = 3;
 
-
 @implementation MetalViewDelegate
 {
     mac_game_controller *_KeyboardControllerPtr;
@@ -368,7 +367,73 @@ static const NSUInteger kMaxInflightBuffers = 3;
     }
 #endif
 
+    if (_Game.UpdateAndRender)
+    {
+        _Game.UpdateAndRender(&Thread, GameMemoryPtr, 
+                              _NewInputPtr, RenderCommandsPtr);
+    }
 
+    game_input *Temp = _NewInputPtr;
+    _NewInputPtr = _OldInputPtr;
+    _OldInputPtr = Temp;
+
+    CGFloat BackingScaleFactor = [[NSScreen mainScreen] backingScaleFactor];
+    NSUInteger Width = (NSUInteger)(RenderCommandsPtr->ViewportWidth*BackingScaleFactor);
+    NSUInteger Height = (NSUInteger)(RenderCommandsPtr->ViewportHeight*BackingScaleFactor);
+    MTLViewport Viewport = (MTLViewport){0.0, 0.0, (r64)Width, (r64)Height, -1.0, 1.0 };
+
+    @autoreleasepool 
+    {
+        id<MTLCommandBuffer> CommandBuffer = [[self CommandQueue] commandBuffer];
+        MTLRenderPassDescriptor *RenderPassDescriptor = [view currentRenderPassDescriptor];
+        RenderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+
+        clear_color ClearColor = RenderCommandsPtr->ClearColor;
+        MTLClearColor MetalClearColor = MTLClearColorMake(ClearColor.RGBA[0], ClearColor.RGBA[1], ClearColor.RGBA[2], 
+                                                          ClearColor.RGBA[3]);
+        RenderPassDescriptor.colorAttachments[0].clearColor = MetalClearColor;
+
+        vector_uint2 ViewportSize = { (u32)RenderCommandsPtr->ViewportWidth, 
+                                      (u32)RenderCommandsPtr->ViewportHeight };
+
+        id<MTLRenderCommandEncoder> RenderEncoder = 
+            [CommandBuffer renderCommandEncoderWithDescriptor: RenderPassDescriptor];
+        RenderEncoder.label = @"RenderEncoder";
+
+        [RenderEncoder setViewport: Viewport];
+
+        // TODO: (Ted)  Setup backface culling.
+        // TODO: (Ted)  Setup vertex winding order.
+        // TODO: (Ted)  Setup depth stencil state.
+
+
+// MARK:    Render Flat Shaded Geometry
+        [RenderEncoder setRenderPipelineState: [self FlatColorPipelineState]];
+        [RenderEncoder setVertexBuffer: [self FlatColorVertexBuffer] offset: 0 atIndex: 0];
+
+        mesh_instance_buffer *MeshBuffer = &RenderCommandsPtr->FlatColorMeshInstances;
+        game_vertex_buffer *FlatColorVertexBuffer = &RenderCommandsPtr->FlatColorVertexBuffer;
+
+        for (u32 Index = 0;
+             Index < MeshBuffer->MeshCount;
+             Index++)
+        {
+            mesh_instance *MeshInstance = &MeshBuffer->Meshes[Index];
+
+            [RenderEncoder setVertexBytes: &MeshInstance->Constants
+                                   length: sizeof(game_constants)
+                                  atIndex: 1];
+
+            model_range Range = FlatColorVertexBuffer->ModelRanges[MeshInstance->ModelIndex];
+            [RenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
+                              vertexStart: Range.StartVertex
+                              vertexCount: Range.VertexCount];
+        }
+
+        // TODO: (Ted)  Render textured cube primitives here.
+
+        [RenderEncoder endEncoding];
+    }
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size
