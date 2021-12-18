@@ -175,17 +175,33 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         local_persist r32 CameraRotation = 0.0f;
         CameraRotation += 0.010f;
 
+// TODO: (Ted)  Unify these to column-major order
+#if WINDOWS
         matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
                                  (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
                                  0,                           0,                            1,  0,
                                  0,                           0,                            0,  1 };
+#elif MACOS
+        matrix CameraRotateZ = { (r32)(cos(CameraRotation)),  (r32)(sin(CameraRotation)),   0,  0,
+                                 -(r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),   0,  0,
+                                 0,                           0,                            1,  0,
+                                 0,                           0,                            0,  1 };
+#endif
 
         r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
 
+// TODO: (Ted)  Unify these to column-major order
+#if WINDOWS
         matrix CameraTranslate = { 1,                           0,                          0,                  0,
                                    0,                           1,                          0,                  0,
                                    0,                           0,                          1,                  0,
                                    -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
+#elif MACOS
+        matrix CameraTranslate = { 1,   0, 0,  -CameraRotationAxisOrigin,
+                                   0,   1, 0,  -CameraRotationAxisOrigin,
+                                   0,   0, 1,  0,
+                                   0,   0, 0,  1 };
+#endif
 
         // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
         vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
