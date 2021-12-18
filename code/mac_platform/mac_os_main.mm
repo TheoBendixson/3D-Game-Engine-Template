@@ -239,6 +239,57 @@ int main(int argc, const char * argv[])
     MetalKitView.framebufferOnly = false;
     MetalKitView.layer.contentsGravity = kCAGravityCenter;
     MetalKitView.preferredFramesPerSecond = 60;
+    [Window setContentView: MetalKitView];
+
+    game_render_commands RenderCommands = {}; 
+    RenderCommands.ViewportWidth = (int)GlobalRenderWidth;
+    RenderCommands.ViewportHeight = (int)GlobalRenderHeight;
+    RenderCommands.FrameIndex = 0;
+    RenderCommands.ScreenScaleFactor = (r32)([[NSScreen mainScreen] backingScaleFactor]);
+
+    u32 PageSize = getpagesize();
+    u32 VertexBufferSize = PageSize*1000;
+
+    RenderCommands.FlatColorVertexBuffer.Vertices = mmap(0, VertexBufferSize,
+                                                         PROT_READ | PROT_WRITE,
+                                                         MAP_PRIVATE | MAP_ANON, -1, 0);
+
+    id<MTLBuffer> MacFlatColorVertexBuffer = [MetalKitView.device 
+                                                newBufferWithBytesNoCopy: RenderCommands.FlatColorVertexBuffer.Vertices
+                                                                  length: VertexBufferSize 
+                                                                 options: MTLResourceStorageModeShared
+                                                             deallocator: nil];
+
+    RenderCommands.FlatColorVertexBuffer.VertexCount = 0;
+
+    RenderCommands.TextureVertexBuffer.Vertices = mmap(0, VertexBufferSize,
+                                                       PROT_READ | PROT_WRITE,
+                                                       MAP_PRIVATE | MAP_ANON, -1, 0);
+
+    id<MTLBuffer> MacTextureVertexBuffer = [MetalKitView.device 
+                                                newBufferWithBytesNoCopy: RenderCommands.TextureVertexBuffer.Vertices
+                                                                  length: VertexBufferSize 
+                                                                 options: MTLResourceStorageModeShared
+                                                             deallocator: nil];
+
+    RenderCommands.TextureVertexBuffer.VertexCount = 0;
+
+    // TODO: (Ted)  Actually create this shader!
+    NSString *FlatColorShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"FlatColorShader" ofType: @"metallib"];
+    id<MTLLibrary> FlatColorShaderLibrary = [MetalKitView.device 
+                                                newLibraryWithFile: FlatColorShaderLibraryFile 
+                                                             error: nil];
+    id<MTLFunction> FlatColorShaderVertexFunction = [FlatColorShaderLibrary newFunctionWithName:@"vertexShader"];
+    id<MTLFunction> FlatColorShaderFragmentFunction = [FlatColorShaderLibrary newFunctionWithName:@"fragmentShader"];
+
+    // TODO: (Ted)  Actually create this shader!
+    NSString *TextureShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"TextureShader" ofType: @"metallib"];
+    id<MTLLibrary> TextureShaderLibrary = [MetalKitView.device 
+                                                newLibraryWithFile: TextureShaderLibraryFile 
+                                                             error: nil];
+    id<MTLFunction> TextureShaderVertexFunction = [TextureShaderLibrary newFunctionWithName:@"vertexShader"];
+    id<MTLFunction> TextureShaderFragmentFunction = [TextureShaderLibrary newFunctionWithName:@"fragmentShader"];
+
 
     return NSApplicationMain(argc, argv);
 }

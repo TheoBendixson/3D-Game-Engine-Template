@@ -26,8 +26,8 @@ GAME_BUNDLE_RESOURCES_PATH="Vario.app/Contents/Resources"
 PLATFORM_RESOURCES_PATH="../../code/mac_platform/resources"
 
 echo Compiling Shader Libraries
-xcrun -sdk macosx metal -mmacosx-version-min=10.14 -gline-tables-only -MO -g -c "${MAC_PLATFORM_LAYER_PATH}/shaders.metal" -o shaders.air
-xcrun -sdk macosx metallib shaders.air -o shaders.metallib
+xcrun -sdk macosx metal -mmacosx-version-min=10.14 -gline-tables-only -MO -g -c "${MAC_PLATFORM_LAYER_PATH}/flat_color_shader.metal" -o FlatColorShader.air
+xcrun -sdk macosx metallib FlatColorShader.air -o FlatColorShader.metallib
 
 echo Compiling Game Library \(Slow\)
 clang -g -std=c++11 -o GameCode.dylib ${COMMON_COMPILER_FLAGS} -dynamiclib ${GAME_LIBRARY_CODE_PATH}/vario.cpp

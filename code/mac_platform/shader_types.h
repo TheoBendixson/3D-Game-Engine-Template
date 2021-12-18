@@ -19,6 +19,7 @@ typedef enum TextureIndex
     TextureIndexColor    = 0,
 }TextureIndex;
 
+// NOTE: (Ted)  On Metal, all matrices are in column major order!
 typedef struct
 {
     matrix_float4x4 projectionMatrix;

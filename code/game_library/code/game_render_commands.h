@@ -58,6 +58,12 @@ struct mesh_instance_buffer
 
 struct game_render_commands
 {
+
+#if MACOS
+    u32 FrameIndex;
+    r32 ScreenScaleFactor; 
+#endif
+
     s32 ViewportWidth;
     s32 ViewportHeight;
     clear_color ClearColor;
