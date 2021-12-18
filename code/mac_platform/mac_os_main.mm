@@ -217,12 +217,28 @@ int main(int argc, const char * argv[])
                   backing: NSBackingStoreBuffered
                     defer: NO];    
 
+    Window.acceptsMouseMovedEvents = true;
+    NSTrackingArea *MouseTrackingArea = [[NSTrackingArea alloc] initWithRect: [Window.contentView bounds]
+                                                                     options: (NSTrackingActiveAlways | 
+                                                                               NSTrackingMouseMoved)
+                                                                       owner: Window
+                                                                    userInfo: nil];
+
+    [Window.contentView addTrackingArea: MouseTrackingArea];
+
     [Window setBackgroundColor: NSColor.blackColor];
     [Window setTitle: @"Vario's Temple"];
     [Window makeKeyAndOrderFront: nil];
     [Window setDelegate: WindowDelegate];
 
+    MTKView *MetalKitView = [[MTKView alloc] init];
+    MetalKitView.frame = CGRectMake(0, 0, 
+                                    GlobalRenderWidth, GlobalRenderHeight); 
 
+    MetalKitView.device = MTLCreateSystemDefaultDevice(); 
+    MetalKitView.framebufferOnly = false;
+    MetalKitView.layer.contentsGravity = kCAGravityCenter;
+    MetalKitView.preferredFramesPerSecond = 60;
 
     return NSApplicationMain(argc, argv);
 }
