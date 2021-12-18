@@ -676,5 +676,62 @@ int main(int argc, const char * argv[])
 
     thread_context Thread = {};
 
+#if INTERNAL
+    for(int ReplayIndex = 0;
+        ReplayIndex < ArrayCount(MacState.ReplayBuffers);
+        ++ReplayIndex)
+    {
+        mac_replay_buffer *ReplayBuffer = &MacState.ReplayBuffers[ReplayIndex];
+        int FileDescriptor;
+
+        mode_t Mode = S_IRUSR | S_IWUSR;
+        char Filename[MAC_MAX_FILENAME_SIZE];
+        char LocalFilename[MAC_MAX_FILENAME_SIZE];
+        sprintf(LocalFilename, "Contents/Resources/ReplayBuffer%d", ReplayIndex);
+        MacBuildAppPathFileName(MacState.Path, LocalFilename,
+                                sizeof(Filename), Filename);
+        FileDescriptor = open(Filename, O_CREAT | O_RDWR, Mode);
+        int Result = truncate(Filename, GameMemory.PermanentStorageSize);
+
+        if (Result < 0)
+        {
+            NSLog(@"Failed to setup replay buffers. Errno: %d", Result);
+        }
+
+        ReplayBuffer->MemoryBlock = mmap(0, GameMemory.PermanentStorageSize,
+                                         PROT_READ | PROT_WRITE,
+                                         MAP_PRIVATE, FileDescriptor, 0);
+        ReplayBuffer->FileHandle = fopen(Filename, "r+");
+        fseek(ReplayBuffer->FileHandle, MacState.PermanentStorageSize, SEEK_SET);
+        if (ReplayBuffer->MemoryBlock)
+        {
+        } else 
+        {
+            NSLog(@"Failed to setup replay buffer memory block.");
+        }
+    }
+#endif
+
+    [ViewDelegate setMacStatePtr: &MacState];
+
+    mac_game_controller MacKeyboardController = {};
+    MacKeyboardController.UsesHatSwitch = false;
+    [Window setMacKeyboardControllerPtr: &MacKeyboardController]; 
+    [ViewDelegate setKeyboardControllerPtr: &MacKeyboardController];
+
+    game_input Input[2] = {};
+    game_input *NewInputPtr = &Input[0];
+    game_input *OldInputPtr = &Input[1];
+
+    [ViewDelegate setNewInputPtr: NewInputPtr];
+    [ViewDelegate setOldInputPtr: OldInputPtr];
+
+    [Window setGameInputPtr: NewInputPtr]; 
+
+    if (Game.Load3DModels)
+    {
+        Game.Load3DModels(&RenderCommands);
+    }
+
     return NSApplicationMain(argc, argv);
 }

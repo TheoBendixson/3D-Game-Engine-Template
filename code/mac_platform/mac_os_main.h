@@ -95,5 +95,6 @@ struct mac_game_code
 
     // IMPORTANT:   Either of these can be null. Check before using.
     game_update_and_render *UpdateAndRender;
+    game_load_3D_models *Load3DModels;
     b32 IsValid;
 };
