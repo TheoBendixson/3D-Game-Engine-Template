@@ -111,6 +111,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         }
     }
 
+// NOTE: (Ted)  Windows is row-major. Metal is column-major. Ugh.
+//
+// TODO: (Ted)  Unify this between Windows and Metal if possible.
+#if WINDOWS
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
                        0, (r32)(sin(ModelRotation.X)),  (r32)(cos(ModelRotation.X)),    0,
@@ -125,6 +129,24 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                        (r32)(sin(ModelRotation.Z)), (r32)(cos(ModelRotation.Z)),    0,  0,
                        0,                           0,                              1,  0,
                        0,                           0,                              0,  1 };
+
+#elif MACOS
+    matrix RotateX = { 1, 0,                            0,                              0,
+                       0, (r32)(cos(ModelRotation.X)),  (r32)(sin(ModelRotation.X)),    0,
+                       0, -(r32)(sin(ModelRotation.X)), (r32)(cos(ModelRotation.X)),    0,
+                       0, 0,                            0,                              1 };
+
+    matrix RotateY = { (r32)(cos(ModelRotation.Y)),     0,  -(r32)(sin(ModelRotation.Y)),   0,
+                       0,                               1,  0,                              0,                           
+                       (r32)(sin(ModelRotation.Y)),     0,  (r32)(cos(ModelRotation.Y)),    0,
+                       0,                               0,  0,                              1 };
+
+    matrix RotateZ = { (r32)(cos(ModelRotation.Z)),  (r32)(sin(ModelRotation.Z)),    0,  0,
+                       -(r32)(sin(ModelRotation.Z)), (r32)(cos(ModelRotation.Z)),    0,  0,
+                       0,                            0,                              1,  0,
+                       0,                            0,                              0,  1 };
+
+#endif
 
     matrix Scale = { ModelScale.X,  0,              0,              0,
                      0,             ModelScale.Y,   0,              0,
