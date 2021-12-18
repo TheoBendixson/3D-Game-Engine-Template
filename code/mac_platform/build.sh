@@ -47,7 +47,7 @@ cp GameCode.dylib ${GAME_BUNDLE_RESOURCES_PATH}/GameCode.dylib
 echo Copying dSYM File Into Game Bundle
 cp -r GameCode.dylib.dSYM ${GAME_BUNDLE_RESOURCES_PATH}/GameCode.dylib.dSYM
 
-cp shaders.metallib ${GAME_BUNDLE_RESOURCES_PATH}/shaders.metallib
+cp Shaders.metallib ${GAME_BUNDLE_RESOURCES_PATH}/Shaders.metallib
 cp ${PLATFORM_RESOURCES_PATH}/GameInfo.plist Vario.app/Contents/Info.plist
 
 popd
