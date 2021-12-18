@@ -203,7 +203,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                    0,   0, 0,  1 };
 #endif
 
-        // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
+        // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at 
+        //              matrix.
         vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
         matrix LookAt = GenerateLookAtMatrix(At, Eye, Up);
         View = CameraTranslate*CameraRotateZ*LookAt;
@@ -213,10 +214,17 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         View = GenerateLookAtMatrix(At, Eye, Up);
     }
 
+#if WINDOWS
     matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
                           0,                        2 * Near / ViewportHeight, 0,                           0,
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
+#elif MACOS
+    matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                  0,
+                          0,                        2 * Near / ViewportHeight, 0,                  0,
+                          0,                        0,                         Far / (Far - Near), Near*Far / (Near - Far), 
+                          0,                        0,                         1,                  0 };
+#endif
 
     mesh_instance_buffer *FlatColorMeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
 
