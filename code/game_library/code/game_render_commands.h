@@ -4,7 +4,9 @@ struct game_constants
     matrix Transform;
     matrix View;
     matrix Projection;
+#if WINDOWS
     vector_float_3 LightVector;
+#endif
 };
 
 struct game_flat_color_vertex

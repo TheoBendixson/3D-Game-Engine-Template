@@ -7,7 +7,6 @@ typedef struct
     matrix_float4x4 Transform;
     matrix_float4x4 View;
     matrix_float4x4 Projection;
-    float3 LightVector;
 } Uniforms;
 
 typedef enum FlatColorVSAttribute
@@ -70,9 +69,11 @@ typedef struct
 using namespace metal;
 
 vertex FlatColorPSInput 
-flatColorVertexShader(FlatColorVSInput in [[stage_in]],
-                      constant Uniforms & uniforms [[ buffer(BufferIndexUniforms) ]])
+flatColorVertexShader(uint vertexID [[ vertex_id ]],
+                      constant FlatColorVSInput *vertexArray [[ buffer(0) ]],
+                      constant Uniforms & uniforms [[ buffer(1) ]])
 {
+    FlatColorVSInput in = vertexArray[vertexID];
     FlatColorPSInput out;
 
     // NOTE: (Ted)  Don't calculate light for now.

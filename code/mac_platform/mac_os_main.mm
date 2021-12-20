@@ -540,6 +540,7 @@ int main(int argc, const char * argv[])
     MetalKitView.framebufferOnly = false;
     MetalKitView.layer.contentsGravity = kCAGravityCenter;
     MetalKitView.preferredFramesPerSecond = 60;
+    MetalKitView.depthStencilPixelFormat = MTLPixelFormatDepth32Float; 
     [Window setContentView: MetalKitView];
 
     game_render_commands RenderCommands = {}; 
@@ -575,6 +576,15 @@ int main(int argc, const char * argv[])
 
     RenderCommands.TextureVertexBuffer.VertexCount = 0;
 
+    u32 InstancedMeshBufferSize = 200;
+    RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.FlatColorMeshInstances.MeshCount = 0;
+    RenderCommands.FlatColorMeshInstances.Meshes = (mesh_instance *)malloc(InstancedMeshBufferSize*sizeof(mesh_instance));
+
+    RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.TexturedMeshInstances.MeshCount = 0;
+    RenderCommands.TexturedMeshInstances.Meshes = (mesh_instance *)malloc(InstancedMeshBufferSize*sizeof(mesh_instance));
+
     NSString *ShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"Shaders" ofType: @"metallib"];
     id<MTLLibrary> ShaderLibrary = [MetalKitView.device newLibraryWithFile: ShaderLibraryFile 
                                                                      error: nil];
@@ -583,22 +593,26 @@ int main(int argc, const char * argv[])
     id<MTLFunction> TextureVertexFunction = [ShaderLibrary newFunctionWithName:@"textureVertexShader"];
     id<MTLFunction> TextureFragmentFunction = [ShaderLibrary newFunctionWithName:@"textureFragmentShader"];
 
+
     MTLRenderPipelineDescriptor *FlatColorPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
     FlatColorPipelineDescriptor.label = @"Flat Shaded Colored Vertices";
     FlatColorPipelineDescriptor.vertexFunction = FlatColorVertexFunction;
     FlatColorPipelineDescriptor.fragmentFunction = FlatColorFragmentFunction; 
+    FlatColorPipelineDescriptor.depthAttachmentPixelFormat = MetalKitView.depthStencilPixelFormat;
     MTLRenderPipelineColorAttachmentDescriptor *FlatColorRenderBufferAttachment = 
         FlatColorPipelineDescriptor.colorAttachments[0];
     FlatColorRenderBufferAttachment.pixelFormat = MetalKitView.colorPixelFormat;
+
 
     NSError *error = NULL;
     id<MTLRenderPipelineState> FlatColorPipelineState = 
         [MetalKitView.device newRenderPipelineStateWithDescriptor: FlatColorPipelineDescriptor
                                                             error: &error];
 
-    if (error != nil)
+    if (error)
     {
-        NSLog(@"Error creating flat shaded geometry pipeline state");
+        [NSException raise: @"Flat Color Pipeline state not loaded"
+                     format: @"%@", error.localizedDescription];
     }
 
     MTLRenderPipelineDescriptor *TexturePipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -615,7 +629,7 @@ int main(int argc, const char * argv[])
 
     if (error != nil)
     {
-        NSLog(@"Error creating flat shaded geometry pipeline state");
+        NSLog(@"Error creating texture geometry pipeline state");
     }
 
     MTLDepthStencilDescriptor *DepthStencilDesc = [[MTLDepthStencilDescriptor alloc] init];

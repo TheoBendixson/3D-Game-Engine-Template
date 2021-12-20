@@ -258,7 +258,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
+#if WINDOWS
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#endif
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
 
@@ -290,7 +292,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
+
+#if WINDOWS
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#endif
+
         MeshInstance->ModelIndex = 0;
     }
 
