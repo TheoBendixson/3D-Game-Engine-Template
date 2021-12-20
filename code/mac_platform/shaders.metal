@@ -80,10 +80,9 @@ flatColorVertexShader(uint vertexID [[ vertex_id ]],
     /*
     float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
                             normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;*/
+    // Projection*View*Model*Point 
 
-    matrix_float4x4 ModelView = uniforms.Transform*uniforms.View;
-    matrix_float4x4 MVPMatrix = ModelView*uniforms.Projection;
-    out.position = float4(in.position.xyz, 1.0f)*MVPMatrix;
+    out.position = uniforms.Projection*uniforms.View*uniforms.Transform*float4(in.position.xyz, 1.0f);
     out.color = float4(in.color, 1.0f);
 
     return out;

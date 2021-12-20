@@ -8,6 +8,7 @@
 //              isn't loaded from the platform layer.
 #if MACOS
 #import "math.h"
+#include <simd/simd.h>
 #endif
 
 #include "game_math.h"

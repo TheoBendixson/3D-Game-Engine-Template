@@ -187,7 +187,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     matrix View = {};
 
-    b32 RotateCamera = true;
+    b32 RotateCamera = false;
 
     if (RotateCamera)
     {
@@ -255,7 +255,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
         game_constants *Constants = &MeshInstance->Constants;
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        //Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->Transform = Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
 #if WINDOWS
