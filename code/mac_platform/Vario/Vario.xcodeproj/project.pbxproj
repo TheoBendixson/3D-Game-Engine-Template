@@ -19,10 +19,17 @@
 		};
 /* End PBXAggregateTarget section */
 
+/* Begin PBXFileReference section */
+		CFE7F23827717E6E00D4E3BA /* vario.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = vario.cpp; path = ../../game_library/code/vario.cpp; sourceTree = "<group>"; };
+		CFE7F23A27717F0000D4E3BA /* mac_os_main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = mac_os_main.mm; path = ../mac_os_main.mm; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		CFE7F22A2770EA8400D4E3BA = {
 			isa = PBXGroup;
 			children = (
+				CFE7F23827717E6E00D4E3BA /* vario.cpp */,
+				CFE7F23A27717F0000D4E3BA /* mac_os_main.mm */,
 			);
 			sourceTree = "<group>";
 		};

@@ -10,24 +10,34 @@
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
 
+#if WINDOWS
 internal 
-matrix GenerateTranslationMatrix(vector_float_3 ModelTranslation)
+matrix GenerateTranslationMatrix(vector_float_3 T)
 {
 
-#if WINDOWS
-    matrix Translate = { 1,                  0,                  0,                  0,
-                         0,                  1,                  0,                  0,
-                         0,                  0,                  1,                  0,
-                         ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
-#elif MACOS
-    matrix Translate = { 1, 0, 0, ModelTranslation.X,
-                         0, 1, 0, ModelTranslation.Y,
-                         0, 0, 1, ModelTranslation.Z,
-                         0, 0, 0, 1 };
-#endif
+    matrix Translate = { 1,   0,   0,   0,
+                         0,   1,   0,   0,
+                         0,   0,   1,   0,
+                         T.X, T.Y, T.Z, 1 };
 
     return Translate;
 }
+
+#elif MACOS
+internal 
+matrix_float4x4 GenerateTranslationMatrix(vector_float_3 T)
+{
+    matrix_float4x4 Translate = (matrix_float4x4) {{
+        { 1,   0,   0,    0 },     // Column 0.
+        { 0,   1,   0,    0 },     // Column 1.
+        { 0,   0,   1,    0 },     // Column 2.
+        { T.X, T.Y, T.Z,  1 }      // Column 3.
+    }};
+
+    return Translate;
+}
+
+#endif
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -167,10 +177,19 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 #endif
 
+#if WINDOWS
     matrix Scale = { ModelScale.X,  0,              0,              0,
                      0,             ModelScale.Y,   0,              0,
                      0,             0,              ModelScale.Z,   0,
                      0,             0,              0,              1 };
+#elif MACOS
+    matrix_float4x4 Scale = (matrix_float4x4) {{
+        { ModelScale.X, 0,            0,             0 },
+        { 0,            ModelScale.Y, 0,             0 },
+        { 0,            0,            ModelScale.Z,  0 },
+        { 0,            0,            0,             1 } 
+    }};
+#endif
 
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
@@ -252,13 +271,24 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ColoredCubePushBuffer->Translations[InstanceIndex];
+#if WINDOWS
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
+#elif MACOS
+        matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
+#endif
         mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
         game_constants *Constants = &MeshInstance->Constants;
-        //Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->Transform = Scale * Translate;
+#if WINDOWS
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
+#elif MACOS
+        Constants->Transform = matrix_multiply(Scale, Translate);
+
+        // TODO: (Ted)  Set the View and Projection matrices
+#endif
+
+
 #if WINDOWS
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 #endif
@@ -280,6 +310,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     FlatColorMeshInstanceBuffer->MeshCount = ColoredCubePushBuffer->DrawCount;
 
+// TODO: (Ted)  Port this to Apple/Metal
+#if WINDOWS
     mesh_instance_buffer *TexturedMeshInstanceBuffer = &RenderCommands->TexturedMeshInstances;
 
     for (u32 InstanceIndex = 0;
@@ -294,14 +326,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         Constants->View = View;
         Constants->Projection = Projection;
 
-#if WINDOWS
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
-#endif
 
         MeshInstance->ModelIndex = 0;
     }
 
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
+#endif
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;

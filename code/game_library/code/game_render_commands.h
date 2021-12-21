@@ -1,13 +1,21 @@
 
+
+#if WINDOWS
 struct game_constants
 {
     matrix Transform;
     matrix View;
     matrix Projection;
-#if WINDOWS
     vector_float_3 LightVector;
-#endif
 };
+#elif MACOS
+struct game_constants
+{
+    matrix_float4x4 Transform;
+    matrix_float4x4 View;
+    matrix_float4x4 Projection;
+};
+#endif
 
 #if WINDOWS
 struct game_flat_color_vertex
