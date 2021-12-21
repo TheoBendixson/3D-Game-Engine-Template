@@ -217,7 +217,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     matrix_float4x4 View = {};
 #endif
 
-    b32 RotateCamera = false;
+    b32 RotateCamera = true;
 
     if (RotateCamera)
     {
@@ -262,7 +262,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         View = CameraTranslate*CameraRotateZ*LookAt;
 #elif MACOS
         matrix_float4x4 LookAt = GenerateLookAtMatrix(At, Eye, Up);
-        // TODO: (Ted)  Calculate the view matrix here with a series of multiplies 
+        matrix_float4x4 LookAtCamera = matrix_multiply(LookAt, CameraRotateZ);
+        View = matrix_multiply(LookAtCamera, CameraTranslate);
 #endif
 
     } else
