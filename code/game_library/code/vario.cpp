@@ -160,21 +160,29 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                        0,                           0,                              0,  1 };
 
 #elif MACOS
-    matrix RotateX = { 1, 0,                            0,                              0,
-                       0, (r32)(cos(ModelRotation.X)),  (r32)(sin(ModelRotation.X)),    0,
-                       0, -(r32)(sin(ModelRotation.X)), (r32)(cos(ModelRotation.X)),    0,
-                       0, 0,                            0,                              1 };
+    matrix_float4x4 
+        RotateX = (matrix_float4x4) {{
+            { 1, 0,                            0,                            0 },
+            { 0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)), 0 },
+            { 0, (r32)(sin(ModelRotation.X)),  (r32)(cos(ModelRotation.X)),  0 },
+            { 0, 0,                            0,                            1 }
+        }};
 
-    matrix RotateY = { (r32)(cos(ModelRotation.Y)),     0,  -(r32)(sin(ModelRotation.Y)),   0,
-                       0,                               1,  0,                              0,                           
-                       (r32)(sin(ModelRotation.Y)),     0,  (r32)(cos(ModelRotation.Y)),    0,
-                       0,                               0,  0,                              1 };
+    matrix_float4x4 
+        RotateY = (matrix_float4x4) {{ 
+            { (r32)(cos(ModelRotation.Y)),     0,  (r32)(sin(ModelRotation.Y)),    0 },
+            { 0,                               1,  0,                              0 },
+            { -(r32)(sin(ModelRotation.Y)),    0,  (r32)(cos(ModelRotation.Y)),    0 },
+            { 0,                               0,  0,                              1 },
+        }};
 
-    matrix RotateZ = { (r32)(cos(ModelRotation.Z)),  (r32)(sin(ModelRotation.Z)),    0,  0,
-                       -(r32)(sin(ModelRotation.Z)), (r32)(cos(ModelRotation.Z)),    0,  0,
-                       0,                            0,                              1,  0,
-                       0,                            0,                              0,  1 };
-
+    matrix_float4x4 
+        RotateZ = (matrix_float4x4) {{
+            { (r32)(cos(ModelRotation.Z)), -(r32)(sin(ModelRotation.Z)),   0,  0 },
+            { (r32)(sin(ModelRotation.Z)), (r32)(cos(ModelRotation.Z)),    0,  0 },
+            { 0,                           0,                              1,  0 },
+            { 0,                           0,                              0,  1 },
+        }};
 #endif
 
 #if WINDOWS
@@ -204,7 +212,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
+#if WINDOWS
     matrix View = {};
+#elif MACOS
+    matrix_float4x4 View = {};
+#endif
 
     b32 RotateCamera = false;
 
@@ -220,10 +232,12 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                  0,                           0,                            1,  0,
                                  0,                           0,                            0,  1 };
 #elif MACOS
-        matrix CameraRotateZ = { (r32)(cos(CameraRotation)),  (r32)(sin(CameraRotation)),   0,  0,
-                                 -(r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),   0,  0,
-                                 0,                           0,                            1,  0,
-                                 0,                           0,                            0,  1 };
+        matrix_float4x4 CameraRotateZ = (matrix_float4x4) {{
+            { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0 },
+            { (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0 },
+            { 0,                           0,                            1,  0 },
+            { 0,                           0,                            0,  1 },
+        }};
 #endif
 
         r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
@@ -235,17 +249,25 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                                    0,                           0,                          1,                  0,
                                    -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
 #elif MACOS
-        matrix CameraTranslate = { 1,   0, 0,  -CameraRotationAxisOrigin,
-                                   0,   1, 0,  -CameraRotationAxisOrigin,
-                                   0,   0, 1,  0,
-                                   0,   0, 0,  1 };
+        matrix_float4x4 CameraTranslate = (matrix_float4x4) {{
+            { 1,                           0,                          0,                  0 },
+            { 0,                           1,                          0,                  0 },
+            { 0,                           0,                          1,                  0 },
+            { -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 },
+        }};
 #endif
 
         // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at 
         //              matrix.
         vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
+#if WINDOWS
         matrix LookAt = GenerateLookAtMatrix(At, Eye, Up);
         View = CameraTranslate*CameraRotateZ*LookAt;
+#elif MACOS
+        matrix_float4x4 LookAt = GenerateLookAtMatrix(At, Eye, Up);
+        // TODO: (Ted)  Calculate the view matrix here with a series of multiplies 
+#endif
+
     } else
     {
         vector_float_3 At = { EyeX, MiddleOfTheWorld, 0.0f };
@@ -258,10 +280,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
 #elif MACOS
-    matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                  0,
-                          0,                        2 * Near / ViewportHeight, 0,                  0,
-                          0,                        0,                         Far / (Far - Near), Near*Far / (Near - Far), 
-                          0,                        0,                         1,                  0 };
+    matrix_float4x4 Projection = (matrix_float4x4) {{
+        { 2 * Near / ViewportWidth, 0,                         0,                           0 },
+        { 0,                        2 * Near / ViewportHeight, 0,                           0 },
+        { 0,                        0,                         Far / (Far - Near),          1 },
+        { 0,                        0,                         Near*Far / (Near - Far),     0 },
+    }};
+
 #endif
 
     mesh_instance_buffer *FlatColorMeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
@@ -280,14 +305,12 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         game_constants *Constants = &MeshInstance->Constants;
 #if WINDOWS
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->View = View;
-        Constants->Projection = Projection;
 #elif MACOS
         Constants->Transform = matrix_multiply(Scale, Translate);
-
-        // TODO: (Ted)  Set the View and Projection matrices
 #endif
 
+        Constants->View = View;
+        Constants->Projection = Projection;
 
 #if WINDOWS
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
