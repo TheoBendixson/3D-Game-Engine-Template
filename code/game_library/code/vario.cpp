@@ -306,7 +306,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #if WINDOWS
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
 #elif MACOS
-        Constants->Transform = matrix_multiply(Scale, Translate);
+        //Constants->Transform = matrix_multiply(Scale, Translate);
+        Constants->Transform = matrix_multiply(Translate, Scale);
 #endif
 
         Constants->View = View;

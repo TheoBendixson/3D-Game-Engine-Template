@@ -278,11 +278,11 @@ static const size_t kAlignedUniformsSize = (sizeof(game_constants) & ~0xFF) + 0x
     dispatch_semaphore_wait(_frameBoundarySemaphore, DISPATCH_TIME_FOREVER);
     _currentFrameIndex = (_currentFrameIndex + 1) % kMaxInflightBuffers;
 
-    u8 UniformBufferOffset = kAlignedUniformsSize * _currentFrameIndex;
+    game_render_commands *RenderCommandsPtr = &_RenderCommands;
+    u8 UniformBufferOffset = kAlignedUniformsSize*_currentFrameIndex*RenderCommandsPtr->FlatColorMeshInstances.MeshMax;
     void *UniformBufferAddress = ((u8 *)[self UniformBuffer].contents) + UniformBufferOffset;
 
 
-    game_render_commands *RenderCommandsPtr = &_RenderCommands;
     RenderCommandsPtr->FrameIndex = (u32)_currentFrameIndex;
 
     game_memory *GameMemoryPtr = &_GameMemory;
@@ -464,7 +464,8 @@ static const size_t kAlignedUniformsSize = (sizeof(game_constants) & ~0xFF) + 0x
             [RenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
                               vertexStart: Range.StartVertex
                               vertexCount: Range.VertexCount
-                            instanceCount: (Index + 1)];
+                            instanceCount: 1
+                             baseInstance: Index];
         }
 
         // TODO: (Ted)  Render textured cube primitives here.
