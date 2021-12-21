@@ -653,6 +653,7 @@ int main(int argc, const char * argv[])
     MTLDepthStencilDescriptor *DepthStencilDesc = [[MTLDepthStencilDescriptor alloc] init];
     DepthStencilDesc.depthCompareFunction = MTLCompareFunctionLess;
     DepthStencilDesc.label = @"Depth Stencil";
+    DepthStencilDesc.depthWriteEnabled = true;
     id<MTLDepthStencilState> DepthStencilState = [MetalKitView.device newDepthStencilStateWithDescriptor: DepthStencilDesc];
 
     id<MTLCommandQueue> CommandQueue = [MetalKitView.device newCommandQueue]; 
