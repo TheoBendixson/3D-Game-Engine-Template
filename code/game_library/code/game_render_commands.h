@@ -14,6 +14,7 @@ struct game_constants
     matrix_float4x4 Transform;
     matrix_float4x4 View;
     matrix_float4x4 Projection;
+    vector_float3 LightVector;
 };
 #endif
 

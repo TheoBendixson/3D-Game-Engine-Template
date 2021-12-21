@@ -7,6 +7,7 @@ typedef struct
     matrix_float4x4 Transform;
     matrix_float4x4 View;
     matrix_float4x4 Projection;
+    vector_float3 LightVector;
 } Uniforms;
 
 typedef enum FlatColorVSAttribute
@@ -77,15 +78,12 @@ flatColorVertexShader(uint vertexID [[ vertex_id ]],
     FlatColorVSInput in = vertexArray[vertexID];
     FlatColorPSInput out;
 
-    // NOTE: (Ted)  Don't calculate light for now.
-    /*
-    float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
-                            normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;*/
-    // Projection*View*Model*Point 
-
     Uniforms uniform = uniformsArray[instanceID];
+    float Light = clamp(dot(normalize(uniform.Transform*float4(in.normal, 0.0f)).xyz, 
+                            normalize(-uniform.LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
+
     out.position = uniform.Projection*uniform.View*uniform.Transform*float4(in.position.xyz, 1.0f);
-    out.color = float4(in.color, 1.0f);
+    out.color = float4(in.color*Light, 1.0f);
 
     return out;
 }

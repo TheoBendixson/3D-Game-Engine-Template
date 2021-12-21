@@ -36,7 +36,6 @@ matrix_float4x4 GenerateTranslationMatrix(vector_float_3 T)
 
     return Translate;
 }
-
 #endif
 
 extern "C"
@@ -225,7 +224,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         local_persist r32 CameraRotation = 0.0f;
         CameraRotation += 0.010f;
 
-// TODO: (Ted)  Unify these to column-major order
 #if WINDOWS
         matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
                                  (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
@@ -242,7 +240,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
 
-// TODO: (Ted)  Unify these to column-major order
 #if WINDOWS
         matrix CameraTranslate = { 1,                           0,                          0,                  0,
                                    0,                           1,                          0,                  0,
@@ -306,7 +303,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #if WINDOWS
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
 #elif MACOS
-        //Constants->Transform = matrix_multiply(Scale, Translate);
         Constants->Transform = matrix_multiply(Translate, Scale);
 #endif
 
@@ -314,8 +310,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         Constants->Projection = Projection;
 
 #if WINDOWS
-        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+        //Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 #endif
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
 
