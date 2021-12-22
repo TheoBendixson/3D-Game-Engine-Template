@@ -454,7 +454,7 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                                atIndex: 1];
 
         [RenderEncoder setVertexBuffer: [self ConstantUniformBuffer]
-                                offset: InstanceUniformBufferOffset + UniformBufferOffset
+                                offset: UniformBufferOffset
                                atIndex: 2];
 
         mesh_instance_buffer *MeshBuffer = &RenderCommandsPtr->FlatColorMeshInstances;
