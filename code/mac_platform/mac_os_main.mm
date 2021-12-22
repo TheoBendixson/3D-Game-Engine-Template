@@ -648,6 +648,33 @@ int main(int argc, const char * argv[])
 
     id<MTLCommandQueue> CommandQueue = [MetalKitView.device newCommandQueue]; 
 
+    u32 TextureData[] =
+    {
+        0xffffffff, 0xff7f7f7f,
+        0xff7f7f7f, 0xffffffff,
+    };
+
+    u32 TextureWidth = 2;
+    u32 TextureHeight = 2;
+
+    MTLTextureDescriptor *TextureDescriptor = [[MTLTextureDescriptor alloc] init];
+    TextureDescriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
+    TextureDescriptor.width = TextureWidth;
+    TextureDescriptor.height = TextureHeight;
+    TextureDescriptor.usage = MTLTextureUsageShaderRead;
+
+    MTLRegion TextureMetalRegion = {
+        { 0, 0, 0 },
+        { TextureWidth, TextureHeight, 1 }
+    };
+
+    id<MTLTexture> SampleTexture = [[MetalKitView.device newTextureWithDescriptor: TextureDescriptor] autorelease];
+
+    [SampleTexture replaceRegion: TextureMetalRegion 
+                     mipmapLevel: 0
+                       withBytes: (void *)TextureData
+                     bytesPerRow: TextureWidth*sizeof(uint32)];
+
 #if INTERNAL
     char* BaseAddress = (char*)Gigabytes(8);
     u32 AllocationFlags = MAP_PRIVATE | MAP_ANON | MAP_FIXED;
@@ -770,6 +797,7 @@ int main(int argc, const char * argv[])
     ViewDelegate.CommandQueue = CommandQueue;
     ViewDelegate.FlatColorVertexBuffer = MacFlatColorVertexBuffer;
     ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
+    ViewDelegate.SampleTexture = SampleTexture;
     ViewDelegate.TexturePipelineState = TexturePipelineState;
     ViewDelegate.DepthStencilState = DepthStencilState;
     ViewDelegate.ConstantUniformBuffer = ConstantUniformBuffer;
