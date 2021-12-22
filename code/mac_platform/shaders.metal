@@ -78,7 +78,7 @@ flatColorVertexShader(uint vertexID [[ vertex_id ]],
                       uint instanceID [[ instance_id ]], 
                       constant FlatColorVSInput *vertexArray [[ buffer(0) ]],
                       constant PerInstanceUniforms *perInstanceUniforms [[ buffer(1) ]],
-                      constant Uniforms uniforms [[ buffer(2) ]])
+                      constant Uniforms & uniforms [[ buffer(2) ]])
 {
     FlatColorVSInput in = vertexArray[vertexID];
     FlatColorPSInput out;
@@ -99,13 +99,13 @@ flatColorFragmentShader(FlatColorPSInput in [[stage_in]])
     return in.color;
 }
 
+/*
 vertex TexturePSInput
 textureVertexShader(TextureVSInput in [[stage_in]],
                     constant Uniforms & uniforms [[ buffer(BufferIndexUniforms) ]])
 {
-    /*
     float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
-                            normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;*/
+                            normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
 
     TexturePSInput out;
     matrix_float4x4 ModelView = uniforms.Transform*uniforms.View;
@@ -122,4 +122,4 @@ textureFragmentShader(TexturePSInput in [[stage_in]],
     constexpr sampler textureSampler (mag_filter::linear,
                                       min_filter::linear);
     return texture.sample(textureSampler, in.uv);
-}
+}*/

@@ -8,6 +8,14 @@ struct game_constants
     matrix Projection;
     vector_float_3 LightVector;
 };
+
+struct game_flat_color_vertex
+{
+    r32 Position[3];
+    r32 Normal[3];
+    r32 Color[3];
+};
+
 #elif MACOS
 struct game_constants
 {
@@ -20,16 +28,7 @@ struct instance_uniforms
 {
     matrix_float4x4 Transform;
 };
-#endif
 
-#if WINDOWS
-struct game_flat_color_vertex
-{
-    r32 Position[3];
-    r32 Normal[3];
-    r32 Color[3];
-};
-#elif MACOS
 struct game_flat_color_vertex
 {
     vector_float3 Position;
@@ -72,7 +71,7 @@ struct mesh_instance
 #if WINDOWS
     game_constants Constants;
 #elif MACOS
-    instance_uniforms InstanceUniforms;
+    instance_uniforms Uniforms;
 #endif
     u32 ModelIndex;
 };
@@ -90,7 +89,7 @@ struct game_render_commands
 #if MACOS
     u32 FrameIndex;
     r32 ScreenScaleFactor; 
-    game_constants Uniforms;
+    game_constants Constants;
 #endif
 
     s32 ViewportWidth;

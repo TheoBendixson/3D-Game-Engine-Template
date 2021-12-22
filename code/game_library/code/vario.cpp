@@ -294,25 +294,22 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ColoredCubePushBuffer->Translations[InstanceIndex];
+        mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
+
 #if WINDOWS
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
-#elif MACOS
-        matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
-#endif
-        mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
         game_constants *Constants = &MeshInstance->Constants;
-#if WINDOWS
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
 #elif MACOS
-        Constants->Transform = matrix_multiply(Translate, Scale);
+        matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
+        instance_uniforms *Uniforms = &MeshInstance->Uniforms;
+        Uniforms->Transform = matrix_multiply(Translate, Scale);
+        game_constants *Constants = &RenderCommands->Constants;
 #endif
 
         Constants->View = View;
         Constants->Projection = Projection;
 
-#if WINDOWS
-        //Constants->LightVector = { 1.0f, -0.5f, -0.5f };
-#endif
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];

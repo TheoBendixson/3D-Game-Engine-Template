@@ -224,7 +224,8 @@ PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory)
 @property (retain) id<MTLBuffer> FlatColorVertexBuffer;
 @property (retain) id<MTLBuffer> TextureVertexBuffer;
 @property (retain) id<MTLDepthStencilState> DepthStencilState;
-@property (retain) id<MTLBuffer> UniformBuffer;
+@property (retain) id<MTLBuffer> ConstantUniformBuffer;
+@property (retain) id<MTLBuffer> InstanceUniformBuffer;
 
 - (void)configureMetal;
 - (void)setKeyboardControllerPtr: (mac_game_controller *)KeyboardControllerPtr;
@@ -236,6 +237,7 @@ PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory)
 
 static const NSUInteger kMaxInflightBuffers = 3;
 static const size_t kAlignedUniformsSize = (sizeof(game_constants) & ~0xFF) + 0x100;
+static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & ~0xFF) + 0x100;
 
 @implementation MetalViewDelegate
 {
@@ -279,9 +281,12 @@ static const size_t kAlignedUniformsSize = (sizeof(game_constants) & ~0xFF) + 0x
     _currentFrameIndex = (_currentFrameIndex + 1) % kMaxInflightBuffers;
 
     game_render_commands *RenderCommandsPtr = &_RenderCommands;
-    u8 UniformBufferOffset = kAlignedUniformsSize*_currentFrameIndex*RenderCommandsPtr->FlatColorMeshInstances.MeshMax;
-    void *UniformBufferAddress = ((u8 *)[self UniformBuffer].contents) + UniformBufferOffset;
 
+    u8 InstanceUniformBufferOffset = kAlignedInstanceUniformsSize*_currentFrameIndex*RenderCommandsPtr->FlatColorMeshInstances.MeshMax;
+    void *InstanceUniformBufferAddress = ((u8 *)[self InstanceUniformBuffer].contents) + InstanceUniformBufferOffset;
+
+    u8 UniformBufferOffset = kAlignedUniformsSize*_currentFrameIndex;
+    void *UniformBufferAddress = ((u8 *)[self ConstantUniformBuffer].contents) + UniformBufferOffset;
 
     RenderCommandsPtr->FrameIndex = (u32)_currentFrameIndex;
 
@@ -444,21 +449,28 @@ static const size_t kAlignedUniformsSize = (sizeof(game_constants) & ~0xFF) + 0x
         [RenderEncoder setRenderPipelineState: [self FlatColorPipelineState]];
         [RenderEncoder setVertexBuffer: [self FlatColorVertexBuffer] offset: 0 atIndex: 0];
 
-        [RenderEncoder setVertexBuffer: [self UniformBuffer]
-                                offset: UniformBufferOffset
+        [RenderEncoder setVertexBuffer: [self InstanceUniformBuffer]
+                                offset: InstanceUniformBufferOffset
                                atIndex: 1];
+
+        [RenderEncoder setVertexBuffer: [self ConstantUniformBuffer]
+                                offset: InstanceUniformBufferOffset + UniformBufferOffset
+                               atIndex: 2];
 
         mesh_instance_buffer *MeshBuffer = &RenderCommandsPtr->FlatColorMeshInstances;
         game_vertex_buffer *FlatColorVertexBuffer = &RenderCommandsPtr->FlatColorVertexBuffer;
 
         game_constants *Constants = (game_constants*)UniformBufferAddress;
+        *Constants = RenderCommandsPtr->Constants;
+
+        instance_uniforms *InstanceUniforms = (instance_uniforms *)InstanceUniformBufferAddress;
 
         for (u32 Index = 0;
              Index < MeshBuffer->MeshCount;
              Index++)
         {
             mesh_instance *MeshInstance = &MeshBuffer->Meshes[Index];
-            *Constants++ = MeshInstance->Constants;
+            *InstanceUniforms++ = MeshInstance->Uniforms;
 
             model_range Range = FlatColorVertexBuffer->ModelRanges[MeshInstance->ModelIndex];
             [RenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
@@ -575,6 +587,8 @@ int main(int argc, const char * argv[])
 
     RenderCommands.FlatColorVertexBuffer.VertexCount = 0;
 
+    // TODO: (Ted)  Support Textured Cube Loading
+    /*
     RenderCommands.TextureVertexBuffer.Vertices = mmap(0, VertexBufferSize,
                                                        PROT_READ | PROT_WRITE,
                                                        MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -585,19 +599,23 @@ int main(int argc, const char * argv[])
                                                                  options: MTLResourceStorageModeShared
                                                              deallocator: nil];
 
-    RenderCommands.TextureVertexBuffer.VertexCount = 0;
+    RenderCommands.TextureVertexBuffer.VertexCount = 0;*/
 
     u32 InstancedMeshBufferSize = 200;
     RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
     RenderCommands.FlatColorMeshInstances.MeshCount = 0;
     RenderCommands.FlatColorMeshInstances.Meshes = (mesh_instance *)malloc(InstancedMeshBufferSize*sizeof(mesh_instance));
 
-    u32 InstanceMeshesSize = RenderCommands.FlatColorMeshInstances.MeshMax;
-    NSUInteger UniformBufferSize = kAlignedUniformsSize * kMaxInflightBuffers * InstanceMeshesSize;
-    id <MTLBuffer> UniformBuffer = [MetalKitView.device newBufferWithLength: UniformBufferSize
-                                                                    options: MTLResourceStorageModeShared];
-    UniformBuffer.label = @"UniformBuffer";
+    u32 ConstantUniformBufferSize = kAlignedUniformsSize*kMaxInflightBuffers;
+    id <MTLBuffer> ConstantUniformBuffer = [MetalKitView.device newBufferWithLength: ConstantUniformBufferSize
+                                                                            options: MTLResourceStorageModeShared];
+    ConstantUniformBuffer.label = @"Constant Uniform Buffer";
 
+    u32 InstanceMeshesSize = RenderCommands.FlatColorMeshInstances.MeshMax;
+    u32 InstanceUniformBufferSize = kAlignedInstanceUniformsSize * kMaxInflightBuffers * InstanceMeshesSize;
+    id <MTLBuffer> InstanceUniformBuffer = [MetalKitView.device newBufferWithLength: InstanceUniformBufferSize
+                                                                            options: MTLResourceStorageModeShared];
+    InstanceUniformBuffer.label = @"Instance Uniform Buffer";
 
     RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
     RenderCommands.TexturedMeshInstances.MeshCount = 0;
@@ -608,8 +626,11 @@ int main(int argc, const char * argv[])
                                                                      error: nil];
     id<MTLFunction> FlatColorVertexFunction = [ShaderLibrary newFunctionWithName:@"flatColorVertexShader"];
     id<MTLFunction> FlatColorFragmentFunction = [ShaderLibrary newFunctionWithName:@"flatColorFragmentShader"];
+
+    // TODO: (Ted)  Support Textured Cube Pipeline on Mac OS
+    /*
     id<MTLFunction> TextureVertexFunction = [ShaderLibrary newFunctionWithName:@"textureVertexShader"];
-    id<MTLFunction> TextureFragmentFunction = [ShaderLibrary newFunctionWithName:@"textureFragmentShader"];
+    id<MTLFunction> TextureFragmentFunction = [ShaderLibrary newFunctionWithName:@"textureFragmentShader"];*/
 
 
     MTLRenderPipelineDescriptor *FlatColorPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
@@ -633,6 +654,8 @@ int main(int argc, const char * argv[])
                      format: @"%@", error.localizedDescription];
     }
 
+    // TODO: (Ted)   Support Textured Cube pipeline on Mac OS
+    /*
     MTLRenderPipelineDescriptor *TexturePipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
     TexturePipelineDescriptor.label = @"Texture Sampled Vertices";
     TexturePipelineDescriptor.vertexFunction = TextureVertexFunction;
@@ -648,7 +671,7 @@ int main(int argc, const char * argv[])
     if (error != nil)
     {
         NSLog(@"Error creating texture geometry pipeline state");
-    }
+    }*/
 
     MTLDepthStencilDescriptor *DepthStencilDesc = [[MTLDepthStencilDescriptor alloc] init];
     DepthStencilDesc.depthCompareFunction = MTLCompareFunctionLess;
@@ -776,13 +799,17 @@ int main(int argc, const char * argv[])
     ViewDelegate.Game = Game; 
     ViewDelegate.GameMemory = GameMemory; 
     ViewDelegate.RenderCommands = RenderCommands; 
-    ViewDelegate.TexturePipelineState = TexturePipelineState;
     ViewDelegate.FlatColorPipelineState = FlatColorPipelineState;
     ViewDelegate.CommandQueue = CommandQueue;
     ViewDelegate.FlatColorVertexBuffer = MacFlatColorVertexBuffer;
-    ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
+
+    // TODO: (Ted)  Supported Textured Cube Loading
+    //ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
+    //ViewDelegate.TexturePipelineState = TexturePipelineState;
+
     ViewDelegate.DepthStencilState = DepthStencilState;
-    ViewDelegate.UniformBuffer = UniformBuffer;
+    ViewDelegate.ConstantUniformBuffer = ConstantUniformBuffer;
+    ViewDelegate.InstanceUniformBuffer = InstanceUniformBuffer;
 
     [ViewDelegate configureMetal];
     [MetalKitView setDelegate: ViewDelegate];
