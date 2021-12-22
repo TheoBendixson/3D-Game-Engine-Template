@@ -96,21 +96,17 @@ flatColorFragmentShader(FlatColorPSInput in [[stage_in]])
     return in.color;
 }
 
-/*
 vertex TexturePSInput
 textureVertexShader(uint vertexID [[ vertex_id ]],
                     uint instanceID [[ instance_id ]],
-                    TextureVSInput in *vertexArray [[ buffer(0) ]],
-                    constant PerInstanceUniforms *perInstanceUniforms [[ buffer(1) ]],
-                    constant Uniforms & uniforms [[ buffer(2) ]])
+                    constant TextureVSInput *vertexArray [[ buffer(BufferIndexVertices) ]],
+                    constant PerInstanceUniforms *perInstanceUniforms [[ buffer(BufferIndexPerInstanceUniforms) ]],
+                    constant Uniforms & uniforms [[ buffer(BufferIndexConstantUniforms) ]])
 {
-    float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
-                            normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
-
+    TextureVSInput in = vertexArray[vertexID];
     TexturePSInput out;
-    matrix_float4x4 ModelView = uniforms.Transform*uniforms.View;
-    matrix_float4x4 MVPMatrix = ModelView*uniforms.Projection;
-    out.position = float4(in.position.xyz, 1.0f)*MVPMatrix;
+    PerInstanceUniforms instanceUniform = perInstanceUniforms[instanceID];
+    out.position = uniforms.Projection*uniforms.View*instanceUniform.Transform*float4(in.position.xyz, 1.0f);
     out.uv = in.uv;
     return out;
 }
@@ -122,4 +118,4 @@ textureFragmentShader(TexturePSInput in [[stage_in]],
     constexpr sampler textureSampler (mag_filter::linear,
                                       min_filter::linear);
     return texture.sample(textureSampler, in.uv);
-}*/
+}
