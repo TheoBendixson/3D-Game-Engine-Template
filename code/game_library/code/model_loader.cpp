@@ -191,9 +191,6 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         { { 0.5f, -0.5f, 0.5f }, POSITIVE_Z_FACE_NORMAL, { 0.0f, 1.0f } }
     };
 
-
-// TODO: (Ted)  Support Textured Cubes on Mac OS!
-#if WINDOWS
     game_vertex_buffer *TextureVertexBuffer = &RenderCommands->TextureVertexBuffer;
     TextureVertexBuffer->VertexCount = 0;
     TextureVertexBuffer->ModelCount = 0;
@@ -214,5 +211,4 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
     TextureVertexBuffer->VertexCount += CUBE_VERTEX_COUNT;
     TextureVertexBuffer->ModelCount += 1;
-#endif
 }
