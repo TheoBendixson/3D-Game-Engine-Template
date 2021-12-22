@@ -561,8 +561,6 @@ int main(int argc, const char * argv[])
 
     RenderCommands.FlatColorVertexBuffer.VertexCount = 0;
 
-    // TODO: (Ted)  Support Textured Cube Loading
-    /*
     RenderCommands.TextureVertexBuffer.Vertices = mmap(0, VertexBufferSize,
                                                        PROT_READ | PROT_WRITE,
                                                        MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -573,7 +571,7 @@ int main(int argc, const char * argv[])
                                                                  options: MTLResourceStorageModeShared
                                                              deallocator: nil];
 
-    RenderCommands.TextureVertexBuffer.VertexCount = 0;*/
+    RenderCommands.TextureVertexBuffer.VertexCount = 0;
 
     u32 InstancedMeshBufferSize = 200;
     RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
@@ -600,12 +598,8 @@ int main(int argc, const char * argv[])
                                                                      error: nil];
     id<MTLFunction> FlatColorVertexFunction = [ShaderLibrary newFunctionWithName:@"flatColorVertexShader"];
     id<MTLFunction> FlatColorFragmentFunction = [ShaderLibrary newFunctionWithName:@"flatColorFragmentShader"];
-
-    // TODO: (Ted)  Support Textured Cube Pipeline on Mac OS
-    /*
     id<MTLFunction> TextureVertexFunction = [ShaderLibrary newFunctionWithName:@"textureVertexShader"];
-    id<MTLFunction> TextureFragmentFunction = [ShaderLibrary newFunctionWithName:@"textureFragmentShader"];*/
-
+    id<MTLFunction> TextureFragmentFunction = [ShaderLibrary newFunctionWithName:@"textureFragmentShader"];
 
     MTLRenderPipelineDescriptor *FlatColorPipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
     FlatColorPipelineDescriptor.label = @"Flat Shaded Colored Vertices";
@@ -615,7 +609,6 @@ int main(int argc, const char * argv[])
     MTLRenderPipelineColorAttachmentDescriptor *FlatColorRenderBufferAttachment = 
         FlatColorPipelineDescriptor.colorAttachments[0];
     FlatColorRenderBufferAttachment.pixelFormat = MetalKitView.colorPixelFormat;
-
 
     NSError *error = NULL;
     id<MTLRenderPipelineState> FlatColorPipelineState = 
@@ -628,12 +621,11 @@ int main(int argc, const char * argv[])
                      format: @"%@", error.localizedDescription];
     }
 
-    // TODO: (Ted)   Support Textured Cube pipeline on Mac OS
-    /*
     MTLRenderPipelineDescriptor *TexturePipelineDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
     TexturePipelineDescriptor.label = @"Texture Sampled Vertices";
     TexturePipelineDescriptor.vertexFunction = TextureVertexFunction;
     TexturePipelineDescriptor.fragmentFunction = TextureFragmentFunction; 
+    TexturePipelineDescriptor.depthAttachmentPixelFormat = MetalKitView.depthStencilPixelFormat;
     MTLRenderPipelineColorAttachmentDescriptor *TextureRenderBufferAttachment = 
         TexturePipelineDescriptor.colorAttachments[0];
     TextureRenderBufferAttachment.pixelFormat = MetalKitView.colorPixelFormat;
@@ -644,8 +636,9 @@ int main(int argc, const char * argv[])
 
     if (error != nil)
     {
-        NSLog(@"Error creating texture geometry pipeline state");
-    }*/
+        [NSException raise: @"Textured Vertex Pipeline state not loaded"
+                     format: @"%@", error.localizedDescription];
+    }
 
     MTLDepthStencilDescriptor *DepthStencilDesc = [[MTLDepthStencilDescriptor alloc] init];
     DepthStencilDesc.depthCompareFunction = MTLCompareFunctionLess;
