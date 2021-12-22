@@ -2,6 +2,8 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
 
+#include "mac_shader_types.h"
+
 typedef struct
 {
     matrix_float4x4 Transform;
@@ -39,13 +41,6 @@ typedef enum TexturePSAttribute
     TexturePSPosition  = 0,
     TexturePSColor = 1
 } TexturePSAttribute;
-
-typedef enum BufferIndex
-{
-    BufferIndexVertices = 0,
-    BufferIndexPerInstanceUniforms = 1,
-    BufferIndexConstantUniforms = 2
-}BufferIndex;
 
 typedef struct
 {

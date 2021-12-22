@@ -1,5 +1,6 @@
 
 #include "../game_library/code/vario.h"
+#include "mac_shader_types.h"
 #include "mac_file_path.h"
 
 const unsigned short LeftArrowKeyCode = 0x7B;

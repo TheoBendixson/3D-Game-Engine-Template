@@ -183,34 +183,6 @@ global_variable b32 ExternalMouseCursorFlag = false;
 
 @end
 
-// NOTE: (Ted)  Not sure how much we will need this. The file dialog is nicer.
-PLATFORM_WRITE_ENTIRE_FILE(PlatformWriteEntireFile)
-{
-    b32 Result = false;
-
-    mac_app_path Path = {};
-    MacBuildAppFilePath(&Path);
-
-    char BundleFilename[MAC_MAX_FILENAME_SIZE];
-    char LocalFilename[MAC_MAX_FILENAME_SIZE];
-
-    sprintf(LocalFilename, "Contents/%s", Filename);
-
-    MacBuildAppPathFileName(&Path, LocalFilename,
-                            sizeof(BundleFilename), BundleFilename);
-
-    Result = MacWriteEntireFile(BundleFilename, FileSize, Memory);
-
-    return(Result);
-}
-
-PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory) 
-{
-    if (Memory) {
-        free(Memory);
-    }
-}
-
 @interface MetalViewDelegate: NSObject<MTKViewDelegate>
 
 @property (retain) NSString *SourceGameCodeDLLFullPath;
@@ -447,15 +419,17 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
 
 // MARK:    Render Flat Shaded Geometry
         [RenderEncoder setRenderPipelineState: [self FlatColorPipelineState]];
-        [RenderEncoder setVertexBuffer: [self FlatColorVertexBuffer] offset: 0 atIndex: 0];
+        [RenderEncoder setVertexBuffer: [self FlatColorVertexBuffer] 
+                                offset: 0 
+                               atIndex: BufferIndexVertices];
 
         [RenderEncoder setVertexBuffer: [self InstanceUniformBuffer]
                                 offset: InstanceUniformBufferOffset
-                               atIndex: 1];
+                               atIndex: BufferIndexPerInstanceUniforms];
 
         [RenderEncoder setVertexBuffer: [self ConstantUniformBuffer]
                                 offset: UniformBufferOffset
-                               atIndex: 2];
+                               atIndex: BufferIndexConstantUniforms];
 
         mesh_instance_buffer *MeshBuffer = &RenderCommandsPtr->FlatColorMeshInstances;
         game_vertex_buffer *FlatColorVertexBuffer = &RenderCommandsPtr->FlatColorVertexBuffer;

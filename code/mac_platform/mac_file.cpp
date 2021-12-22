@@ -127,3 +127,30 @@ b32 MacWriteEntireFile(char *Filename, u64 FileSize, void *Memory)
 
     return (Written);
 }
+
+PLATFORM_WRITE_ENTIRE_FILE(PlatformWriteEntireFile)
+{
+    b32 Result = false;
+
+    mac_app_path Path = {};
+    MacBuildAppFilePath(&Path);
+
+    char BundleFilename[MAC_MAX_FILENAME_SIZE];
+    char LocalFilename[MAC_MAX_FILENAME_SIZE];
+
+    sprintf(LocalFilename, "Contents/%s", Filename);
+
+    MacBuildAppPathFileName(&Path, LocalFilename,
+                            sizeof(BundleFilename), BundleFilename);
+
+    Result = MacWriteEntireFile(BundleFilename, FileSize, Memory);
+
+    return(Result);
+}
+
+PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory) 
+{
+    if (Memory) {
+        free(Memory);
+    }
+}
