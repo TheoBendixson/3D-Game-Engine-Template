@@ -769,11 +769,8 @@ int main(int argc, const char * argv[])
     ViewDelegate.FlatColorPipelineState = FlatColorPipelineState;
     ViewDelegate.CommandQueue = CommandQueue;
     ViewDelegate.FlatColorVertexBuffer = MacFlatColorVertexBuffer;
-
-    // TODO: (Ted)  Supported Textured Cube Loading
-    //ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
-    //ViewDelegate.TexturePipelineState = TexturePipelineState;
-
+    ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
+    ViewDelegate.TexturePipelineState = TexturePipelineState;
     ViewDelegate.DepthStencilState = DepthStencilState;
     ViewDelegate.ConstantUniformBuffer = ConstantUniformBuffer;
     ViewDelegate.InstanceUniformBuffer = InstanceUniformBuffer;

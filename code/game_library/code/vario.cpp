@@ -139,9 +139,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         }
     }
 
-// NOTE: (Ted)  Windows is row-major. Metal is column-major. Ugh.
-//
-// TODO: (Ted)  Unify this between Windows and Metal if possible.
 #if WINDOWS
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
@@ -158,6 +155,12 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                        0,                           0,                              1,  0,
                        0,                           0,                              0,  1 };
 
+    matrix Scale = { ModelScale.X,  0,              0,              0,
+                     0,             ModelScale.Y,   0,              0,
+                     0,             0,              ModelScale.Z,   0,
+                     0,             0,              0,              1 };
+
+    matrix View = {};
 #elif MACOS
     matrix_float4x4 
         RotateX = (matrix_float4x4) {{
@@ -182,20 +185,15 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             { 0,                           0,                              1,  0 },
             { 0,                           0,                              0,  1 },
         }};
-#endif
 
-#if WINDOWS
-    matrix Scale = { ModelScale.X,  0,              0,              0,
-                     0,             ModelScale.Y,   0,              0,
-                     0,             0,              ModelScale.Z,   0,
-                     0,             0,              0,              1 };
-#elif MACOS
     matrix_float4x4 Scale = (matrix_float4x4) {{
         { ModelScale.X, 0,            0,             0 },
         { 0,            ModelScale.Y, 0,             0 },
         { 0,            0,            ModelScale.Z,  0 },
         { 0,            0,            0,             1 } 
     }};
+
+    matrix_float4x4 View = {};
 #endif
 
     u32 ViewportWidth = RenderCommands->ViewportWidth;
@@ -210,12 +208,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
-
-#if WINDOWS
-    matrix View = {};
-#elif MACOS
-    matrix_float4x4 View = {};
-#endif
 
     b32 RotateCamera = true;
 
