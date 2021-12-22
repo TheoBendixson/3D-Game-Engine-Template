@@ -42,7 +42,9 @@ typedef enum TexturePSAttribute
 
 typedef enum BufferIndex
 {
-    BufferIndexUniforms = 0
+    BufferIndexVertices = 0,
+    BufferIndexPerInstanceUniforms = 1,
+    BufferIndexConstantUniforms = 2
 }BufferIndex;
 
 typedef struct
@@ -76,9 +78,9 @@ using namespace metal;
 vertex FlatColorPSInput 
 flatColorVertexShader(uint vertexID [[ vertex_id ]],
                       uint instanceID [[ instance_id ]], 
-                      constant FlatColorVSInput *vertexArray [[ buffer(0) ]],
-                      constant PerInstanceUniforms *perInstanceUniforms [[ buffer(1) ]],
-                      constant Uniforms & uniforms [[ buffer(2) ]])
+                      constant FlatColorVSInput *vertexArray [[ buffer(BufferIndexVertices) ]],
+                      constant PerInstanceUniforms *perInstanceUniforms [[ buffer(BufferIndexPerInstanceUniforms) ]],
+                      constant Uniforms & uniforms [[ buffer(BufferIndexConstantUniforms) ]])
 {
     FlatColorVSInput in = vertexArray[vertexID];
     FlatColorPSInput out;
@@ -101,8 +103,11 @@ flatColorFragmentShader(FlatColorPSInput in [[stage_in]])
 
 /*
 vertex TexturePSInput
-textureVertexShader(TextureVSInput in [[stage_in]],
-                    constant Uniforms & uniforms [[ buffer(BufferIndexUniforms) ]])
+textureVertexShader(uint vertexID [[ vertex_id ]],
+                    uint instanceID [[ instance_id ]],
+                    TextureVSInput in *vertexArray [[ buffer(0) ]],
+                    constant PerInstanceUniforms *perInstanceUniforms [[ buffer(1) ]],
+                    constant Uniforms & uniforms [[ buffer(2) ]])
 {
     float Light = clamp(dot(normalize(mul(float4(input.Normal, 0.0f), Transform).xyz), 
                             normalize(-LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
