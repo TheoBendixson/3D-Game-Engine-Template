@@ -301,7 +301,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         Constants->View = View;
         Constants->Projection = Projection;
-
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
@@ -321,8 +320,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     FlatColorMeshInstanceBuffer->MeshCount = ColoredCubePushBuffer->DrawCount;
 
-// TODO: (Ted)  Port this to Apple/Metal
-#if WINDOWS
     mesh_instance_buffer *TexturedMeshInstanceBuffer = &RenderCommands->TexturedMeshInstances;
 
     for (u32 InstanceIndex = 0;
@@ -330,20 +327,27 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = TexturedCubePushBuffer->Translations[InstanceIndex];
-        matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         mesh_instance *MeshInstance = &TexturedMeshInstanceBuffer->Meshes[InstanceIndex];
+
+#if WINDOWS
+        matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+#elif MACOS
+        matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
+        instance_uniforms *Uniforms = &MeshInstance->Uniforms;
+        Uniforms->Transform = matrix_multiply(Translate, Scale);
+        game_constants *Constants = &RenderCommands->Constants;
+#endif
+
         Constants->View = View;
         Constants->Projection = Projection;
-
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         MeshInstance->ModelIndex = 0;
     }
 
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
-#endif
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;
