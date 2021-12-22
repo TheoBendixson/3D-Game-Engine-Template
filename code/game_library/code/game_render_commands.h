@@ -11,10 +11,14 @@ struct game_constants
 #elif MACOS
 struct game_constants
 {
-    matrix_float4x4 Transform;
     matrix_float4x4 View;
     matrix_float4x4 Projection;
     vector_float3 LightVector;
+};
+
+struct instance_uniforms
+{
+    matrix_float4x4 Transform;
 };
 #endif
 
@@ -65,7 +69,11 @@ struct clear_color
 
 struct mesh_instance
 {
+#if WINDOWS
     game_constants Constants;
+#elif MACOS
+    instance_uniforms InstanceUniforms;
+#endif
     u32 ModelIndex;
 };
 
@@ -82,6 +90,7 @@ struct game_render_commands
 #if MACOS
     u32 FrameIndex;
     r32 ScreenScaleFactor; 
+    game_constants Uniforms;
 #endif
 
     s32 ViewportWidth;

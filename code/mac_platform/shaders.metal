@@ -5,6 +5,10 @@
 typedef struct
 {
     matrix_float4x4 Transform;
+} PerInstanceUniforms;
+
+typedef struct
+{
     matrix_float4x4 View;
     matrix_float4x4 Projection;
     vector_float3 LightVector;
@@ -73,16 +77,17 @@ vertex FlatColorPSInput
 flatColorVertexShader(uint vertexID [[ vertex_id ]],
                       uint instanceID [[ instance_id ]], 
                       constant FlatColorVSInput *vertexArray [[ buffer(0) ]],
-                      constant Uniforms *uniformsArray [[ buffer(1) ]])
+                      constant PerInstanceUniforms *perInstanceUniforms [[ buffer(1) ]],
+                      constant Uniforms uniforms [[ buffer(2) ]])
 {
     FlatColorVSInput in = vertexArray[vertexID];
     FlatColorPSInput out;
 
-    Uniforms uniform = uniformsArray[instanceID];
-    float Light = clamp(dot(normalize(uniform.Transform*float4(in.normal, 0.0f)).xyz, 
-                            normalize(-uniform.LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
+    PerInstanceUniforms instanceUniform = perInstanceUniforms[instanceID];
+    float Light = clamp(dot(normalize(instanceUniform.Transform*float4(in.normal, 0.0f)).xyz, 
+                            normalize(-uniforms.LightVector)), 0.0f, 1.0f) * 0.8f + 0.2f;
 
-    out.position = uniform.Projection*uniform.View*uniform.Transform*float4(in.position.xyz, 1.0f);
+    out.position = uniforms.Projection*uniforms.View*instanceUniform.Transform*float4(in.position.xyz, 1.0f);
     out.color = float4(in.color*Light, 1.0f);
 
     return out;
