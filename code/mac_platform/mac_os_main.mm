@@ -282,10 +282,10 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
 
     game_render_commands *RenderCommandsPtr = &_RenderCommands;
 
-    u8 InstanceUniformBufferOffset = kAlignedInstanceUniformsSize*_currentFrameIndex*RenderCommandsPtr->FlatColorMeshInstances.MeshMax;
+    u32 InstanceUniformBufferOffset = kAlignedInstanceUniformsSize*_currentFrameIndex*RenderCommandsPtr->FlatColorMeshInstances.MeshMax;
     void *InstanceUniformBufferAddress = ((u8 *)[self InstanceUniformBuffer].contents) + InstanceUniformBufferOffset;
 
-    u8 UniformBufferOffset = kAlignedUniformsSize*_currentFrameIndex;
+    u32 UniformBufferOffset = kAlignedUniformsSize*_currentFrameIndex;
     void *UniformBufferAddress = ((u8 *)[self ConstantUniformBuffer].contents) + UniformBufferOffset;
 
     RenderCommandsPtr->FrameIndex = (u32)_currentFrameIndex;
