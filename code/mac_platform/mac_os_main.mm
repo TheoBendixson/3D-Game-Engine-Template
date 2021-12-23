@@ -431,11 +431,11 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                                 offset: UniformBufferOffset
                                atIndex: BufferIndexConstantUniforms];
 
-        mesh_instance_buffer *MeshBuffer = &RenderCommandsPtr->FlatColorMeshInstances;
-        game_vertex_buffer *FlatColorVertexBuffer = &RenderCommandsPtr->FlatColorVertexBuffer;
-
         game_constants *Constants = (game_constants*)UniformBufferAddress;
         *Constants = RenderCommandsPtr->Constants;
+
+        mesh_instance_buffer *MeshBuffer = &RenderCommandsPtr->FlatColorMeshInstances;
+        game_vertex_buffer *FlatColorVertexBuffer = &RenderCommandsPtr->FlatColorVertexBuffer;
 
         instance_uniforms *InstanceUniforms = (instance_uniforms *)InstanceUniformBufferAddress;
 
@@ -454,7 +454,33 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                              baseInstance: Index];
         }
 
-        // TODO: (Ted)  Render textured cube primitives here.
+        u32 BaseIndex = MeshBuffer->MeshCount - 1;
+
+        [RenderEncoder setRenderPipelineState: [self TexturePipelineState]];
+        [RenderEncoder setVertexBuffer: [self TextureVertexBuffer] 
+                                offset: 0 
+                               atIndex: BufferIndexVertices];
+        [RenderEncoder setFragmentTexture: [self SampleTexture] 
+                                  atIndex: 0];
+
+        MeshBuffer = &RenderCommandsPtr->TexturedMeshInstances;
+        game_vertex_buffer *TextureVertexBuffer = &RenderCommandsPtr->TextureVertexBuffer;
+
+        for (u32 Index = 0;
+             Index < MeshBuffer->MeshCount;
+             Index++)
+        {
+            mesh_instance *MeshInstance = &MeshBuffer->Meshes[Index];
+            *InstanceUniforms++ = MeshInstance->Uniforms;
+
+            model_range Range = TextureVertexBuffer->ModelRanges[MeshInstance->ModelIndex];
+            [RenderEncoder drawPrimitives: MTLPrimitiveTypeTriangle
+                              vertexStart: Range.StartVertex
+                              vertexCount: Range.VertexCount
+                            instanceCount: 1
+                             baseInstance: (BaseIndex + Index)];
+        }
+
 
         [RenderEncoder endEncoding];
 

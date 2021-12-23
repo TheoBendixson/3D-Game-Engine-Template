@@ -16,6 +16,13 @@ struct game_flat_color_vertex
     r32 Color[3];
 };
 
+struct game_texture_vertex
+{
+    r32 Position[3];
+    r32 Normal[3];
+    r32 UV[2];
+};
+
 #elif MACOS
 struct game_constants
 {
@@ -35,14 +42,15 @@ struct game_flat_color_vertex
     vector_float3 Normal;
     vector_float3 Color;
 };
-#endif
 
 struct game_texture_vertex
 {
-    r32 Position[3];
-    r32 Normal[3];
-    r32 UV[2];
+    vector_float3 Position;
+    vector_float3 Normal;
+    vector_float2 UV;
 };
+#endif
+
 
 #define MAX_MODELS  3
 
