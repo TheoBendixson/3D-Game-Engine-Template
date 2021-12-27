@@ -14,6 +14,51 @@
 #define GREEN   { 0, 1, 0 }
 #define BLUE    { 0, 0, 1 }
 
+internal r32
+DigitFromTextCharacter(char Character)
+{
+    r32 Digit = 0.0f;
+
+    if (Character == '1')
+    {
+        Digit = 1.0f;
+    } 
+    else if (Character == '2')
+    {
+        Digit = 2.0f;
+    }
+    else if (Character == '3')
+    {
+        Digit = 3.0f;
+    }
+    else if (Character == '4')
+    {
+        Digit = 4.0f;
+    }
+    else if (Character == '5')
+    {
+        Digit = 5.0f;
+    }
+    else if (Character == '6')
+    {
+        Digit = 6.0f;
+    }
+    else if (Character == '7')
+    {
+        Digit = 7.0f;
+    }
+    else if (Character == '8')
+    {
+        Digit = 8.0f;
+    }
+    else if (Character == '9')
+    {
+        Digit = 9.0f;
+    }
+
+    return Digit;
+}
+
 void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
 {
     // XYZ Vertices, RGB Color
@@ -99,6 +144,72 @@ void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
     VertexBuffer->ModelCount += 1;
 }
 
+struct vertex_scan_result
+{
+    r32 Vertex;
+    char *AdvancedScan;
+};
+
+internal vertex_scan_result
+ConstructVertexFromScan(char *Scan)
+{
+    vertex_scan_result Result = {};
+    r32 VertexValue = 0.0f;
+
+    char First = *Scan++;
+    b32 IsNegative = false;
+
+    r32 TensDigit = 0.0f;
+
+    if (First == '-')
+    {
+        IsNegative = true;
+
+        char TensPlace = *Scan++;
+        TensDigit = DigitFromTextCharacter(TensPlace);
+    } else
+    {
+        TensDigit = DigitFromTextCharacter(First);
+    }
+
+    VertexValue += TensDigit;
+
+    Scan++;
+    char TenthsPlace = *Scan++;
+    r32 TenthsDigit = DigitFromTextCharacter(TenthsPlace);
+    VertexValue += TenthsDigit*0.1f;
+
+    char HundredthsPlace = *Scan++;
+    r32 HundredthsDigit = DigitFromTextCharacter(HundredthsPlace);
+    VertexValue += HundredthsDigit*0.01f;
+
+    char ThousandthsPlace = *Scan++;
+    r32 ThousandthsDigit = DigitFromTextCharacter(ThousandthsPlace);
+    VertexValue += ThousandthsDigit*0.001f;
+
+    char TenThousandthsPlace = *Scan++;
+    r32 TenThousandthsDigit = DigitFromTextCharacter(TenThousandthsPlace);
+    VertexValue += TenThousandthsDigit*0.0001f;
+
+    char HundredThousandthsPlace = *Scan++;
+    r32 HundredThousandthsDigit = DigitFromTextCharacter(HundredThousandthsPlace);
+    VertexValue += HundredThousandthsDigit*0.00001f;
+
+    char MillionthsPlace = *Scan++;
+    r32 MillionthsDigit = DigitFromTextCharacter(MillionthsPlace);
+    VertexValue += MillionthsDigit*0.000001f;
+
+    if (IsNegative)
+    {
+        VertexValue *= -1;
+    }
+
+    Result.Vertex = VertexValue;
+    Result.AdvancedScan = Scan;
+
+    return (Result);
+}
+
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
@@ -141,9 +252,22 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
         while(LoadingVertices)
         {
+            // NOTE: (Ted) At this point the scan should be at the start of a floating point number.
             Scan +=2;
 
-            // NOTE: (Ted) At this point the scan should be at the start of a floating point number.
+            vertex_scan_result VertexScan = ConstructVertexFromScan(Scan);
+            r32 X = VertexScan.Vertex; 
+            Scan = VertexScan.AdvancedScan;
+            Scan++;
+
+            VertexScan = ConstructVertexFromScan(Scan);
+            r32 Y = VertexScan.Vertex;
+            Scan = VertexScan.AdvancedScan;
+            Scan++;
+
+            VertexScan = ConstructVertexFromScan(Scan);
+            r32 Z = VertexScan.Vertex;
+            Scan = VertexScan.AdvancedScan;
         }
     }
 
