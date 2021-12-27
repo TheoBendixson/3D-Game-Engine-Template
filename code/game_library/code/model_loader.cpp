@@ -107,43 +107,43 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
     if (Result.ContentsSize > 0)
     {
-        u32 VertexCount = 0;
-
         game_obj_vertex *Vertices = (game_obj_vertex *)Memory->TransientStoragePartition.SecondaryPartition;
 
-        char *Src = (char *)Result.Contents;
+        char *Scan = (char *)Result.Contents;
+        char *Line = Scan;
 
-        b32 ReadingFile = true;
+        b32 ScanningForVertices = true;
 
-        while(ReadingFile)
+        while(ScanningForVertices)
         {
-            while (Src++)
+            if (*Line == 'v')
             {
-                if (*Src == 'o')
+                ScanningForVertices = false;
+            } else
+            {
+                // NOTE: (Ted)  Skip Lines
+                while(Scan++)
                 {
-                    break;
+                    if(*Scan == '\n')
+                    {
+                        break;
+                    }
                 }
+
+                Scan++;
+                Line = Scan;
+                continue;
             }
+        }
 
-            while(Src++)
-            {
-                if (*Src == '\n')
-                {
-                    break;
-                }
-            }
+        u32 VertexCount = 0;
+        b32 LoadingVertices = true;
 
-            Src++;
+        while(LoadingVertices)
+        {
+            Scan +=2;
 
-            if (*Src == 'v')
-            {
-                Src += 2;
-
-                // NOTE: (Ted)  This should read as the first value in the obj file.
-
-                ReadingFile = false;
-            }
-
+            // NOTE: (Ted) At this point the scan should be at the start of a floating point number.
         }
     }
 
