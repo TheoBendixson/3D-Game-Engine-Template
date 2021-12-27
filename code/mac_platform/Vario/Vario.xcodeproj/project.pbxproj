@@ -20,6 +20,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXFileReference section */
+		CFCD7856277A617F007BBDF0 /* model_loader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = model_loader.cpp; path = ../../game_library/code/model_loader.cpp; sourceTree = "<group>"; };
 		CFE7F23827717E6E00D4E3BA /* vario.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = vario.cpp; path = ../../game_library/code/vario.cpp; sourceTree = "<group>"; };
 		CFE7F23A27717F0000D4E3BA /* mac_os_main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = mac_os_main.mm; path = ../mac_os_main.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -30,6 +31,7 @@
 			children = (
 				CFE7F23827717E6E00D4E3BA /* vario.cpp */,
 				CFE7F23A27717F0000D4E3BA /* mac_os_main.mm */,
+				CFCD7856277A617F007BBDF0 /* model_loader.cpp */,
 			);
 			sourceTree = "<group>";
 		};

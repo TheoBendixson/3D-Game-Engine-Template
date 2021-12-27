@@ -49,6 +49,14 @@ struct game_texture_vertex
     vector_float3 Normal;
     vector_float2 UV;
 };
+
+// NOTE: (Ted)  These are model vertices loaded from an obj file produced by a 3D modeling tool like Blender.
+struct game_obj_vertex
+{
+    vector_float3 Position;
+    vector_float2 UV;
+    vector_float3 Normal;
+};
 #endif
 
 

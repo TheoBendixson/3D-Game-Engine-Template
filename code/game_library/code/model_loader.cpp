@@ -102,6 +102,51 @@ void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
+    thread_context Thread = {};
+    read_file_result Result = Memory->PlatformReadEntireFile(&Thread, "testmodel.obj");
+
+    if (Result.ContentsSize > 0)
+    {
+        u32 VertexCount = 0;
+
+        game_obj_vertex *Vertices = (game_obj_vertex *)Memory->TransientStoragePartition.SecondaryPartition;
+
+        char *Src = (char *)Result.Contents;
+
+        b32 ReadingFile = true;
+
+        while(ReadingFile)
+        {
+            while (Src++)
+            {
+                if (*Src == 'o')
+                {
+                    break;
+                }
+            }
+
+            while(Src++)
+            {
+                if (*Src == '\n')
+                {
+                    break;
+                }
+            }
+
+            Src++;
+
+            if (*Src == 'v')
+            {
+                Src += 2;
+
+                // NOTE: (Ted)  This should read as the first value in the obj file.
+
+                ReadingFile = false;
+            }
+
+        }
+    }
+
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     FlatColorVertexBuffer->VertexCount = 0;
     FlatColorVertexBuffer->ModelCount = 0;

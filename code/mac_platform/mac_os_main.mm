@@ -746,6 +746,11 @@ int main(int argc, const char * argv[])
                      format: @"Failed to allocate transient storage"];
     }
 
+    u64 SecondaryPartitionSize = Megabytes(64);
+    GameMemory.TransientStoragePartition.SecondaryPartitionSize = SecondaryPartitionSize;
+    GameMemory.TransientStoragePartition.SecondaryPartition = 
+        (u8 *)GameMemory.TransientStorage + SecondaryPartitionSize;
+
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
     GameMemory.PlatformWriteEntireFile = PlatformWriteEntireFile;
     GameMemory.PlatformFreeFileMemory = PlatformFreeFileMemory;
@@ -806,7 +811,7 @@ int main(int argc, const char * argv[])
 
     if (Game.Load3DModels)
     {
-        Game.Load3DModels(&RenderCommands);
+        Game.Load3DModels(&GameMemory, &RenderCommands);
     } else
     {
         [NSException raise: @"3D Models Not Loaded"

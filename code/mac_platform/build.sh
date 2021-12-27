@@ -8,7 +8,8 @@ pushd $MAC_BUILD_PATH
 MAC_PLATFORM_LAYER_PATH="../../code/mac_platform"
 GAME_LIBRARY_CODE_PATH="../../code/game_library/code"
 
-IGNORED_WARNINGS="-Wno-c++11-compat-deprecated-writable-strings"
+IGNORED_WARNINGS="-Wno-c++11-compat-deprecated-writable-strings
+                  -Wno-writable-strings"
 
 OSX_LD_FLAGS="-framework AppKit 
               -framework IOKit
@@ -25,6 +26,8 @@ COMMON_COMPILER_FLAGS="-DMACOS=1
 GAME_BUNDLE_RESOURCES_PATH="Vario.app/Contents/Resources"
 
 PLATFORM_RESOURCES_PATH="../../code/mac_platform/resources"
+
+RESOURCES_PATH="../../resources"
 
 echo Compiling Shader Libraries
 xcrun -sdk macosx metal -mmacosx-version-min=10.14 -gline-tables-only -MO -g -c "${MAC_PLATFORM_LAYER_PATH}/shaders.metal" -o Shaders.air
@@ -49,5 +52,7 @@ cp -r GameCode.dylib.dSYM ${GAME_BUNDLE_RESOURCES_PATH}/GameCode.dylib.dSYM
 
 cp Shaders.metallib ${GAME_BUNDLE_RESOURCES_PATH}/Shaders.metallib
 cp ${PLATFORM_RESOURCES_PATH}/GameInfo.plist Vario.app/Contents/Info.plist
+
+cp ${RESOURCES_PATH}/testmodel.obj ${GAME_BUNDLE_RESOURCES_PATH}/testmodel.obj
 
 popd
