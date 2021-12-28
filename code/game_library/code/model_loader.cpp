@@ -121,12 +121,19 @@ struct temp_vertex_data
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
+    game_indexed_vertex_buffer *LoadedModelVertexBuffer = &RenderCommands->LoadedModelVertexBuffer;
+
     thread_context Thread = {};
     read_file_result Result = Memory->PlatformReadEntireFile(&Thread, "testmodel.obj");
 
     if (Result.ContentsSize > 0)
     {
-        temp_vertex_data *VertexData = (temp_vertex_data *)Memory->TransientStoragePartition.SecondaryPartition;
+        game_texture_vertex *Vertices = (game_texture_vertex *)LoadedModelVertexBuffer->Vertices;
+
+        u32 *Indices = (u32 *)LoadedModelVertexBuffer->Indices;
+        u32 IndexCount = 0;
+
+        temp_vertex_data *TempVertexData = (temp_vertex_data *)Memory->TransientStoragePartition.SecondaryPartition;
 
         char *Scan = (char *)Result.Contents;
         char *Line = Scan;
@@ -154,7 +161,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             Scan = ObjScan.AdvancedScan;
 
             vector_float3 Position = { X, Y, Z };
-            VertexData->Positions[PositionIndex] = Position; 
+            TempVertexData->Positions[PositionIndex] = Position; 
 
             char OneAhead = *(Scan + 1);
 
@@ -185,7 +192,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             Scan = ObjScan.AdvancedScan;
 
             vector_float2 UV = { U, V };
-            VertexData->UVs[UVIndex] = UV; 
+            TempVertexData->UVs[UVIndex] = UV; 
 
             char OneAhead = *(Scan + 1);
 
@@ -221,7 +228,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             Scan = ObjScan.AdvancedScan;
 
             vector_float3 Normal = { X, Y, Z };
-            VertexData->Normals[NormalIndex] = Normal; 
+            TempVertexData->Normals[NormalIndex] = Normal; 
 
             char OneAhead = *(Scan + 1);
 
@@ -279,7 +286,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
             while (!FoundOrCreatedVertexIndex)
             {
-                vertex_lookup Retrieved = VertexData->VertexIndexHashmap[HashIndex];
+                vertex_lookup Retrieved = TempVertexData->VertexIndexHashmap[HashIndex];
 
                 if (Retrieved.Hash == 0)
                 {
@@ -288,9 +295,16 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                     vertex_lookup Replaced = {};
                     Replaced.Hash = HashValue;
                     Replaced.VertexIndex = VertexIndex;
-                    VertexData->VertexIndexHashmap[HashIndex] = Replaced;
+                    TempVertexData->VertexIndexHashmap[HashIndex] = Replaced;
     
-                    // TODO: (Ted)  Store the vertex index in the index draw order for this model.
+                    game_texture_vertex Vertex = {};
+                    Vertex.Position = TempVertexData->Positions[PositionLookupIndex];
+                    Vertex.UV = TempVertexData->UVs[UVLookupIndex];
+                    Vertex.Normal = TempVertexData->Normals[NormalLookupIndex];
+                    Vertices[VertexIndex] = Vertex;
+
+                    Indices[IndexCount] = VertexIndex;
+                    IndexCount++;
 
                     VertexIndex++;
                     FoundOrCreatedVertexIndex = true;
@@ -299,8 +313,8 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                 {
                     // NOTE: (Ted)  There is already a vertex index with this hash value.
                     //              Use it.
-
-                    // TODO: (Ted)  Use the vertex index in the index draw order for this model.
+                    Indices[IndexCount] = Retrieved.VertexIndex;
+                    IndexCount++;
 
                     FoundOrCreatedVertexIndex = true;
                 } 
@@ -324,11 +338,10 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             } 
         }
 
-        if (VertexIndex > 1)
-        {
-
-        }
+        LoadedModelVertexBuffer->IndexCount = IndexCount;
     }
+
+    // TODO: (Ted) Clear out the scratch space.
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     FlatColorVertexBuffer->VertexCount = 0;

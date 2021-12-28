@@ -61,6 +61,12 @@ struct model_range
     u32 VertexCount;
 };
 
+struct model_range_indexed
+{
+    u32 StartIndex;
+    u32 IndexCount;
+};
+
 struct game_vertex_buffer
 {
     void *Vertices;
@@ -68,6 +74,15 @@ struct game_vertex_buffer
 
     model_range ModelRanges[MAX_MODELS];
     u32 ModelCount;
+};
+
+struct game_indexed_vertex_buffer
+{
+    void *Vertices;
+    u32 VertexCount;
+
+    void *Indices;
+    u32 IndexCount;
 };
 
 struct clear_color
@@ -107,6 +122,7 @@ struct game_render_commands
 
     game_vertex_buffer FlatColorVertexBuffer;
     game_vertex_buffer TextureVertexBuffer;
+    game_indexed_vertex_buffer LoadedModelVertexBuffer;
 
     mesh_instance_buffer FlatColorMeshInstances;
     mesh_instance_buffer TexturedMeshInstances;

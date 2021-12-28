@@ -195,6 +195,7 @@ global_variable b32 ExternalMouseCursorFlag = false;
 @property (retain) id<MTLTexture> SampleTexture;
 @property (retain) id<MTLBuffer> FlatColorVertexBuffer;
 @property (retain) id<MTLBuffer> TextureVertexBuffer;
+@property (retain) id<MTLBuffer> MacLoadedModelVertexBuffer;
 @property (retain) id<MTLDepthStencilState> DepthStencilState;
 @property (retain) id<MTLBuffer> ConstantUniformBuffer;
 @property (retain) id<MTLBuffer> InstanceUniformBuffer;
@@ -599,6 +600,23 @@ int main(int argc, const char * argv[])
 
     RenderCommands.TextureVertexBuffer.VertexCount = 0;
 
+    RenderCommands.LoadedModelVertexBuffer.Vertices = mmap(0, VertexBufferSize,
+                                                           PROT_READ | PROT_WRITE,
+                                                           MAP_PRIVATE | MAP_ANON, -1, 0);
+
+    id<MTLBuffer> MacLoadedModelVertexBuffer = [MetalKitView.device 
+                                                    newBufferWithBytesNoCopy: RenderCommands.LoadedModelVertexBuffer.Vertices
+                                                                      length: VertexBufferSize 
+                                                                     options: MTLResourceStorageModeShared
+                                                                 deallocator: nil];
+
+    RenderCommands.LoadedModelVertexBuffer.VertexCount = 0;
+
+    RenderCommands.LoadedModelVertexBuffer.Indices = mmap(0, sizeof(u32)*3000,
+                                                          PROT_READ | PROT_WRITE,
+                                                          MAP_PRIVATE | MAP_ANON, -1, 0);
+    RenderCommands.LoadedModelVertexBuffer.IndexCount = 0;
+
     u32 InstancedMeshBufferSize = 200;
     RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
     RenderCommands.FlatColorMeshInstances.MeshCount = 0;
@@ -828,6 +846,7 @@ int main(int argc, const char * argv[])
     ViewDelegate.CommandQueue = CommandQueue;
     ViewDelegate.FlatColorVertexBuffer = MacFlatColorVertexBuffer;
     ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
+    ViewDelegate.MacLoadedModelVertexBuffer = MacLoadedModelVertexBuffer;
     ViewDelegate.SampleTexture = SampleTexture;
     ViewDelegate.TexturePipelineState = TexturePipelineState;
     ViewDelegate.DepthStencilState = DepthStencilState;
