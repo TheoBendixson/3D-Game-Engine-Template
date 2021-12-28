@@ -1,4 +1,6 @@
 
+#include "obj_file_reader.cpp"
+
 #define CUBE_VERTEX_COUNT   36 
 
 #define NEGATIVE_X_FACE_NORMAL { -1.0f,  0.0f,  0.0f }
@@ -13,8 +15,6 @@
 #define RED     { 1, 0, 0 }
 #define GREEN   { 0, 1, 0 }
 #define BLUE    { 0, 0, 1 }
-
-#include "obj_file_reader.cpp"
 
 void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
 {
@@ -101,11 +101,21 @@ void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
     VertexBuffer->ModelCount += 1;
 }
 
+#define VERTEX_LOOKUP_HASH_COUNT 5000
+
+struct vertex_lookup
+{
+    u32 Hash;
+    u32 VertexIndex;
+};
+
 struct temp_vertex_data
 {
     vector_float3 Positions[1000];
     vector_float2 UVs[1000];
     vector_float3 Normals[1000];
+
+    vertex_lookup VertexIndexHashmap[VERTEX_LOOKUP_HASH_COUNT];
 };
 
 extern "C"
@@ -229,8 +239,15 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
         Scan += 2;
 
+        u32 PositionCount = PositionIndex + 1;
+        u32 UVCount = UVIndex + 1;
+        u32 NormalCount = NormalIndex + 1;
+
+        u32 VertexIndex = 0;
         b32 LoadingFaces = true;
-       
+     
+        u32 VertexParseCount = 0;
+
         while(LoadingFaces)
         {
             obj_face_scan FaceScan = GetFaceCharactersUpToToken(Scan, '/');
@@ -241,9 +258,74 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             u32 UVLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
             Scan = FaceScan.AdvancedScan;
 
-            FaceScan = GetFaceCharactersUpToToken(Scan, ' ');
+            char NormalScanToToken = ' ';
+
+            if (VertexParseCount == 2)
+            {
+                NormalScanToToken = '\n';
+            }
+
+            FaceScan = GetFaceCharactersUpToToken(Scan, NormalScanToToken);
             u32 NormalLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
             Scan = FaceScan.AdvancedScan;
+
+            VertexParseCount++;
+
+            u32 HashValue = NormalCount*UVCount*NormalLookupIndex + UVCount*UVLookupIndex + PositionLookupIndex + 1;
+            u32 HashIndex = HashValue%VERTEX_LOOKUP_HASH_COUNT;
+
+            b32 FoundOrCreatedVertexIndex = false;
+            u32 AttemptCount = 0;
+
+            while (!FoundOrCreatedVertexIndex)
+            {
+                vertex_lookup Retrieved = VertexData->VertexIndexHashmap[HashIndex];
+
+                if (Retrieved.Hash == 0)
+                {
+                    // NOTE: (Ted)  A zero hash means the hash map is not occupied.
+                    //              Assign the index and increment it.
+                    vertex_lookup Replaced = {};
+                    Replaced.Hash = HashValue;
+                    Replaced.VertexIndex = VertexIndex;
+                    VertexData->VertexIndexHashmap[HashIndex] = Replaced;
+    
+                    // TODO: (Ted)  Store the vertex index in the index draw order for this model.
+
+                    VertexIndex++;
+                    FoundOrCreatedVertexIndex = true;
+                } 
+                else if (Retrieved.Hash == HashValue)
+                {
+                    // NOTE: (Ted)  There is already a vertex index with this hash value.
+                    //              Use it.
+
+                    // TODO: (Ted)  Use the vertex index in the index draw order for this model.
+
+                    FoundOrCreatedVertexIndex = true;
+                } 
+               
+                AttemptCount++;
+                HashIndex = (HashValue + AttemptCount)%VERTEX_LOOKUP_HASH_COUNT;
+            }
+
+            if (*Scan == 'e')
+            {
+                LoadingFaces = false;
+            } else if (VertexParseCount == 3)
+            {
+                if (*Scan != 'f')
+                {
+                    Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
+                }
+
+                Scan += 2;
+                VertexParseCount = 0;
+            } 
+        }
+
+        if (VertexIndex > 1)
+        {
 
         }
     }
