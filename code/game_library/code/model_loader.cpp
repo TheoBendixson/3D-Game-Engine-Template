@@ -247,7 +247,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             }
         }
 
-        u32 VertexCount = 0;
+        u32 VertexIndex = 0;
         b32 LoadingVertices = true;
 
         while(LoadingVertices)
@@ -268,7 +268,32 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             VertexScan = ConstructVertexFromScan(Scan);
             r32 Z = VertexScan.Vertex;
             Scan = VertexScan.AdvancedScan;
+
+            // NOTE: (Ted)  At this point, the scan pointer should always be at newline.
+            //              If it isn't, the obj file is corrupted.
+            Assert(Scan == '\n');
+
+            vector_float3 Position = { X, Y, Z };
+            Vertices[VertexIndex].Position = Position; 
+
+            Scan++;
+
+            char OneAhead = *(Scan + 1);
+
+            if (*Scan == 'v' && 
+                OneAhead != 't')
+            {
+                VertexIndex++;
+
+            } else
+            {
+                LoadingVertices = false;
+            }
         }
+
+        b32 LoadingUVs = true;
+
+
     }
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
