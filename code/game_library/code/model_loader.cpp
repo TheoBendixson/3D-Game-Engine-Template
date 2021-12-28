@@ -144,16 +144,16 @@ void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
     VertexBuffer->ModelCount += 1;
 }
 
-struct vertex_scan_result
+struct obj_scan_result
 {
-    r32 Vertex;
+    r32 Value;
     char *AdvancedScan;
 };
 
-internal vertex_scan_result
-ConstructVertexFromScan(char *Scan)
+internal obj_scan_result
+ConstructFloatFromScan(char *Scan)
 {
-    vertex_scan_result Result = {};
+    obj_scan_result Result = {};
     r32 VertexValue = 0.0f;
 
     char First = *Scan++;
@@ -204,11 +204,21 @@ ConstructVertexFromScan(char *Scan)
         VertexValue *= -1;
     }
 
-    Result.Vertex = VertexValue;
+    // Do this to get to the next value.
+    Scan++;
+
+    Result.Value = VertexValue;
     Result.AdvancedScan = Scan;
 
     return (Result);
 }
+
+struct temp_vertex_data
+{
+    vector_float3 Positions[400];
+    vector_float2 UVs[800];
+    vector_float3 Normals[1000];
+};
 
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
@@ -218,7 +228,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
     if (Result.ContentsSize > 0)
     {
-        game_obj_vertex *Vertices = (game_obj_vertex *)Memory->TransientStoragePartition.SecondaryPartition;
+        temp_vertex_data *VertexData = (temp_vertex_data *)Memory->TransientStoragePartition.SecondaryPartition;
 
         char *Scan = (char *)Result.Contents;
         char *Line = Scan;
@@ -255,28 +265,20 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             // NOTE: (Ted) At this point the scan should be at the start of a floating point number.
             Scan +=2;
 
-            vertex_scan_result VertexScan = ConstructVertexFromScan(Scan);
-            r32 X = VertexScan.Vertex; 
-            Scan = VertexScan.AdvancedScan;
-            Scan++;
+            obj_scan_result ObjScan = ConstructFloatFromScan(Scan);
+            r32 X = ObjScan.Value; 
+            Scan = ObjScan.AdvancedScan;
 
-            VertexScan = ConstructVertexFromScan(Scan);
-            r32 Y = VertexScan.Vertex;
-            Scan = VertexScan.AdvancedScan;
-            Scan++;
+            ObjScan = ConstructFloatFromScan(Scan);
+            r32 Y = ObjScan.Value;
+            Scan = ObjScan.AdvancedScan;
 
-            VertexScan = ConstructVertexFromScan(Scan);
-            r32 Z = VertexScan.Vertex;
-            Scan = VertexScan.AdvancedScan;
-
-            // NOTE: (Ted)  At this point, the scan pointer should always be at newline.
-            //              If it isn't, the obj file is corrupted.
-            Assert(Scan == '\n');
+            ObjScan = ConstructFloatFromScan(Scan);
+            r32 Z = ObjScan.Value;
+            Scan = ObjScan.AdvancedScan;
 
             vector_float3 Position = { X, Y, Z };
-            Vertices[VertexIndex].Position = Position; 
-
-            Scan++;
+            VertexData->Positions[VertexIndex] = Position; 
 
             char OneAhead = *(Scan + 1);
 
@@ -291,9 +293,43 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             }
         }
 
+        Scan +=3;
+
+        VertexIndex = 0;
         b32 LoadingUVs = true;
 
+        while(LoadingUVs)
+        {
+            obj_scan_result ObjScan = ConstructFloatFromScan(Scan);
+            r32 U = ObjScan.Value; 
+            Scan = ObjScan.AdvancedScan;
 
+            ObjScan = ConstructFloatFromScan(Scan);
+            r32 V = ObjScan.Value;
+            Scan = ObjScan.AdvancedScan;
+
+            vector_float2 UV = { U, V };
+            VertexData->UVs[VertexIndex] = UV; 
+
+            char OneAhead = *(Scan + 1);
+
+            if (*Scan == 'v' && 
+                OneAhead == 't')
+            {
+                VertexIndex++;
+                Scan +=3;
+            } else
+            {
+                LoadingUVs = false;
+            }
+        }
+
+        b32 LoadingNormals = true;
+
+        while(LoadingNormals)
+        {
+
+        }
     }
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
