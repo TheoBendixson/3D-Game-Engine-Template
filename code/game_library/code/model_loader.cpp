@@ -298,6 +298,66 @@ ScanToLineStartingWithCharacter(char StartCharacter, char *Scan, char *Line)
     return Scan;
 }
 
+internal u32
+GetFaceLookupIndexFromCharacters(char *Characters, u32 CharacterCount)
+{
+    u32 FaceLookupIndex = 0;
+    u32 OnesDigit = 0;
+    u32 TensDigit = 0;
+    u32 HundredsDigit = 0;
+
+    if(CharacterCount == 1)
+    {
+        char DigitCharacter = Characters[0];
+        OnesDigit = UnsignedDigitFromTextCharacter(DigitCharacter);
+    } else if (CharacterCount == 2)
+    {
+        char TensDigitCharacter = Characters[0];
+        char OnesDigitCharacter = Characters[1];
+        TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
+        OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
+    } else if (CharacterCount == 3)
+    {
+        char HundredsDigitCharacter = Characters[0];
+        char TensDigitCharacter = Characters[1];
+        char OnesDigitCharacter = Characters[2];
+        HundredsDigit = UnsignedDigitFromTextCharacter(HundredsDigitCharacter);
+        TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
+        OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
+    }
+     
+    FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit;
+
+    return (FaceLookupIndex);
+}
+
+struct obj_face_scan
+{
+    u32 CharacterCount;
+    char Characters[3];
+    char *AdvancedScan;
+};
+
+internal obj_face_scan
+GetFaceCharactersUpToToken(char *Scan, char Token)
+{
+    obj_face_scan Result = {};
+    u32 CharacterCount = 0;
+
+    while(*Scan != Token)
+    {
+        Result.Characters[CharacterCount] = *Scan;
+        CharacterCount++;
+        Scan++;
+    }
+
+    Scan++;
+
+    Result.CharacterCount = CharacterCount;
+    Result.AdvancedScan = Scan;
+    return (Result);
+}
+
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
@@ -423,44 +483,19 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
        
         while(LoadingFaces)
         {
-            u32 CharacterCount = 0;
-            char Characters[3];
+            obj_face_scan FaceScan = GetFaceCharactersUpToToken(Scan, '/');
+            u32 PositionLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
+            Scan = FaceScan.AdvancedScan;
 
-            while(*Scan != '/')
-            {
-                Characters[CharacterCount] = *Scan;
-                CharacterCount++;
-                Scan++;
-            }
+            FaceScan = GetFaceCharactersUpToToken(Scan, '/');
+            u32 UVLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
+            Scan = FaceScan.AdvancedScan;
 
-            u32 FaceLookupIndex = 0;
-            u32 OnesDigit = 0;
-            u32 TensDigit = 0;
-            u32 HundredsDigit = 0;
+            // TODO: (Ted)  The last one needs to go up to a space instead.
+            FaceScan = GetFaceCharactersUpToToken(Scan, ' ');
+            u32 NormalLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
+            Scan = FaceScan.AdvancedScan;
 
-            if(CharacterCount == 1)
-            {
-                char DigitCharacter = Characters[0];
-                OnesDigit = UnsignedDigitFromTextCharacter(DigitCharacter);
-            } else if (CharacterCount == 2)
-            {
-                char TensDigitCharacter = Characters[0];
-                char OnesDigitCharacter = Characters[1];
-                TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
-                OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
-            } else if (CharacterCount == 3)
-            {
-                char HundredsDigitCharacter = Characters[0];
-                char TensDigitCharacter = Characters[1];
-                char OnesDigitCharacter = Characters[2];
-                HundredsDigit = UnsignedDigitFromTextCharacter(HundredsDigitCharacter);
-                TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
-                OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
-            }
-             
-            FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit;
-
-            Scan++;
         }
     }
 
