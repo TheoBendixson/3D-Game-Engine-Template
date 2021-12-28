@@ -15,7 +15,7 @@
 #define BLUE    { 0, 0, 1 }
 
 internal r32
-DigitFromTextCharacter(char Character)
+RealDigitFromTextCharacter(char Character)
 {
     r32 Digit = 0.0f;
 
@@ -54,6 +54,51 @@ DigitFromTextCharacter(char Character)
     else if (Character == '9')
     {
         Digit = 9.0f;
+    }
+
+    return Digit;
+}
+
+internal u32
+UnsignedDigitFromTextCharacter(char Character)
+{
+    u32 Digit = 0;
+
+    if(Character == '1')
+    {
+         Digit = 1;
+    } 
+    else if (Character == '2')
+    {
+         Digit = 2;
+    }
+    else if (Character == '3')
+    {
+         Digit = 3;
+    }
+    else if (Character == '4')
+    {
+         Digit = 4;
+    }
+    else if (Character == '5')
+    {
+         Digit = 5;
+    }
+    else if (Character == '6')
+    {
+         Digit = 6;
+    }
+    else if (Character == '7')
+    {
+         Digit = 7;
+    }
+    else if (Character == '8')
+    {
+         Digit = 8;
+    }
+    else if (Character == '9')
+    {
+         Digit = 9;
     }
 
     return Digit;
@@ -166,39 +211,39 @@ ConstructFloatFromScan(char *Scan, u32 SignificantDigits)
         IsNegative = true;
 
         char TensPlace = *Scan++;
-        TensDigit = DigitFromTextCharacter(TensPlace);
+        TensDigit = RealDigitFromTextCharacter(TensPlace);
     } else
     {
-        TensDigit = DigitFromTextCharacter(First);
+        TensDigit = RealDigitFromTextCharacter(First);
     }
 
     VertexValue += TensDigit;
 
     Scan++;
     char TenthsPlace = *Scan++;
-    r32 TenthsDigit = DigitFromTextCharacter(TenthsPlace);
+    r32 TenthsDigit = RealDigitFromTextCharacter(TenthsPlace);
     VertexValue += TenthsDigit*0.1f;
 
     char HundredthsPlace = *Scan++;
-    r32 HundredthsDigit = DigitFromTextCharacter(HundredthsPlace);
+    r32 HundredthsDigit = RealDigitFromTextCharacter(HundredthsPlace);
     VertexValue += HundredthsDigit*0.01f;
 
     char ThousandthsPlace = *Scan++;
-    r32 ThousandthsDigit = DigitFromTextCharacter(ThousandthsPlace);
+    r32 ThousandthsDigit = RealDigitFromTextCharacter(ThousandthsPlace);
     VertexValue += ThousandthsDigit*0.001f;
 
     char TenThousandthsPlace = *Scan++;
-    r32 TenThousandthsDigit = DigitFromTextCharacter(TenThousandthsPlace);
+    r32 TenThousandthsDigit = RealDigitFromTextCharacter(TenThousandthsPlace);
     VertexValue += TenThousandthsDigit*0.0001f;
 
     if (SignificantDigits > 4)
     {
         char HundredThousandthsPlace = *Scan++;
-        r32 HundredThousandthsDigit = DigitFromTextCharacter(HundredThousandthsPlace);
+        r32 HundredThousandthsDigit = RealDigitFromTextCharacter(HundredThousandthsPlace);
         VertexValue += HundredThousandthsDigit*0.00001f;
 
         char MillionthsPlace = *Scan++;
-        r32 MillionthsDigit = DigitFromTextCharacter(MillionthsPlace);
+        r32 MillionthsDigit = RealDigitFromTextCharacter(MillionthsPlace);
         VertexValue += MillionthsDigit*0.000001f;
     }
 
@@ -223,6 +268,36 @@ struct temp_vertex_data
     vector_float3 Normals[1000];
 };
 
+internal char*
+ScanToLineStartingWithCharacter(char StartCharacter, char *Scan, char *Line)
+{
+    b32 Scanning = true;
+
+    while(Scanning)
+    {
+        if (*Line == StartCharacter)
+        {
+            Scanning = false;
+        } else
+        {
+            // NOTE: (Ted)  Skip Lines
+            while(Scan++)
+            {
+                if(*Scan == '\n')
+                {
+                    break;
+                }
+            }
+
+            Scan++;
+            Line = Scan;
+            continue;
+        }
+    }
+
+    return Scan;
+}
+
 extern "C"
 GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
@@ -236,36 +311,13 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         char *Scan = (char *)Result.Contents;
         char *Line = Scan;
 
-        b32 ScanningForVertices = true;
-
-        while(ScanningForVertices)
-        {
-            if (*Line == 'v')
-            {
-                ScanningForVertices = false;
-            } else
-            {
-                // NOTE: (Ted)  Skip Lines
-                while(Scan++)
-                {
-                    if(*Scan == '\n')
-                    {
-                        break;
-                    }
-                }
-
-                Scan++;
-                Line = Scan;
-                continue;
-            }
-        }
+        Scan = ScanToLineStartingWithCharacter('v', Scan, Line);
 
         u32 PositionIndex = 0;
         b32 LoadingPositions = true;
 
         while(LoadingPositions)
         {
-            // NOTE: (Ted) At this point the scan should be at the start of a floating point number.
             Scan +=2;
 
             u32 PositionDigits = 6;
@@ -326,7 +378,6 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             {
                 LoadingUVs = false;
             }
-
         }
 
         Scan +=3;
@@ -365,8 +416,52 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             }
         }
        
+        Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
+        Scan += 2;
+
         b32 LoadingFaces = true;
-        
+       
+        while(LoadingFaces)
+        {
+            u32 CharacterCount = 0;
+            char Characters[3];
+
+            while(*Scan != '/')
+            {
+                Characters[CharacterCount] = *Scan;
+                CharacterCount++;
+                Scan++;
+            }
+
+            u32 FaceLookupIndex = 0;
+            u32 OnesDigit = 0;
+            u32 TensDigit = 0;
+            u32 HundredsDigit = 0;
+
+            if(CharacterCount == 1)
+            {
+                char DigitCharacter = Characters[0];
+                OnesDigit = UnsignedDigitFromTextCharacter(DigitCharacter);
+            } else if (CharacterCount == 2)
+            {
+                char TensDigitCharacter = Characters[0];
+                char OnesDigitCharacter = Characters[1];
+                TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
+                OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
+            } else if (CharacterCount == 3)
+            {
+                char HundredsDigitCharacter = Characters[0];
+                char TensDigitCharacter = Characters[1];
+                char OnesDigitCharacter = Characters[2];
+                HundredsDigit = UnsignedDigitFromTextCharacter(HundredsDigitCharacter);
+                TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
+                OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
+            }
+             
+            FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit;
+
+            Scan++;
+        }
     }
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
