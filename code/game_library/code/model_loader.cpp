@@ -151,7 +151,7 @@ struct obj_scan_result
 };
 
 internal obj_scan_result
-ConstructFloatFromScan(char *Scan)
+ConstructFloatFromScan(char *Scan, u32 SignificantDigits)
 {
     obj_scan_result Result = {};
     r32 VertexValue = 0.0f;
@@ -191,13 +191,16 @@ ConstructFloatFromScan(char *Scan)
     r32 TenThousandthsDigit = DigitFromTextCharacter(TenThousandthsPlace);
     VertexValue += TenThousandthsDigit*0.0001f;
 
-    char HundredThousandthsPlace = *Scan++;
-    r32 HundredThousandthsDigit = DigitFromTextCharacter(HundredThousandthsPlace);
-    VertexValue += HundredThousandthsDigit*0.00001f;
+    if (SignificantDigits > 4)
+    {
+        char HundredThousandthsPlace = *Scan++;
+        r32 HundredThousandthsDigit = DigitFromTextCharacter(HundredThousandthsPlace);
+        VertexValue += HundredThousandthsDigit*0.00001f;
 
-    char MillionthsPlace = *Scan++;
-    r32 MillionthsDigit = DigitFromTextCharacter(MillionthsPlace);
-    VertexValue += MillionthsDigit*0.000001f;
+        char MillionthsPlace = *Scan++;
+        r32 MillionthsDigit = DigitFromTextCharacter(MillionthsPlace);
+        VertexValue += MillionthsDigit*0.000001f;
+    }
 
     if (IsNegative)
     {
@@ -215,8 +218,8 @@ ConstructFloatFromScan(char *Scan)
 
 struct temp_vertex_data
 {
-    vector_float3 Positions[400];
-    vector_float2 UVs[800];
+    vector_float3 Positions[1000];
+    vector_float2 UVs[1000];
     vector_float3 Normals[1000];
 };
 
@@ -257,79 +260,113 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             }
         }
 
-        u32 VertexIndex = 0;
-        b32 LoadingVertices = true;
+        u32 PositionIndex = 0;
+        b32 LoadingPositions = true;
 
-        while(LoadingVertices)
+        while(LoadingPositions)
         {
             // NOTE: (Ted) At this point the scan should be at the start of a floating point number.
             Scan +=2;
 
-            obj_scan_result ObjScan = ConstructFloatFromScan(Scan);
+            u32 PositionDigits = 6;
+            obj_scan_result ObjScan = ConstructFloatFromScan(Scan, PositionDigits);
             r32 X = ObjScan.Value; 
             Scan = ObjScan.AdvancedScan;
 
-            ObjScan = ConstructFloatFromScan(Scan);
+            ObjScan = ConstructFloatFromScan(Scan, PositionDigits);
             r32 Y = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
-            ObjScan = ConstructFloatFromScan(Scan);
+            ObjScan = ConstructFloatFromScan(Scan, PositionDigits);
             r32 Z = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
             vector_float3 Position = { X, Y, Z };
-            VertexData->Positions[VertexIndex] = Position; 
+            VertexData->Positions[PositionIndex] = Position; 
 
             char OneAhead = *(Scan + 1);
 
             if (*Scan == 'v' && 
                 OneAhead != 't')
             {
-                VertexIndex++;
-
+                PositionIndex++;
             } else
             {
-                LoadingVertices = false;
+                LoadingPositions = false;
             }
         }
 
         Scan +=3;
 
-        VertexIndex = 0;
+        u32 UVIndex = 0;
         b32 LoadingUVs = true;
 
         while(LoadingUVs)
         {
-            obj_scan_result ObjScan = ConstructFloatFromScan(Scan);
+            u32 UVDigits = 6;
+            obj_scan_result ObjScan = ConstructFloatFromScan(Scan, UVDigits);
             r32 U = ObjScan.Value; 
             Scan = ObjScan.AdvancedScan;
 
-            ObjScan = ConstructFloatFromScan(Scan);
+            ObjScan = ConstructFloatFromScan(Scan, UVDigits);
             r32 V = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
             vector_float2 UV = { U, V };
-            VertexData->UVs[VertexIndex] = UV; 
+            VertexData->UVs[UVIndex] = UV; 
 
             char OneAhead = *(Scan + 1);
 
             if (*Scan == 'v' && 
                 OneAhead == 't')
             {
-                VertexIndex++;
+                UVIndex++;
                 Scan +=3;
             } else
             {
                 LoadingUVs = false;
             }
+
         }
 
+        Scan +=3;
+
+        u32 NormalIndex = 0;
         b32 LoadingNormals = true;
 
         while(LoadingNormals)
         {
+            u32 NormalDigits = 4;
+            obj_scan_result ObjScan = ConstructFloatFromScan(Scan, NormalDigits);
+            r32 X = ObjScan.Value; 
+            Scan = ObjScan.AdvancedScan;
 
+            ObjScan = ConstructFloatFromScan(Scan, NormalDigits);
+            r32 Y = ObjScan.Value;
+            Scan = ObjScan.AdvancedScan;
+
+            ObjScan = ConstructFloatFromScan(Scan, NormalDigits);
+            r32 Z = ObjScan.Value;
+            Scan = ObjScan.AdvancedScan;
+
+            vector_float3 Normal = { X, Y, Z };
+            VertexData->Normals[NormalIndex] = Normal; 
+
+            char OneAhead = *(Scan + 1);
+
+            if (*Scan == 'v' && 
+                OneAhead == 'n')
+            {
+                NormalIndex++;
+                Scan +=3;
+            } else
+            {
+                LoadingNormals = false;
+            }
         }
+       
+        b32 LoadingFaces = true;
+        
     }
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
