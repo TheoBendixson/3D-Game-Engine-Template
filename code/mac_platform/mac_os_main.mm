@@ -195,7 +195,8 @@ global_variable b32 ExternalMouseCursorFlag = false;
 @property (retain) id<MTLTexture> SampleTexture;
 @property (retain) id<MTLBuffer> FlatColorVertexBuffer;
 @property (retain) id<MTLBuffer> TextureVertexBuffer;
-@property (retain) id<MTLBuffer> MacLoadedModelVertexBuffer;
+@property (retain) id<MTLBuffer> LoadedModelVertexBuffer;
+@property (retain) id<MTLBuffer> IndexBuffer;
 @property (retain) id<MTLDepthStencilState> DepthStencilState;
 @property (retain) id<MTLBuffer> ConstantUniformBuffer;
 @property (retain) id<MTLBuffer> InstanceUniformBuffer;
@@ -482,6 +483,24 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                              baseInstance: (BaseIndex + Index)];
         }
 
+        BaseIndex += (MeshBuffer->MeshCount - 1);
+
+        [RenderEncoder setVertexBuffer: [self LoadedModelVertexBuffer] 
+                                offset: 0 
+                               atIndex: BufferIndexVertices];
+
+        MeshBuffer = &RenderCommandsPtr->LoadedModelMeshInstances;
+        mesh_instance *MeshInstance = &MeshBuffer->Meshes[0];
+        *InstanceUniforms++ = MeshInstance->Uniforms;
+
+        [RenderEncoder drawIndexedPrimitives: MTLPrimitiveTypeTriangle 
+                                  indexCount: RenderCommandsPtr->LoadedModelVertexBuffer.IndexCount
+                                   indexType: MTLIndexTypeUInt32 
+                                 indexBuffer: [self IndexBuffer] 
+                           indexBufferOffset: 0 
+                               instanceCount: 1 
+                                  baseVertex: 0 
+                                baseInstance: BaseIndex];
 
         [RenderEncoder endEncoding];
 
@@ -610,12 +629,18 @@ int main(int argc, const char * argv[])
                                                                      options: MTLResourceStorageModeShared
                                                                  deallocator: nil];
 
+    u32 IndexBufferSize = PageSize*500;
     RenderCommands.LoadedModelVertexBuffer.VertexCount = 0;
-
-    RenderCommands.LoadedModelVertexBuffer.Indices = mmap(0, sizeof(u32)*3000,
+    RenderCommands.LoadedModelVertexBuffer.Indices = mmap(0, IndexBufferSize,
                                                           PROT_READ | PROT_WRITE,
                                                           MAP_PRIVATE | MAP_ANON, -1, 0);
     RenderCommands.LoadedModelVertexBuffer.IndexCount = 0;
+
+    id<MTLBuffer> MacIndexBuffer = [MetalKitView.device 
+                                            newBufferWithBytesNoCopy: RenderCommands.LoadedModelVertexBuffer.Indices
+                                                              length: IndexBufferSize 
+                                                             options: MTLResourceStorageModeShared
+                                                         deallocator: nil];
 
     u32 InstancedMeshBufferSize = 200;
     RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
@@ -627,6 +652,7 @@ int main(int argc, const char * argv[])
                                                                             options: MTLResourceStorageModeShared];
     ConstantUniformBuffer.label = @"Constant Uniform Buffer";
 
+    // TODO: (Ted)   Later on this, this will need to be the size of all instanced mesh buffers combined.
     u32 InstanceMeshesSize = RenderCommands.FlatColorMeshInstances.MeshMax;
     u32 InstanceUniformBufferSize = kAlignedInstanceUniformsSize * kMaxInflightBuffers * InstanceMeshesSize;
     id <MTLBuffer> InstanceUniformBuffer = [MetalKitView.device newBufferWithLength: InstanceUniformBufferSize
@@ -636,6 +662,10 @@ int main(int argc, const char * argv[])
     RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
     RenderCommands.TexturedMeshInstances.MeshCount = 0;
     RenderCommands.TexturedMeshInstances.Meshes = (mesh_instance *)malloc(InstancedMeshBufferSize*sizeof(mesh_instance));
+
+    RenderCommands.LoadedModelMeshInstances.MeshMax = InstancedMeshBufferSize;
+    RenderCommands.LoadedModelMeshInstances.MeshCount = 0;
+    RenderCommands.LoadedModelMeshInstances.Meshes = (mesh_instance *)malloc(InstancedMeshBufferSize*sizeof(mesh_instance));
 
     NSString *ShaderLibraryFile = [[NSBundle mainBundle] pathForResource: @"Shaders" ofType: @"metallib"];
     id<MTLLibrary> ShaderLibrary = [MetalKitView.device newLibraryWithFile: ShaderLibraryFile 
@@ -846,7 +876,8 @@ int main(int argc, const char * argv[])
     ViewDelegate.CommandQueue = CommandQueue;
     ViewDelegate.FlatColorVertexBuffer = MacFlatColorVertexBuffer;
     ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
-    ViewDelegate.MacLoadedModelVertexBuffer = MacLoadedModelVertexBuffer;
+    ViewDelegate.LoadedModelVertexBuffer = MacLoadedModelVertexBuffer;
+    ViewDelegate.IndexBuffer = MacIndexBuffer;
     ViewDelegate.SampleTexture = SampleTexture;
     ViewDelegate.TexturePipelineState = TexturePipelineState;
     ViewDelegate.DepthStencilState = DepthStencilState;

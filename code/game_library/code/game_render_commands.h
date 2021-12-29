@@ -126,4 +126,5 @@ struct game_render_commands
 
     mesh_instance_buffer FlatColorMeshInstances;
     mesh_instance_buffer TexturedMeshInstances;
+    mesh_instance_buffer LoadedModelMeshInstances;
 };

@@ -28,10 +28,10 @@ internal
 matrix_float4x4 GenerateTranslationMatrix(vector_float_3 T)
 {
     matrix_float4x4 Translate = (matrix_float4x4) {{
-        { 1,   0,   0,    0 },     // Column 0.
-        { 0,   1,   0,    0 },     // Column 1.
-        { 0,   0,   1,    0 },     // Column 2.
-        { T.X, T.Y, T.Z,  1 }      // Column 3.
+        { 1,   0,   0,    0 },
+        { 0,   1,   0,    0 },
+        { 0,   0,   1,    0 },
+        { T.X, T.Y, T.Z,  1 } 
     }};
 
     return Translate;
@@ -292,16 +292,14 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->View = View;
+        Constants->Projection = Projection;
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 #elif MACOS
         matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
         Uniforms->Transform = matrix_multiply(Translate, Scale);
-        game_constants *Constants = &RenderCommands->Constants;
 #endif
-
-        Constants->View = View;
-        Constants->Projection = Projection;
-        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
 
@@ -333,21 +331,45 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->View = View;
+        Constants->Projection = Projection;
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
 #elif MACOS
         matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
         Uniforms->Transform = matrix_multiply(Translate, Scale);
-        game_constants *Constants = &RenderCommands->Constants;
 #endif
-
-        Constants->View = View;
-        Constants->Projection = Projection;
-        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
-
         MeshInstance->ModelIndex = 0;
     }
 
+
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
+
+// TODO: (Ted)  Support this on Windows / D3D11
+#if MACOS
+    {
+        mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
+        cube_map_position ModelPos = {};
+        ModelPos.X = 5;
+        ModelPos.Y = 5;
+        ModelPos.Z = 1;
+
+        vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(ModelPos, CubeSideInMeters);
+        mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
+        matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
+        instance_uniforms *Uniforms = &MeshInstance->Uniforms;
+        Uniforms->Transform = matrix_multiply(Translate, Scale);
+        MeshInstance->ModelIndex = 0;
+        LoadedModelMeshInstanceBuffer->MeshCount = 1;
+    }
+#endif
+
+#if MACOS
+    game_constants *Constants = &RenderCommands->Constants;
+    Constants->View = View;
+    Constants->Projection = Projection;
+    Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#endif
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;
