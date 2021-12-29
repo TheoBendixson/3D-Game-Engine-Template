@@ -219,7 +219,7 @@ GetFaceLookupIndexFromCharacters(char *Characters, u32 CharacterCount)
         OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
     }
      
-    FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit;
+    FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit - 1;
 
     return (FaceLookupIndex);
 }

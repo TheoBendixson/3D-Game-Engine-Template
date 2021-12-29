@@ -629,7 +629,7 @@ int main(int argc, const char * argv[])
                                                                      options: MTLResourceStorageModeShared
                                                                  deallocator: nil];
 
-    u32 IndexBufferSize = PageSize*500;
+    u32 IndexBufferSize = PageSize*1000;
     RenderCommands.LoadedModelVertexBuffer.VertexCount = 0;
     RenderCommands.LoadedModelVertexBuffer.Indices = mmap(0, IndexBufferSize,
                                                           PROT_READ | PROT_WRITE,
