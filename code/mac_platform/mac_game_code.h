@@ -27,10 +27,15 @@ MacLoadGameCode(char *SourceDLLName)
         Result.UpdateAndRender = (game_update_and_render *)
             dlsym(Result.GameCodeDLL, "GameUpdateAndRender");
 
-        Result.Load3DModels = (game_load_3D_models *)dlsym(Result.GameCodeDLL, "GameLoad3DModels");
+        Result.Load3DModels = (game_load_3D_models *)
+            dlsym(Result.GameCodeDLL, "GameLoad3DModels");
+
+        Result.LoadTextures = (game_load_textures *)
+            dlsym(Result.GameCodeDLL, "GameLoadTextures");
 
         if (Result.UpdateAndRender &&
-            Result.Load3DModels)
+            Result.Load3DModels &&
+            Result.LoadTextures)
         {
             Result.IsValid = true;
         } else
@@ -60,4 +65,5 @@ MacUnloadGameCode(mac_game_code *GameCode)
     GameCode->IsValid = false;
     GameCode->UpdateAndRender = 0;
     GameCode->Load3DModels = 0;
+    GameCode->LoadTextures = 0;
 }

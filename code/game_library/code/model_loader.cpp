@@ -341,7 +341,12 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         LoadedModelVertexBuffer->IndexCount = IndexCount;
     }
 
-    // TODO: (Ted) Clear out the scratch space.
+    u8* Byte = (u8 *)Memory->TransientStoragePartition.SecondaryPartition;
+    for (u32 Index = 0; Index < Memory->TransientStoragePartition.SecondaryPartitionSize; 
+         Index++)
+    {
+        *Byte++ = 0;
+    }
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     FlatColorVertexBuffer->VertexCount = 0;

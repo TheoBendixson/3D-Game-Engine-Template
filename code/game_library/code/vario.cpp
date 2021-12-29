@@ -4,69 +4,18 @@
 #include "cube_map.cpp"
 #include "model_loader.cpp"
 #include "camera.cpp"
+#include "game_transforms.cpp"
 
 #define RED_CUBE            1
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
 
-#if MACOS
-
-internal 
-matrix_float4x4 GenerateScaleMatrix(vector_float_3 S)
-{
-    matrix_float4x4 Scale = (matrix_float4x4) {{
-        { S.X, 0,   0,    0 },
-        { 0,   S.Y, 0,    0 },
-        { 0,   0,   S.Z,  0 },
-        { 0,   0,   0,    1 } 
-    }};
-
-    return Scale;
-}
-
-internal
-matrix_float4x4 GenerateXRotationMatrix(r32 R)
-{
-    matrix_float4x4 RotateX = (matrix_float4x4) {{
-        { 1, 0,       0,       0 },
-        { 0, cos(R),  -sin(R), 0 },
-        { 0, sin(R),  cos(R),  0 },
-        { 0, 0,       0,       1 }
-    }};
-
-    return RotateX;
-}
-
-#endif
-
-#if WINDOWS
-internal 
-matrix GenerateTranslationMatrix(vector_float_3 T)
+extern "C"
+GAME_LOAD_TEXTURES(GameLoadTextures)
 {
 
-    matrix Translate = { 1,   0,   0,   0,
-                         0,   1,   0,   0,
-                         0,   0,   1,   0,
-                         T.X, T.Y, T.Z, 1 };
-
-    return Translate;
 }
-
-#elif MACOS
-internal 
-matrix_float4x4 GenerateTranslationMatrix(vector_float_3 T)
-{
-    matrix_float4x4 Translate = (matrix_float4x4) {{
-        { 1,   0,   0,    0 },
-        { 0,   1,   0,    0 },
-        { 0,   0,   1,    0 },
-        { T.X, T.Y, T.Z,  1 } 
-    }};
-
-    return Translate;
-}
-#endif
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)

@@ -20,3 +20,6 @@ typedef PLATFORM_WRITE_ENTIRE_FILE(platform_write_entire_file);
 
 #define PLATFORM_LOG_MESSAGE(name) void name(char *Message, u32 Count) 
 typedef PLATFORM_LOG_MESSAGE(platform_log_message);
+
+#define PLATFORM_QUIT_GAME(name) void name()
+typedef PLATFORM_QUIT_GAME(platform_quit_game);
