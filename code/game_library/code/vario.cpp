@@ -10,6 +10,23 @@
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
 
+#if MACOS
+
+internal 
+matrix_float4x4 GenerateScaleMatrix(vector_float_3 S)
+{
+    matrix_float4x4 Scale = (matrix_float4x4) {{
+        { S.X, 0,   0,    0 },
+        { 0,   S.Y, 0,    0 },
+        { 0,   0,   S.Z,  0 },
+        { 0,   0,   0,    1 } 
+    }};
+
+    return Scale;
+}
+
+#endif
+
 #if WINDOWS
 internal 
 matrix GenerateTranslationMatrix(vector_float_3 T)
@@ -352,13 +369,15 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         cube_map_position ModelPos = {};
         ModelPos.X = 5;
         ModelPos.Y = 5;
-        ModelPos.Z = 1;
+        ModelPos.Z = 2;
 
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(ModelPos, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
-        Uniforms->Transform = matrix_multiply(Translate, Scale);
+        vector_float_3 PersonScale = { 100.0f, 100.0f, 100.0f };
+        matrix_float4x4 LoadedModelScale = GenerateScaleMatrix(PersonScale);
+        Uniforms->Transform = matrix_multiply(Translate, LoadedModelScale);
         MeshInstance->ModelIndex = 0;
         LoadedModelMeshInstanceBuffer->MeshCount = 1;
     }

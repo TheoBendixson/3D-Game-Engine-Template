@@ -456,7 +456,7 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                              baseInstance: Index];
         }
 
-        u32 BaseIndex = MeshBuffer->MeshCount - 1;
+        u32 BaseIndex = MeshBuffer->MeshCount;
 
         [RenderEncoder setRenderPipelineState: [self TexturePipelineState]];
         [RenderEncoder setVertexBuffer: [self TextureVertexBuffer] 
@@ -480,11 +480,12 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                               vertexStart: Range.StartVertex
                               vertexCount: Range.VertexCount
                             instanceCount: 1
-                             baseInstance: (BaseIndex + Index)];
+                             baseInstance: BaseIndex];
+            BaseIndex++;
         }
 
-        BaseIndex += (MeshBuffer->MeshCount - 1);
 
+        [RenderEncoder setFrontFacingWinding: MTLWindingClockwise];
         [RenderEncoder setVertexBuffer: [self LoadedModelVertexBuffer] 
                                 offset: 0 
                                atIndex: BufferIndexVertices];
