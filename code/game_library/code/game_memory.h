@@ -26,6 +26,7 @@ struct game_memory
     
     platform_read_entire_file *PlatformReadEntireFile;
     platform_free_file_memory *PlatformFreeFileMemory;
+    platform_read_png_file *PlatformReadPNGFile;
     platform_write_entire_file *PlatformWriteEntireFile;
     platform_log_message *PlatformLogMessage;
 

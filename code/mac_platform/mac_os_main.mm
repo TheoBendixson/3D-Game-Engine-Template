@@ -10,6 +10,18 @@
 #include "mac_os_main.h"
 #include "mac_window.m"
 #include "mac_file_path.cpp"
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_JPEG
+#define STBI_NO_BMP
+#define STBI_NO_TGA
+#define STBI_NO_PSD
+#define STBI_NO_HDR
+#define STBI_NO_PIC
+#define STBI_NO_GIF
+#define STBI_NO_PNM
+#include "stb_image.h"
+
 #include "mac_file.cpp"
 #include "mac_game_code.h"
 #include "mac_recording.h"
@@ -801,6 +813,7 @@ int main(int argc, const char * argv[])
         (u8 *)GameMemory.TransientStorage + SecondaryPartitionSize;
 
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
+    GameMemory.PlatformReadPNGFile = PlatformReadPNGFile;
     GameMemory.PlatformWriteEntireFile = PlatformWriteEntireFile;
     GameMemory.PlatformFreeFileMemory = PlatformFreeFileMemory;
 

@@ -6,6 +6,9 @@ struct read_file_result
     char *Filename;
 };
 
+#define PLATFORM_READ_PNG_FILE(name) read_file_result name(char *Filename)
+typedef PLATFORM_READ_PNG_FILE(platform_read_png_file);
+
 #define PLATFORM_READ_ENTIRE_FILE(name) read_file_result name(thread_context *Thread, char *Filename)
 typedef PLATFORM_READ_ENTIRE_FILE(platform_read_entire_file);
 

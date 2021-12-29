@@ -154,3 +154,28 @@ PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory)
         free(Memory);
     }
 }
+
+PLATFORM_READ_PNG_FILE(PlatformReadPNGFile)
+{
+    mac_app_path Path = {};
+    MacBuildAppFilePath(&Path);
+
+    char SandboxFilename[MAC_MAX_FILENAME_SIZE];
+    char LocalFilename[MAC_MAX_FILENAME_SIZE];
+    sprintf(LocalFilename, "Contents/Resources/%s", Filename);
+    MacBuildAppPathFileName(&Path, LocalFilename,
+                            sizeof(SandboxFilename), SandboxFilename);
+
+    read_file_result Result = {};
+
+    int X,Y,N;
+    u32 *ImageData = (u32 *)stbi_load(SandboxFilename, &X, &Y, &N, 0);
+
+    if (X > 0 && Y > 0 && ImageData != NULL)
+    {
+        Result.Contents = ImageData;
+        Result.ContentsSize = X*Y*sizeof(u32); 
+    }
+
+    return Result;
+}
