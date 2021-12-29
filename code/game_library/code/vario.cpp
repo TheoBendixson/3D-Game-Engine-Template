@@ -25,6 +25,19 @@ matrix_float4x4 GenerateScaleMatrix(vector_float_3 S)
     return Scale;
 }
 
+internal
+matrix_float4x4 GenerateXRotationMatrix(r32 R)
+{
+    matrix_float4x4 RotateX = (matrix_float4x4) {{
+        { 1, 0,       0,       0 },
+        { 0, cos(R),  -sin(R), 0 },
+        { 0, sin(R),  cos(R),  0 },
+        { 0, 0,       0,       1 }
+    }};
+
+    return RotateX;
+}
+
 #endif
 
 #if WINDOWS
@@ -93,7 +106,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
                             if (Value == GREEN_CUBE)
                             {
-                                Value = TEXTURED_CUBE;
+                                Value = 0;
                             }
                         }
                     }
@@ -359,7 +372,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         MeshInstance->ModelIndex = 0;
     }
 
-
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
 
 // TODO: (Ted)  Support this on Windows / D3D11
@@ -374,10 +386,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(ModelPos, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
+        matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
-        vector_float_3 PersonScale = { 100.0f, 100.0f, 100.0f };
+        vector_float_3 PersonScale = { 50.0f, 50.0f, 50.0f };
         matrix_float4x4 LoadedModelScale = GenerateScaleMatrix(PersonScale);
-        Uniforms->Transform = matrix_multiply(Translate, LoadedModelScale);
+        Uniforms->Transform = matrix_multiply(Translate, matrix_multiply(Rotate, LoadedModelScale));
         MeshInstance->ModelIndex = 0;
         LoadedModelMeshInstanceBuffer->MeshCount = 1;
     }
