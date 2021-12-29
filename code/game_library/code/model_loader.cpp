@@ -101,7 +101,7 @@ void LoadColoredCubeVertices(game_vertex_buffer *VertexBuffer, r32 *RGBColor)
     VertexBuffer->ModelCount += 1;
 }
 
-#define VERTEX_LOOKUP_HASH_COUNT 5000
+#define VERTEX_LOOKUP_HASH_COUNT 10000
 
 struct vertex_lookup
 {
@@ -111,9 +111,9 @@ struct vertex_lookup
 
 struct temp_vertex_data
 {
-    vector_float3 Positions[1000];
-    vector_float2 UVs[1000];
-    vector_float3 Normals[1000];
+    vector_float3 Positions[3000];
+    vector_float2 UVs[3000];
+    vector_float3 Normals[3000];
 
     vertex_lookup VertexIndexHashmap[VERTEX_LOOKUP_HASH_COUNT];
 };
@@ -124,7 +124,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
     game_indexed_vertex_buffer *LoadedModelVertexBuffer = &RenderCommands->LoadedModelVertexBuffer;
 
     thread_context Thread = {};
-    read_file_result Result = Memory->PlatformReadEntireFile(&Thread, "testmodel.obj");
+    read_file_result Result = Memory->PlatformReadEntireFile(&Thread, "cartoon.obj");
 
     if (Result.ContentsSize > 0)
     {

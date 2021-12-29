@@ -198,6 +198,7 @@ GetFaceLookupIndexFromCharacters(char *Characters, u32 CharacterCount)
     u32 OnesDigit = 0;
     u32 TensDigit = 0;
     u32 HundredsDigit = 0;
+    u32 ThousandsDigit = 0;
 
     if(CharacterCount == 1)
     {
@@ -217,9 +218,19 @@ GetFaceLookupIndexFromCharacters(char *Characters, u32 CharacterCount)
         HundredsDigit = UnsignedDigitFromTextCharacter(HundredsDigitCharacter);
         TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
         OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
+    } else if (CharacterCount == 4)
+    {
+        char ThousandsDigitCharacter = Characters[0];
+        char HundredsDigitCharacter = Characters[1];
+        char TensDigitCharacter = Characters[2];
+        char OnesDigitCharacter = Characters[3];
+        ThousandsDigit = UnsignedDigitFromTextCharacter(ThousandsDigitCharacter);
+        HundredsDigit = UnsignedDigitFromTextCharacter(HundredsDigitCharacter);
+        TensDigit = UnsignedDigitFromTextCharacter(TensDigitCharacter);
+        OnesDigit = UnsignedDigitFromTextCharacter(OnesDigitCharacter);
     }
      
-    FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit - 1;
+    FaceLookupIndex = OnesDigit + 10*TensDigit + 100*HundredsDigit + 1000*ThousandsDigit - 1;
 
     return (FaceLookupIndex);
 }
@@ -227,7 +238,7 @@ GetFaceLookupIndexFromCharacters(char *Characters, u32 CharacterCount)
 struct obj_face_scan
 {
     u32 CharacterCount;
-    char Characters[3];
+    char Characters[4];
     char *AdvancedScan;
 };
 

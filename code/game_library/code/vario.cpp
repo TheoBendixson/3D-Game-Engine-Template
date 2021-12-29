@@ -381,14 +381,14 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         cube_map_position ModelPos = {};
         ModelPos.X = 5;
         ModelPos.Y = 5;
-        ModelPos.Z = 2;
+        ModelPos.Z = 1;
 
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(ModelPos, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
-        vector_float_3 PersonScale = { 50.0f, 50.0f, 50.0f };
+        vector_float_3 PersonScale = { 600.0f, 600.0f, 600.0f };
         matrix_float4x4 LoadedModelScale = GenerateScaleMatrix(PersonScale);
         Uniforms->Transform = matrix_multiply(Translate, matrix_multiply(Rotate, LoadedModelScale));
         MeshInstance->ModelIndex = 0;

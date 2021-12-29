@@ -54,5 +54,6 @@ cp Shaders.metallib ${GAME_BUNDLE_RESOURCES_PATH}/Shaders.metallib
 cp ${PLATFORM_RESOURCES_PATH}/GameInfo.plist Vario.app/Contents/Info.plist
 
 cp ${RESOURCES_PATH}/testmodel.obj ${GAME_BUNDLE_RESOURCES_PATH}/testmodel.obj
+cp ${RESOURCES_PATH}/cartoon.obj ${GAME_BUNDLE_RESOURCES_PATH}/cartoon.obj
 
 popd
