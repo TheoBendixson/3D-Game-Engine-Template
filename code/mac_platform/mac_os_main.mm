@@ -606,7 +606,7 @@ int main(int argc, const char * argv[])
     RenderCommands.ScreenScaleFactor = (r32)([[NSScreen mainScreen] backingScaleFactor]);
 
     u32 PageSize = getpagesize();
-    u32 VertexBufferSize = PageSize*1000;
+    u32 VertexBufferSize = PageSize*2000;
 
     RenderCommands.FlatColorVertexBuffer.Vertices = mmap(0, VertexBufferSize,
                                                          PROT_READ | PROT_WRITE,
@@ -642,7 +642,7 @@ int main(int argc, const char * argv[])
                                                                      options: MTLResourceStorageModeShared
                                                                  deallocator: nil];
 
-    u32 IndexBufferSize = PageSize*1000;
+    u32 IndexBufferSize = PageSize*2000;
     RenderCommands.LoadedModelVertexBuffer.VertexCount = 0;
     RenderCommands.LoadedModelVertexBuffer.Indices = mmap(0, IndexBufferSize,
                                                           PROT_READ | PROT_WRITE,
@@ -861,14 +861,8 @@ int main(int argc, const char * argv[])
         Game.LoadTextures(&GameMemory, &PlayerCharacterTexture);
     }
 
-    u32 TextureData[] =
-    {
-        0xffffffff, 0xff7f7f7f,
-        0xff7f7f7f, 0xffffffff,
-    };
-
-    u32 TextureWidth = 2;
-    u32 TextureHeight = 2;
+    u32 TextureWidth = PlayerCharacterTexture.Width;
+    u32 TextureHeight = PlayerCharacterTexture.Height;
 
     MTLTextureDescriptor *TextureDescriptor = [[MTLTextureDescriptor alloc] init];
     TextureDescriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
@@ -885,7 +879,7 @@ int main(int argc, const char * argv[])
 
     [SampleTexture replaceRegion: TextureMetalRegion 
                      mipmapLevel: 0
-                       withBytes: (void *)TextureData
+                       withBytes: (void *)PlayerCharacterTexture.Data
                      bytesPerRow: TextureWidth*sizeof(uint32)];
 
     NSString *GameCodeDLLPath = [[NSString alloc] initWithCString: SourceGameCodeDLLFullPath

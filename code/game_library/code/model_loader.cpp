@@ -111,9 +111,9 @@ struct vertex_lookup
 
 struct temp_vertex_data
 {
-    vector_float3 Positions[3000];
-    vector_float2 UVs[3000];
-    vector_float3 Normals[3000];
+    vector_float3 Positions[4000];
+    vector_float2 UVs[4000];
+    vector_float3 Normals[4000];
 
     vertex_lookup VertexIndexHashmap[VERTEX_LOOKUP_HASH_COUNT];
 };
@@ -278,8 +278,8 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
             VertexParseCount++;
 
-            u32 HashValue = NormalCount*UVCount*NormalLookupIndex + UVCount*UVLookupIndex + PositionLookupIndex + 1;
-            u32 HashIndex = HashValue%VERTEX_LOOKUP_HASH_COUNT;
+            u64 HashValue = NormalCount*UVCount*NormalLookupIndex + UVCount*UVLookupIndex + PositionLookupIndex + 1;
+            u32 HashIndex = (u32)(HashValue%VERTEX_LOOKUP_HASH_COUNT);
 
             b32 FoundOrCreatedVertexIndex = false;
             u32 AttemptCount = 0;

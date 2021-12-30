@@ -115,7 +115,7 @@ fragment float4
 textureFragmentShader(TexturePSInput in [[stage_in]],
                       texture2d<float> texture [[ texture(0) ]])
 {
-    constexpr sampler textureSampler (mag_filter::nearest,
-                                      min_filter::nearest);
+    constexpr sampler textureSampler (mag_filter::linear,
+                                      min_filter::linear);
     return texture.sample(textureSampler, in.uv);
 }
