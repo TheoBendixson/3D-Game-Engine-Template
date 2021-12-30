@@ -27,6 +27,8 @@ struct push_buffer
 
 struct game_state
 {
+    memory_arena ScratchArena;
+
     cube_map CubeMap;
 
     // TODO: (Ted)  This needs to move to game render commands. It makes more sense
