@@ -1,4 +1,3 @@
-
 struct memory_partition
 {
     u64 Size;

@@ -882,7 +882,7 @@ int main(int argc, const char * argv[])
                        withBytes: (void *)PlayerCharacterTexture.Data
                      bytesPerRow: TextureWidth*sizeof(uint32)];
 
-
+    ClearMemoryPartition(&GameMemory.TransientPartition.SecondaryGeneric);
 
     NSString *GameCodeDLLPath = [[NSString alloc] initWithCString: SourceGameCodeDLLFullPath
                                                          encoding: NSUTF8StringEncoding];

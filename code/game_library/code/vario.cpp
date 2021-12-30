@@ -5,35 +5,12 @@
 #include "model_loader.cpp"
 #include "camera.cpp"
 #include "game_transforms.cpp"
+#include "game_texture_loading.cpp"
 
 #define RED_CUBE            1
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
-
-extern "C"
-GAME_LOAD_TEXTURES(GameLoadTextures)
-{
-    thread_context Thread = {};
-    read_file_result Result = Memory->PlatformReadPNGFile("game_character.png");
-
-    if (Result.ContentsSize > 0)
-    {
-        Texture->Data = Memory->TransientPartition.SecondaryGeneric.Data;
-        u8 *Src = (u8 *)Result.Contents;
-        u8 *Dest = (u8 *)Texture->Data;
-
-        for(u32 ByteIndex = 0;
-            ByteIndex < Result.ContentsSize;
-            ByteIndex++)
-        {
-            *Dest++ = *Src++;
-        }
-
-        Texture->Width = 942;
-        Texture->Height = 942;
-    }
-}
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
