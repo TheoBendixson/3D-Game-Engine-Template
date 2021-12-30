@@ -111,6 +111,9 @@ textureVertexShader(uint vertexID [[ vertex_id ]],
     return out;
 }
 
+// NOTE: (Ted)  Use this to draw the model's UV coordinates in the top right corner of the screen.
+//              out.position = float4(in.uv.x, in.uv.y, 0.0f, 1.0f);
+
 fragment float4
 textureFragmentShader(TexturePSInput in [[stage_in]],
                       texture2d<float> texture [[ texture(0) ]])
@@ -118,4 +121,8 @@ textureFragmentShader(TexturePSInput in [[stage_in]],
     constexpr sampler textureSampler (mag_filter::linear,
                                       min_filter::linear);
     return texture.sample(textureSampler, in.uv);
+
 }
+
+// NOTE: (Ted)  Use this to draw white pixels. It's helpful when debugging UV wrapping.
+//              return float4(1.0f, 1.0f, 1.0f, 1.0f);
