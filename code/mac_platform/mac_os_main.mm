@@ -854,15 +854,19 @@ int main(int argc, const char * argv[])
                      format: @"Failed to load the game's 3D models"];
     }
 
-    game_texture PlayerCharacterTexture = {};
+    game_texture *Textures = NULL;
 
     if (Game.LoadTextures)
     {
-        Game.LoadTextures(&GameMemory, &PlayerCharacterTexture);
+        Textures = Game.LoadTextures(&GameMemory);
+    } else
+    {
+        [NSException raise: @"Textures Not Loaded"
+                     format: @"Failed to load the game's Textures"];
     }
 
-    u32 TextureWidth = PlayerCharacterTexture.Width;
-    u32 TextureHeight = PlayerCharacterTexture.Height;
+    u32 TextureWidth = Textures->Width;
+    u32 TextureHeight = Textures->Height;
 
     MTLTextureDescriptor *TextureDescriptor = [[MTLTextureDescriptor alloc] init];
     TextureDescriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
@@ -879,9 +883,10 @@ int main(int argc, const char * argv[])
 
     [SampleTexture replaceRegion: TextureMetalRegion 
                      mipmapLevel: 0
-                       withBytes: (void *)PlayerCharacterTexture.Data
+                       withBytes: (void *)Textures->Data
                      bytesPerRow: TextureWidth*sizeof(uint32)];
 
+    // TODO: (Ted)  Also clear the game's scratch memory arena here.
     ClearMemoryPartition(&GameMemory.TransientPartition.SecondaryGeneric);
 
     NSString *GameCodeDLLPath = [[NSString alloc] initWithCString: SourceGameCodeDLLFullPath

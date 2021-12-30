@@ -1,5 +1,5 @@
 
-#define GAME_LOAD_TEXTURES(name) void name(game_memory *Memory, game_texture *Texture)
+#define GAME_LOAD_TEXTURES(name) game_texture* name(game_memory *Memory)
 typedef GAME_LOAD_TEXTURES(game_load_textures);
 
 #define GAME_LOAD_3D_MODELS(name) void name(game_memory *Memory, game_render_commands *RenderCommands)
