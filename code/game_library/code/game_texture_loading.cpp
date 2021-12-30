@@ -7,14 +7,14 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
     memory_partition *SecondaryPartition = &Memory->TransientPartition.SecondaryGeneric;
 
     InitializeArena(ScratchArena, SecondaryPartition->Size, SecondaryPartition->Data);
-    game_texture *Textures = PushArray(ScratchArena, 2, game_texture);
+    TextureBuffer->Textures = PushArray(ScratchArena, 2, game_texture);
 
     thread_context Thread = {};
     read_file_result Result = Memory->PlatformReadPNGFile("game_character.png");
 
     if (Result.ContentsSize > 0)
     {
-        game_texture *Texture = Textures;
+        game_texture *Texture = &TextureBuffer->Textures[0];
         Texture->Width = 942;
         Texture->Height = 942;
         u32 PixelCount = Texture->Width*Texture->Height;
@@ -32,6 +32,4 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
     }
 
     Memory->PlatformFreeFileMemory(&Thread, Result.Contents);
-
-    return Textures;
 }

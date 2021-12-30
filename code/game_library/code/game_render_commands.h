@@ -1,5 +1,4 @@
 
-
 #if WINDOWS
 struct game_constants
 {
