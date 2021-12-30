@@ -886,8 +886,14 @@ int main(int argc, const char * argv[])
                        withBytes: (void *)Textures->Data
                      bytesPerRow: TextureWidth*sizeof(uint32)];
 
-    // TODO: (Ted)  Also clear the game's scratch memory arena here.
-    ClearMemoryPartition(&GameMemory.TransientPartition.SecondaryGeneric);
+    if (Game.ClearMemoryArena)
+    {
+        Game.ClearMemoryArena(&GameMemory);
+    } else
+    {
+        [NSException raise: @"Memory arena clearing function not loaded"
+                     format: @"Failed to load memory clearing function."];
+    }
 
     NSString *GameCodeDLLPath = [[NSString alloc] initWithCString: SourceGameCodeDLLFullPath
                                                          encoding: NSUTF8StringEncoding];

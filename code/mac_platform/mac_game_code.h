@@ -33,9 +33,13 @@ MacLoadGameCode(char *SourceDLLName)
         Result.LoadTextures = (game_load_textures *)
             dlsym(Result.GameCodeDLL, "GameLoadTextures");
 
+        Result.ClearMemoryArena = (game_clear_memory_arena *)
+            dlsym(Result.GameCodeDLL, "GameClearMemoryArena");
+
         if (Result.UpdateAndRender &&
             Result.Load3DModels &&
-            Result.LoadTextures)
+            Result.LoadTextures &&
+            Result.ClearMemoryArena)
         {
             Result.IsValid = true;
         } else
@@ -66,4 +70,5 @@ MacUnloadGameCode(mac_game_code *GameCode)
     GameCode->UpdateAndRender = 0;
     GameCode->Load3DModels = 0;
     GameCode->LoadTextures = 0;
+    GameCode->ClearMemoryArena = 0;
 }
