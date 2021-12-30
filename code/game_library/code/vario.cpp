@@ -68,10 +68,10 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
-    push_buffer *ColoredCubePushBuffer = &GameState->ColoredCubePushBuffer;
+    push_buffer *ColoredCubePushBuffer = &RenderCommands->ColoredCubePushBuffer;
     ColoredCubePushBuffer->DrawCount = 0;
 
-    push_buffer *TexturedCubePushBuffer = &GameState->TexturedCubePushBuffer;
+    push_buffer *TexturedCubePushBuffer = &RenderCommands->TexturedCubePushBuffer;
     TexturedCubePushBuffer->DrawCount = 0;
 
     cube_map *CubeMap = &GameState->CubeMap;

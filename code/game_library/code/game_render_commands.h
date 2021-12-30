@@ -107,6 +107,12 @@ struct mesh_instance_buffer
     u32 MeshMax;
 };
 
+struct push_buffer
+{
+    vector_float_3 Translations[CUBE_MAP_SIZE];
+    u32 DrawCount;
+};
+
 struct game_render_commands
 {
 
@@ -127,4 +133,7 @@ struct game_render_commands
     mesh_instance_buffer FlatColorMeshInstances;
     mesh_instance_buffer TexturedMeshInstances;
     mesh_instance_buffer LoadedModelMeshInstances;
+
+    push_buffer ColoredCubePushBuffer;
+    push_buffer TexturedCubePushBuffer;
 };
