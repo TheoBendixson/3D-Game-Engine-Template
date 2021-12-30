@@ -341,6 +341,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         LoadedModelVertexBuffer->IndexCount = IndexCount;
     }
 
+    Memory->PlatformFreeFileMemory(&Thread, Result.Contents);
     ClearMemoryPartition(&Memory->TransientPartition.SecondaryGeneric);
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;

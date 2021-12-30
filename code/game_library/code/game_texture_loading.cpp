@@ -21,4 +21,6 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
         Texture->Width = 942;
         Texture->Height = 942;
     }
+
+    Memory->PlatformFreeFileMemory(&Thread, Result.Contents);
 }
