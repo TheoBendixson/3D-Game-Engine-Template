@@ -133,7 +133,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         u32 *Indices = (u32 *)LoadedModelVertexBuffer->Indices;
         u32 IndexCount = 0;
 
-        temp_vertex_data *TempVertexData = (temp_vertex_data *)Memory->TransientStoragePartition.SecondaryPartition;
+        temp_vertex_data *TempVertexData = (temp_vertex_data *)Memory->TransientPartition.SecondaryGeneric.Data;
 
         char *Scan = (char *)Result.Contents;
         char *Line = Scan;
@@ -341,12 +341,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         LoadedModelVertexBuffer->IndexCount = IndexCount;
     }
 
-    u8* Byte = (u8 *)Memory->TransientStoragePartition.SecondaryPartition;
-    for (u32 Index = 0; Index < Memory->TransientStoragePartition.SecondaryPartitionSize; 
-         Index++)
-    {
-        *Byte++ = 0;
-    }
+    ClearMemoryPartition(&Memory->TransientPartition.SecondaryGeneric);
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     FlatColorVertexBuffer->VertexCount = 0;

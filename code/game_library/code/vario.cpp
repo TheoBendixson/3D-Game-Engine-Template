@@ -19,7 +19,7 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
 
     if (Result.ContentsSize > 0)
     {
-        Texture->Data = Memory->TransientStoragePartition.SecondaryPartition;
+        Texture->Data = Memory->TransientPartition.SecondaryGeneric.Data;
         u8 *Src = (u8 *)Result.Contents;
         u8 *Dest = (u8 *)Texture->Data;
 

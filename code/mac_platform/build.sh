@@ -56,5 +56,7 @@ cp ${PLATFORM_RESOURCES_PATH}/GameInfo.plist Vario.app/Contents/Info.plist
 cp ${RESOURCES_PATH}/testmodel.obj ${GAME_BUNDLE_RESOURCES_PATH}/testmodel.obj
 cp ${RESOURCES_PATH}/cartoon.obj ${GAME_BUNDLE_RESOURCES_PATH}/cartoon.obj
 cp ${RESOURCES_PATH}/game_character.png ${GAME_BUNDLE_RESOURCES_PATH}/game_character.png
+cp ${RESOURCES_PATH}/grid_surface.png ${GAME_BUNDLE_RESOURCES_PATH}/grid_surface.png
+
 
 popd

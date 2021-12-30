@@ -782,8 +782,8 @@ int main(int argc, const char * argv[])
     }
 
     u64 SecondaryPartitionSize = Megabytes(64);
-    GameMemory.TransientStoragePartition.SecondaryPartitionSize = SecondaryPartitionSize;
-    GameMemory.TransientStoragePartition.SecondaryPartition = 
+    GameMemory.TransientPartition.SecondaryGeneric.Size = SecondaryPartitionSize;
+    GameMemory.TransientPartition.SecondaryGeneric.Data = 
         (u8 *)GameMemory.TransientStorage + SecondaryPartitionSize;
 
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
@@ -882,8 +882,11 @@ int main(int argc, const char * argv[])
                        withBytes: (void *)PlayerCharacterTexture.Data
                      bytesPerRow: TextureWidth*sizeof(uint32)];
 
+
+
     NSString *GameCodeDLLPath = [[NSString alloc] initWithCString: SourceGameCodeDLLFullPath
                                                          encoding: NSUTF8StringEncoding];
+
     ViewDelegate.SourceGameCodeDLLFullPath = GameCodeDLLPath;
     ViewDelegate.Game = Game; 
     ViewDelegate.GameMemory = GameMemory; 
