@@ -50,7 +50,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                     
                     if (Layer == 0)
                     {
-                        Value = GREEN_CUBE;
+                        Value = TEXTURED_CUBE;
                     } else if (Layer == 1)
                     {
                         if (Row%2 == 0 && Column%3 == 0)

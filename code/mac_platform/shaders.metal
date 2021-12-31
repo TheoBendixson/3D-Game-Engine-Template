@@ -118,10 +118,9 @@ fragment float4
 textureFragmentShader(TexturePSInput in [[stage_in]],
                       texture2d<float> texture [[ texture(0) ]])
 {
-    constexpr sampler textureSampler (mag_filter::linear,
-                                      min_filter::linear);
+    constexpr sampler textureSampler (mag_filter::nearest,
+                                      min_filter::nearest);
     return texture.sample(textureSampler, in.uv);
-
 }
 
 // NOTE: (Ted)  Use this to draw white pixels. It's helpful when debugging UV wrapping.

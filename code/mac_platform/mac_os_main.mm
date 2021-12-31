@@ -475,8 +475,8 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                                 offset: 0 
                                atIndex: BufferIndexVertices];
 
-        id<MTLTexture> PlayerCharacterTexture = [[self Textures] objectAtIndex: 0];
-        [RenderEncoder setFragmentTexture: PlayerCharacterTexture
+        id<MTLTexture> GridTexture = [[self Textures] objectAtIndex: 1];
+        [RenderEncoder setFragmentTexture: GridTexture
                                   atIndex: 0];
 
         MeshBuffer = &RenderCommandsPtr->TexturedMeshInstances;
@@ -503,6 +503,10 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
         [RenderEncoder setVertexBuffer: [self LoadedModelVertexBuffer] 
                                 offset: 0 
                                atIndex: BufferIndexVertices];
+
+        id<MTLTexture> PlayerCharacterTexture = [[self Textures] objectAtIndex: 0];
+        [RenderEncoder setFragmentTexture: PlayerCharacterTexture
+                                  atIndex: 0];
 
         MeshBuffer = &RenderCommandsPtr->LoadedModelMeshInstances;
         mesh_instance *MeshInstance = &MeshBuffer->Meshes[0];
