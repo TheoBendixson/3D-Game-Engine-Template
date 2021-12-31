@@ -69,7 +69,77 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             }
         }
 
+        cube_map_position P = {};
+        P.X = 1;
+        P.Y = 1;
+        P.Z = 0;
+        GameState->PlayerP = P;
+
+        GameState->ActionSlopFrames = 0;
+
         Memory->IsInitialized = true;
+    }
+
+    cube_map *CubeMap = &GameState->CubeMap;
+    
+    // TODO: (Ted) Update the player's coordinate from inputs.
+    game_controller_input *Input1 = &Input->Controller;
+
+    if (Input1->Down.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextY = GameState->PlayerP.Y - 1;
+
+        if (NextY >= 0 && NextY < CubeMap->CountY)
+        {
+            GameState->PlayerP.Y = NextY;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (Input1->Up.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextY = GameState->PlayerP.Y + 1;
+
+        if (NextY >= 0 && NextY < CubeMap->CountY)
+        {
+            GameState->PlayerP.Y = NextY;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (Input1->Right.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextX = GameState->PlayerP.X + 1;
+
+        if (NextX >= 0 && NextX < CubeMap->CountX)
+        {
+            GameState->PlayerP.X = NextX;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (Input1->Left.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextX = GameState->PlayerP.X - 1;
+
+        if (NextX >= 0 && NextX < CubeMap->CountX)
+        {
+            GameState->PlayerP.X = NextX;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (GameState->ActionSlopFrames > 0)
+    {
+        GameState->ActionSlopFrames--;
     }
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
@@ -83,7 +153,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     push_buffer *TexturedCubePushBuffer = &RenderCommands->TexturedCubePushBuffer;
     TexturedCubePushBuffer->DrawCount = 0;
 
-    cube_map *CubeMap = &GameState->CubeMap;
 
     for (u32 Layer = 0;
          Layer < CubeMap->CountZ;
@@ -328,15 +397,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
 
 // TODO: (Ted)  Support this on Windows / D3D11
-#if MACOS
+#if MACOS 
     {
         mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
-        cube_map_position ModelPos = {};
-        ModelPos.X = 5;
-        ModelPos.Y = 5;
-        ModelPos.Z = 1;
 
-        vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(ModelPos, CubeSideInMeters);
+        vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(GameState->PlayerP, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);

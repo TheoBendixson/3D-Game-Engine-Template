@@ -23,4 +23,6 @@ struct game_state
 {
     memory_arena ScratchArena;
     cube_map CubeMap;
+    cube_map_position PlayerP;
+    u32 ActionSlopFrames;
 };
