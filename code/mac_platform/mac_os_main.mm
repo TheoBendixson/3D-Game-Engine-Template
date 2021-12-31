@@ -204,7 +204,7 @@ global_variable b32 ExternalMouseCursorFlag = false;
 @property (retain) id<MTLRenderPipelineState> FlatColorPipelineState;
 @property (retain) id<MTLRenderPipelineState> TexturePipelineState;
 @property (retain) id<MTLCommandQueue> CommandQueue;
-@property (retain) id<MTLTexture> SampleTexture;
+@property (retain) NSArray *Textures;
 @property (retain) id<MTLBuffer> FlatColorVertexBuffer;
 @property (retain) id<MTLBuffer> TextureVertexBuffer;
 @property (retain) id<MTLBuffer> LoadedModelVertexBuffer;
@@ -474,7 +474,9 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
         [RenderEncoder setVertexBuffer: [self TextureVertexBuffer] 
                                 offset: 0 
                                atIndex: BufferIndexVertices];
-        [RenderEncoder setFragmentTexture: [self SampleTexture] 
+
+        id<MTLTexture> PlayerCharacterTexture = [[self Textures] objectAtIndex: 0];
+        [RenderEncoder setFragmentTexture: PlayerCharacterTexture
                                   atIndex: 0];
 
         MeshBuffer = &RenderCommandsPtr->TexturedMeshInstances;
@@ -866,27 +868,35 @@ int main(int argc, const char * argv[])
                      format: @"Failed to load the game's Textures"];
     }
 
-    game_texture *Texture = &TextureBuffer.Textures[0];
-    u32 TextureWidth = Texture->Width;
-    u32 TextureHeight = Texture->Height;
+    NSMutableArray *MetalTextures = [[NSMutableArray alloc] init];
 
-    MTLTextureDescriptor *TextureDescriptor = [[MTLTextureDescriptor alloc] init];
-    TextureDescriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
-    TextureDescriptor.width = TextureWidth;
-    TextureDescriptor.height = TextureHeight;
-    TextureDescriptor.usage = MTLTextureUsageShaderRead;
+    for (u32 Index = 0;
+         Index < TextureBuffer.Count;
+         Index++)
+    {
+        game_texture *Texture = &TextureBuffer.Textures[Index];
+        u32 TextureWidth = Texture->Width;
+        u32 TextureHeight = Texture->Height;
 
-    MTLRegion TextureMetalRegion = {
-        { 0, 0, 0 },
-        { TextureWidth, TextureHeight, 1 }
-    };
+        MTLTextureDescriptor *TextureDescriptor = [[MTLTextureDescriptor alloc] init];
+        TextureDescriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
+        TextureDescriptor.width = TextureWidth;
+        TextureDescriptor.height = TextureHeight;
+        TextureDescriptor.usage = MTLTextureUsageShaderRead;
 
-    id<MTLTexture> SampleTexture = [[MetalKitView.device newTextureWithDescriptor: TextureDescriptor] autorelease];
+        MTLRegion TextureMetalRegion = {
+            { 0, 0, 0 },
+            { TextureWidth, TextureHeight, 1 }
+        };
 
-    [SampleTexture replaceRegion: TextureMetalRegion 
-                     mipmapLevel: 0
-                       withBytes: (void *)Texture->Data
-                     bytesPerRow: TextureWidth*sizeof(uint32)];
+        id<MTLTexture> MetalTexture = [[MetalKitView.device newTextureWithDescriptor: TextureDescriptor] autorelease];
+
+        [MetalTexture replaceRegion: TextureMetalRegion 
+                        mipmapLevel: 0
+                          withBytes: (void *)Texture->Data
+                        bytesPerRow: TextureWidth*sizeof(uint32)];
+        [MetalTextures addObject: MetalTexture];
+    }
 
     if (Game.ClearMemoryArena)
     {
@@ -910,7 +920,7 @@ int main(int argc, const char * argv[])
     ViewDelegate.TextureVertexBuffer = MacTextureVertexBuffer;
     ViewDelegate.LoadedModelVertexBuffer = MacLoadedModelVertexBuffer;
     ViewDelegate.IndexBuffer = MacIndexBuffer;
-    ViewDelegate.SampleTexture = SampleTexture;
+    ViewDelegate.Textures = MetalTextures;
     ViewDelegate.TexturePipelineState = TexturePipelineState;
     ViewDelegate.DepthStencilState = DepthStencilState;
     ViewDelegate.ConstantUniformBuffer = ConstantUniformBuffer;

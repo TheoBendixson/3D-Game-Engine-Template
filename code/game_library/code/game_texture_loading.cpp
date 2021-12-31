@@ -6,10 +6,12 @@ struct game_texture_description
     char *Filename;
 };
 
-internal void
+internal b32
 LoadTexture(game_memory *Memory, memory_arena *Arena, thread_context *Thread,
             game_texture *Texture, game_texture_description Description)
 {
+    b32 LoadedTexture = false;
+
     read_file_result Result = Memory->PlatformReadPNGFile(Description.Filename);
 
     if (Result.ContentsSize > 0)
@@ -28,9 +30,13 @@ LoadTexture(game_memory *Memory, memory_arena *Arena, thread_context *Thread,
         {
             *Dest++ = *Src++;
         }
-    }
+
+        LoadedTexture = true;
+    } 
 
     Memory->PlatformFreeFileMemory(Thread, Result.Contents);
+
+    return LoadedTexture;
 }
 
 extern "C"
@@ -44,13 +50,24 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
     TextureBuffer->Textures = PushArray(ScratchArena, TextureBuffer->Max, game_texture);
 
     thread_context Thread = {};
+    
+    game_texture_description Descriptions[2];
+    Descriptions[0].Width = 942;
+    Descriptions[0].Height = 942;
+    Descriptions[0].Filename = "game_character.png";
 
-    game_texture_description Description = {};
-    Description.Width = 942;
-    Description.Height = 942;
-    Description.Filename = "game_character.png";
+    Descriptions[1].Width = 16;
+    Descriptions[1].Height = 16;
+    Descriptions[1].Filename = "grid_surface.png";
 
-    LoadTexture(Memory, ScratchArena, &Thread, &TextureBuffer->Textures[0], Description);
-
-    //Result = Memory->PlatformReadPNGFile("grid_surface.png");
+    for (u32 Index = 0;
+         Index < TextureBuffer->Max;
+         Index++)
+    {
+        if (LoadTexture(Memory, ScratchArena, &Thread, 
+            &TextureBuffer->Textures[Index], Descriptions[Index]))
+        {
+            TextureBuffer->Count++;
+        }
+    }
 }
