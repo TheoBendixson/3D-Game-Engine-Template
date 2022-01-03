@@ -72,7 +72,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         cube_map_position P = {};
         P.X = 1;
         P.Y = 1;
-        P.Z = 0;
+        P.Z = 1;
         GameState->PlayerP = P;
 
         GameState->ActionSlopFrames = 0;
