@@ -504,6 +504,7 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
                                 offset: 0 
                                atIndex: BufferIndexVertices];
 
+        
         id<MTLTexture> PlayerCharacterTexture = [[self Textures] objectAtIndex: 0];
         [RenderEncoder setFragmentTexture: PlayerCharacterTexture
                                   atIndex: 0];

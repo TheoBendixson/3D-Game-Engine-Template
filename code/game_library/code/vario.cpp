@@ -406,7 +406,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
-        vector_float_3 PersonScale = { 600.0f, 600.0f, 600.0f };
+        vector_float_3 PersonScale = { 1000.0f, 1000.0f, 1000.0f };
         matrix_float4x4 LoadedModelScale = GenerateScaleMatrix(PersonScale);
         Uniforms->Transform = matrix_multiply(Translate, matrix_multiply(Rotate, LoadedModelScale));
         MeshInstance->ModelIndex = 0;
