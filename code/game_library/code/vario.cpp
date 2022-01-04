@@ -78,10 +78,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     cube_map *CubeMap = &GameState->CubeMap;
     
-    // TODO: (Ted) Update the player's coordinate from inputs.
     game_controller_input *Input1 = &Input->Controller;
 
-    if (Input1->Down.EndedDown &&
+    if (Input1->Up.EndedDown &&
         GameState->ActionSlopFrames == 0)
     {
         s32 NextY = GameState->PlayerP.Y - 1;
@@ -94,7 +93,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         GameState->ActionSlopFrames = 10;
     }
 
-    if (Input1->Up.EndedDown &&
+    if (Input1->Down.EndedDown &&
         GameState->ActionSlopFrames == 0)
     {
         s32 NextY = GameState->PlayerP.Y + 1;
@@ -148,7 +147,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     push_buffer *TexturedCubePushBuffer = &RenderCommands->TexturedCubePushBuffer;
     TexturedCubePushBuffer->DrawCount = 0;
-
 
     for (u32 Layer = 0;
          Layer < CubeMap->CountZ;
@@ -251,7 +249,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 EyeX = MiddleOfTheWorld;
 
-    vector_float_3 Eye = { EyeX,  -2*MiddleOfTheWorld, 2*MiddleOfTheWorld };
+    vector_float_3 Eye = { EyeX,  4*MiddleOfTheWorld, 2*MiddleOfTheWorld };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
