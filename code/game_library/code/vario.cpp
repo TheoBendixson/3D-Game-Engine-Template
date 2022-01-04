@@ -6,20 +6,16 @@
 #include "camera.cpp"
 #include "game_transforms.cpp"
 #include "game_texture_loading.cpp"
+#include "game_memory.cpp"
 
 #define RED_CUBE            1
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
 
-extern "C"
-GAME_CLEAR_MEMORY_ARENA(GameClearMemoryArena)
-{
-    Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
-    game_state *GameState = (game_state *)Memory->PermanentStorage;
-    ClearMemoryPartition(&Memory->TransientPartition.SecondaryGeneric);
-    GameState->ScratchArena = {};
-}
+// TODO: (Ted)  1. Basic tile-based collision detection.
+//              2. Either invert the controls or look at the world from
+//                 a different orientation.
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -261,7 +257,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
-    b32 RotateCamera = true;
+    b32 RotateCamera = false;
 
     if (RotateCamera)
     {
@@ -400,12 +396,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 #if MACOS 
     {
         mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
-
         vector_float_3 PersonScale = { 300.0f, 300.0f, 300.0f };
         GameState->PlayerP.Offset.Z = -0.40f;
-
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(GameState->PlayerP, CubeSideInMeters);
-
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
