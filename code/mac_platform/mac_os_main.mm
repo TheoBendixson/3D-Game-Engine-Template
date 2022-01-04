@@ -499,7 +499,7 @@ static const size_t kAlignedInstanceUniformsSize = (sizeof(instance_uniforms) & 
         }
 
 
-        [RenderEncoder setFrontFacingWinding: MTLWindingClockwise];
+        //[RenderEncoder setFrontFacingWinding: MTLWindingClockwise];
         [RenderEncoder setVertexBuffer: [self LoadedModelVertexBuffer] 
                                 offset: 0 
                                atIndex: BufferIndexVertices];

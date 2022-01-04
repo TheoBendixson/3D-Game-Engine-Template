@@ -82,6 +82,9 @@ struct game_indexed_vertex_buffer
 
     void *Indices;
     u32 IndexCount;
+
+    // TODO: (Ted)  Clearly this will need some notion of multiple models.
+    r32 ModelHeight;
 };
 
 struct clear_color

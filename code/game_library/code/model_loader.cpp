@@ -339,10 +339,38 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         }
 
         LoadedModelVertexBuffer->IndexCount = IndexCount;
+        LoadedModelVertexBuffer->VertexCount = VertexIndex;
     }
 
     Memory->PlatformFreeFileMemory(&Thread, Result.Contents);
     ClearMemoryPartition(&Memory->TransientPartition.SecondaryGeneric);
+
+    r32 yMin = 0.0f;
+    r32 yMax = 0.0f;
+
+    for (u32 Index = 0;
+         Index < LoadedModelVertexBuffer->VertexCount;
+         Index++)
+    {
+        game_texture_vertex *Vertices = (game_texture_vertex *)LoadedModelVertexBuffer->Vertices;
+        game_texture_vertex *Vertex = &Vertices[Index];
+        Vertex->Position.x *= -1;
+
+        r32 yPosition = Vertex->Position.y;
+    
+        if (yPosition < yMin)
+        {
+            yMin = yPosition;
+        }
+
+        if (yPosition > yMax)
+        {
+            yMax = yPosition;
+        }
+    }
+
+    r32 ModelHeight = yMax - yMin;
+    LoadedModelVertexBuffer->ModelHeight = ModelHeight;
 
     game_vertex_buffer *FlatColorVertexBuffer = &RenderCommands->FlatColorVertexBuffer;
     FlatColorVertexBuffer->VertexCount = 0;
