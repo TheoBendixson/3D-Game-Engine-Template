@@ -34,4 +34,13 @@ cl -WX -W3 %ignored_warnings% %optimizer_flags% -DWINDOWS=1 -DGAME=1 /FeVariosTe
     %included_libraries%
 
 copy ..\..\code\windows_platform\resources\SDL2.dll SDL2.dll
+copy %resources_path%\game_character.png game_character.png
+copy %resources_path%\grid_surface.png grid_surface.png
+copy %resources_path%\cartoon.obj cartoon.obj
+copy %resources_path%\testmodel.obj testmodel.obj
 popd
+
+
+
+
+

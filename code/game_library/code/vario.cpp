@@ -391,22 +391,34 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
 
 // TODO: (Ted)  Support this on Windows / D3D11
-#if MACOS 
     {
         mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
         vector_float_3 PersonScale = { 300.0f, 300.0f, 300.0f };
         GameState->PlayerP.Offset.Z = -0.40f;
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(GameState->PlayerP, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
+#if WINDOWS
+        matrix Translate = GenerateTranslationMatrix(Translation);
+        matrix Rotate = GenerateXRotationMatrix((r32)(M_PI*1.5));
+        matrix LoadedModelScale = GenerateScaleMatrix(PersonScale);
+
+        // TODO: (Ted)  Make this a function.
+        game_constants *Constants = &MeshInstance->Constants;
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->View = View;
+        Constants->Projection = Projection;
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#elif MACOS
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
         matrix_float4x4 LoadedModelScale = GenerateScaleMatrix(PersonScale);
         Uniforms->Transform = matrix_multiply(Translate, matrix_multiply(Rotate, LoadedModelScale));
+#endif
+
         MeshInstance->ModelIndex = 0;
         LoadedModelMeshInstanceBuffer->MeshCount = 1;
     }
-#endif
 
 #if MACOS
     game_constants *Constants = &RenderCommands->Constants;

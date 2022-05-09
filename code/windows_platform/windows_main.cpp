@@ -241,6 +241,8 @@ WinMain(HINSTANCE Instance,
         return(0);
     }
 
+    // TODO: (Ted)  Call the cross-platform memory partition setup logic here!
+
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
     GameMemory.PlatformWriteEntireFile = PlatformWriteEntireFile;
     GameMemory.PlatformFreeFileMemory = PlatformFreeFileMemory;

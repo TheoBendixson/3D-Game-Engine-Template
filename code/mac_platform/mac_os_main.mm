@@ -788,6 +788,9 @@ int main(int argc, const char * argv[])
                      format: @"Failed to allocate transient storage"];
     }
 
+    // TODO: (Ted)  Move this to cross-platform logic. 
+    //              Have a cross-platform GameSetupMemoryPartitions
+    //              where this happens.
     u64 SecondaryPartitionSize = Megabytes(64);
     GameMemory.TransientPartition.SecondaryGeneric.Size = SecondaryPartitionSize;
     GameMemory.TransientPartition.SecondaryGeneric.Data = 
