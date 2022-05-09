@@ -7,3 +7,12 @@ GAME_CLEAR_MEMORY_ARENA(GameClearMemoryArena)
     ClearMemoryPartition(&Memory->TransientPartition.SecondaryGeneric);
     GameState->ScratchArena = {};
 }
+
+extern "C"
+GAME_SETUP_MEMORY_PARTITIONS(GameSetupMemoryPartitions)
+{
+    u64 SecondaryPartitionSize = Megabytes(64);
+    Memory->TransientPartition.SecondaryGeneric.Size = SecondaryPartitionSize;
+    Memory->TransientPartition.SecondaryGeneric.Data = 
+        (u8 *)Memory->TransientStorage + SecondaryPartitionSize;
+}

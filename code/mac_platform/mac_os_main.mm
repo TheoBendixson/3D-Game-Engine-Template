@@ -758,6 +758,8 @@ int main(int argc, const char * argv[])
 	MacState.ResourcesDirectorySize = StringLength(MacState.ResourcesDirectory);
 
     game_memory GameMemory = {};
+
+    // TODO: (Ted)  Also move this to the cross-platform logic. It's the same on Windows
     GameMemory.PermanentStorageSize = Megabytes(1024);
     GameMemory.TransientStorageSize = Megabytes(128);
 
@@ -791,10 +793,20 @@ int main(int argc, const char * argv[])
     // TODO: (Ted)  Move this to cross-platform logic. 
     //              Have a cross-platform GameSetupMemoryPartitions
     //              where this happens.
+    /*
     u64 SecondaryPartitionSize = Megabytes(64);
     GameMemory.TransientPartition.SecondaryGeneric.Size = SecondaryPartitionSize;
     GameMemory.TransientPartition.SecondaryGeneric.Data = 
-        (u8 *)GameMemory.TransientStorage + SecondaryPartitionSize;
+        (u8 *)GameMemory.TransientStorage + SecondaryPartitionSize;*/
+    if (Game.SetupMemoryPartitions)
+    {
+        Game.SetupMemoryPartitions(&GameMemory);
+    } else
+    {
+        [NSException raise: @"Game Code Not Loaded"
+                     format: @"Failed to load the game's code"];
+    }
+
 
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
     GameMemory.PlatformReadPNGFile = PlatformReadPNGFile;

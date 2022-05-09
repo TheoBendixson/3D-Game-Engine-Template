@@ -98,6 +98,7 @@ struct mac_game_code
     game_update_and_render *UpdateAndRender;
     game_load_3D_models *Load3DModels;
     game_load_textures *LoadTextures;
+    game_setup_memory_partitions *SetupMemoryPartitions;
     game_clear_memory_arena *ClearMemoryArena;
     b32 IsValid;
 };

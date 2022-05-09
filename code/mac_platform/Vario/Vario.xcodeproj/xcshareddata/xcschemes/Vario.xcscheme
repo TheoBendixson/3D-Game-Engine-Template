@@ -42,7 +42,7 @@
       allowLocationSimulation = "YES">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "/Users/theodorebendixson/Development/Games/VariosTemple/build/mac_os/Vario.app">
+         FilePath = "/Users/theodorebendixson1/AppDevelopment/PersonalProjects/Games/VariosTemple/build/mac_os/Vario.app">
       </PathRunnable>
    </LaunchAction>
    <ProfileAction
