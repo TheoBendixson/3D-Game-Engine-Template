@@ -15,6 +15,7 @@ struct game_flat_color_vertex
     r32 Color[3];
 };
 
+// TODO: (Ted)  See if there is a way to simplify this on Windows
 struct game_texture_vertex
 {
     r32 Position[3];

@@ -96,7 +96,7 @@ void CALLBACK MessageFiberProc(void *)
             {
                 u32 WMessage = Message.message;
 
-                game_controller_input *KeyboardController = &Input.Controllers[1];
+                game_controller_input *KeyboardController = &Input.Controller;
 
                 if (WMessage == WM_QUIT)
                 {
@@ -558,13 +558,14 @@ WinMain(HINSTANCE Instance,
     }
 
     // Wipe the scratch space
+    /*
     u8* Byte = GameMemory.TransientStoragePartition.SecondaryPartition;
     for (u32 Index = 0; 
          Index < GameMemory.TransientStoragePartition.SecondaryPartitionSize; 
          Index++)
     {
         *Byte++ = 0;
-    }
+    }*/
 
     ID3D11RasterizerState* RasterizerState;
     {
@@ -647,7 +648,7 @@ WinMain(HINSTANCE Instance,
     DWORD CurrentWidth = 0;
     DWORD CurrentHeight = 0;
 
-    GameLoad3DModels(&RenderCommands);
+    GameLoad3DModels(&GameMemory, &RenderCommands);
 
     TransferVertexBufferContents(DeviceContext, WindowsFlatColorVertexBuffer, 
                                  RenderCommands.FlatColorVertexBuffer.Vertices, FlatColorVertexBufferSize);
@@ -665,7 +666,7 @@ WinMain(HINSTANCE Instance,
 
         if (now >= next_update) 
         {
-            game_controller_input *GameController = &Input.Controllers[0];
+            game_controller_input *GameController = &Input.Controller;
 
             SDL_Event Event;
 

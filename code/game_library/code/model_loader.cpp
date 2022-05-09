@@ -111,9 +111,16 @@ struct vertex_lookup
 
 struct temp_vertex_data
 {
+#if WINDOWS
+    vector_float_3 Positions[4000];
+    vector_float_2 UVs[4000];
+    vector_float_3 Normals[4000];
+#elif MACOS
+    // TODO: (Ted)  Check if this is even necessary.
     vector_float3 Positions[4000];
     vector_float2 UVs[4000];
     vector_float3 Normals[4000];
+#endif
 
     vertex_lookup VertexIndexHashmap[VERTEX_LOOKUP_HASH_COUNT];
 };
@@ -160,7 +167,11 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             r32 Z = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
+#if WINDOWS
+            vector_float_3 Position = { X, Y, Z };
+#elif MACOS
             vector_float3 Position = { X, Y, Z };
+#endif
             TempVertexData->Positions[PositionIndex] = Position; 
 
             char OneAhead = *(Scan + 1);
@@ -191,7 +202,11 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             r32 V = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
+#if WINDOWS
+            vector_float_2 UV = { U, V };
+#elif MACOS
             vector_float2 UV = { U, V };
+#endif
             TempVertexData->UVs[UVIndex] = UV; 
 
             char OneAhead = *(Scan + 1);
@@ -227,7 +242,11 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             r32 Z = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
+#if WINDOWS
+            vector_float_3 Normal = { X, Y, Z };
+#elif MACOS
             vector_float3 Normal = { X, Y, Z };
+#endif
             TempVertexData->Normals[NormalIndex] = Normal; 
 
             char OneAhead = *(Scan + 1);
@@ -298,9 +317,26 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                     TempVertexData->VertexIndexHashmap[HashIndex] = Replaced;
     
                     game_texture_vertex Vertex = {};
+
+#if WINDOWS
+                    vector_float_3 Position = TempVertexData->Positions[PositionLookupIndex];
+                    Vertex.Position[0] = Position.X;
+                    Vertex.Position[1] = Position.Y;
+                    Vertex.Position[2] = Position.Z;
+
+                    vector_float_2 UV = TempVertexData->UVs[UVLookupIndex];
+                    Vertex.UV[0] = UV.X;
+                    Vertex.UV[1] = UV.Y;
+
+                    vector_float_3 Normal = TempVertexData->Normals[NormalLookupIndex];
+                    Vertex.Normal[0] = Normal.X;
+                    Vertex.Normal[1] = Normal.Y;
+                    Vertex.Normal[2] = Normal.Z;
+#elif MACOS
                     Vertex.Position = TempVertexData->Positions[PositionLookupIndex];
                     Vertex.UV = TempVertexData->UVs[UVLookupIndex];
                     Vertex.Normal = TempVertexData->Normals[NormalLookupIndex];
+#endif
                     Vertices[VertexIndex] = Vertex;
 
                     Indices[IndexCount] = VertexIndex;
@@ -354,9 +390,14 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
     {
         game_texture_vertex *Vertices = (game_texture_vertex *)LoadedModelVertexBuffer->Vertices;
         game_texture_vertex *Vertex = &Vertices[Index];
-        Vertex->Position.x *= -1;
 
+#if WINDOWS
+        Vertex->Position[0] *= -1;
+        r32 yPosition = Vertex->Position[1];
+#elif MACOS
+        Vertex->Position.x *= -1;
         r32 yPosition = Vertex->Position.y;
+#endif
     
         if (yPosition < yMin)
         {
