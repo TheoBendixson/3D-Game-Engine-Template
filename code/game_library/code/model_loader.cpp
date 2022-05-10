@@ -305,7 +305,9 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
        
         Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
 
-        // TODO: (Ted)  Investigate potential carriage return
+        // TODO: (Ted)  This starts at an 'f ' with a space to the next floating point value.
+        //              I surmise that this can be used at the top of the loop just once to get to
+        //              the first face value triplet.
         Scan += 2;
 
         u32 PositionCount = PositionIndex + 1;
