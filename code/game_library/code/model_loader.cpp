@@ -114,12 +114,12 @@ struct temp_vertex_data
 #if WINDOWS
     vector_float_3 Positions[4000];
     vector_float_2 UVs[4000];
-    vector_float_3 Normals[4000];
+    vector_float_3 Normals[6000];
 #elif MACOS
     // TODO: (Ted)  Check if this is even necessary.
     vector_float3 Positions[4000];
     vector_float2 UVs[4000];
-    vector_float3 Normals[4000];
+    vector_float3 Normals[6000];
 #endif
 
     vertex_lookup VertexIndexHashmap[VERTEX_LOOKUP_HASH_COUNT];
@@ -150,25 +150,50 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         u32 PositionIndex = 0;
         b32 LoadingPositions = true;
 
+#if WINDOWS
+        
+        // NOTE: (Ted)  On Windows, a newline is represented as \r\n, thus 
+        //              two characters.
+        u32 NewLineCharacterCount = 2;
+
+#elif MACOS
+        
+        // NOTE: (Ted)  On Mac OS, a newline is represented as \n, thus 
+        //              one character.
+        u32 NewLineCharacterCount = 1;
+#endif
+
         while(LoadingPositions)
         {
-            Scan +=2;
+            // NOTE: (Ted)  At this point, the character scan pointer should be at a v
+            //              at the start of a new line. This distance is from the v to
+            //              the start of an actual floating point number.
+            Scan += 2;
 
             u32 PositionDigits = 6;
             obj_scan_result ObjScan = ConstructFloatFromScan(Scan, PositionDigits);
             r32 X = ObjScan.Value; 
             Scan = ObjScan.AdvancedScan;
 
+            Scan++;
+
             ObjScan = ConstructFloatFromScan(Scan, PositionDigits);
             r32 Y = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
+
+            Scan++;
 
             ObjScan = ConstructFloatFromScan(Scan, PositionDigits);
             r32 Z = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
+            Scan += NewLineCharacterCount;
+
 #if WINDOWS
-            vector_float_3 Position = { X, Y, Z };
+            vector_float_3 Position = {};
+            Position.X = X;
+            Position.Y = Y;
+            Position.Z = Z;
 #elif MACOS
             vector_float3 Position = { X, Y, Z };
 #endif
@@ -186,24 +211,33 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             }
         }
 
-        Scan +=3;
-
         u32 UVIndex = 0;
         b32 LoadingUVs = true;
 
         while(LoadingUVs)
         {
+            // NOTE: (Ted)  At this point, the scan pointer should be at a 'vt ' with a space in front
+            //              of it. The three spaces takes us to the next floating point value, which is
+            //              meant to be a UV.
+            Scan +=3;
+
             u32 UVDigits = 6;
             obj_scan_result ObjScan = ConstructFloatFromScan(Scan, UVDigits);
             r32 U = ObjScan.Value; 
             Scan = ObjScan.AdvancedScan;
 
+            Scan++;
+
             ObjScan = ConstructFloatFromScan(Scan, UVDigits);
             r32 V = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
+            Scan += NewLineCharacterCount;
+
 #if WINDOWS
-            vector_float_2 UV = { U, V };
+            vector_float_2 UV = {};
+            UV.X = U;
+            UV.Y = V;
 #elif MACOS
             vector_float2 UV = { U, V };
 #endif
@@ -215,35 +249,43 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                 OneAhead == 't')
             {
                 UVIndex++;
-                Scan +=3;
             } else
             {
                 LoadingUVs = false;
             }
         }
 
-        Scan +=3;
-
         u32 NormalIndex = 0;
         b32 LoadingNormals = true;
 
         while(LoadingNormals)
         {
+            Scan +=3;
+
             u32 NormalDigits = 4;
             obj_scan_result ObjScan = ConstructFloatFromScan(Scan, NormalDigits);
             r32 X = ObjScan.Value; 
             Scan = ObjScan.AdvancedScan;
 
+            Scan++;
+
             ObjScan = ConstructFloatFromScan(Scan, NormalDigits);
             r32 Y = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
+
+            Scan++;
 
             ObjScan = ConstructFloatFromScan(Scan, NormalDigits);
             r32 Z = ObjScan.Value;
             Scan = ObjScan.AdvancedScan;
 
+            Scan += NewLineCharacterCount;
+            
 #if WINDOWS
-            vector_float_3 Normal = { X, Y, Z };
+            vector_float_3 Normal = {};
+            Normal.X = X;
+            Normal.Y = Y;
+            Normal.Z = Z;
 #elif MACOS
             vector_float3 Normal = { X, Y, Z };
 #endif
@@ -255,7 +297,6 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                 OneAhead == 'n')
             {
                 NormalIndex++;
-                Scan +=3;
             } else
             {
                 LoadingNormals = false;
@@ -263,6 +304,8 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         }
        
         Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
+
+        // TODO: (Ted)  Investigate potential carriage return
         Scan += 2;
 
         u32 PositionCount = PositionIndex + 1;
@@ -369,6 +412,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                     Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
                 }
 
+                // TODO: (Ted)  Investigate potential carriage return
                 Scan += 2;
                 VertexParseCount = 0;
             } 

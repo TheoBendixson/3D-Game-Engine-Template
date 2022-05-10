@@ -95,6 +95,9 @@ struct obj_scan_result
     char *AdvancedScan;
 };
 
+// NOTE: (Ted)  This function gets the scan pointer to the character
+//              right after the floating point value. It effectively
+//              "consumes" the floating point value.
 obj_scan_result
 ConstructFloatFromScan(char *Scan, u32 SignificantDigits)
 {
@@ -152,8 +155,12 @@ ConstructFloatFromScan(char *Scan, u32 SignificantDigits)
         VertexValue *= -1;
     }
 
+    // TODO: (Ted)  This should be "agnostic" about what happens outside of it and shouldn't
+    //              try to move the scan pointer to the next value itself. Calling code should
+    //              have that responsibility.
+    
     // Do this to get to the next value.
-    Scan++;
+    //Scan++;
 
     Result.Value = VertexValue;
     Result.AdvancedScan = Scan;
