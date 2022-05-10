@@ -305,9 +305,8 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
        
         Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
 
-        // TODO: (Ted)  This starts at an 'f ' with a space to the next floating point value.
-        //              I surmise that this can be used at the top of the loop just once to get to
-        //              the first face value triplet.
+        // NOTE: (Ted)  After scanning to a face line, this moves the scan pointer up two space to the
+        //              start of the actual face data.
         Scan += 2;
 
         u32 PositionCount = PositionIndex + 1;
@@ -325,6 +324,8 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
             u32 PositionLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
             Scan = FaceScan.AdvancedScan;
 
+            // TODO: (Ted)  See if scan starts where it needs to
+
             FaceScan = GetFaceCharactersUpToToken(Scan, '/');
             u32 UVLookupIndex = GetFaceLookupIndexFromCharacters(FaceScan.Characters, FaceScan.CharacterCount);
             Scan = FaceScan.AdvancedScan;
@@ -333,7 +334,11 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 
             if (VertexParseCount == 2)
             {
+#if WINDOWS
+                NormalScanToToken = '\r';
+#elif MACOS
                 NormalScanToToken = '\n';
+#endif
             }
 
             FaceScan = GetFaceCharactersUpToToken(Scan, NormalScanToToken);
@@ -404,20 +409,38 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
                 HashIndex = (HashValue + AttemptCount)%VERTEX_LOOKUP_HASH_COUNT;
             }
 
-            if (*Scan == 'e')
+            if (VertexParseCount == 3)
             {
-                LoadingFaces = false;
-            } else if (VertexParseCount == 3)
-            {
-                if (*Scan != 'f')
+                // NOTE: (Ted)  This gets us to the newline character.
+                Scan--;
+
+                // NOTE: (Ted)  Now look ahead.
+#if WINDOWS 
+                char LookAhead = *(Scan + 2);
+#elif MACOS
+                char LookAhead = *(Scan + 1);
+#endif
+                
+                if (LookAhead == 'f')
+                {
+                    // NOTE: (Ted)  After scanning to a face line, this moves the scan pointer up two space to the
+                    //              start of the actual face data.
+#if WINDOWS
+                    Scan += 4;
+#elif MACOS
+                    Scan += 3;
+#endif
+                } else if (LookAhead == 's')
                 {
                     Scan = ScanToLineStartingWithCharacter('f', Scan, Line);
-                }
+                    Scan += 2;
+                } else if (LookAhead == 'e')
+                {
+                    LoadingFaces = false;
+                } 
 
-                // TODO: (Ted)  Investigate potential carriage return
-                Scan += 2;
                 VertexParseCount = 0;
-            } 
+            }
         }
 
         LoadedModelVertexBuffer->IndexCount = IndexCount;

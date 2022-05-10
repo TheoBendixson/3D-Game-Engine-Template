@@ -311,22 +311,6 @@ WinMain(HINSTANCE Instance,
     InitializeMeshInstanceBufferWindows(&RenderCommands.TexturedMeshInstances, InstancedMeshBufferSize);
     InitializeMeshInstanceBufferWindows(&RenderCommands.LoadedModelMeshInstances, InstancedMeshBufferSize);
 
-    /*
-    RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
-    RenderCommands.FlatColorMeshInstances.MeshCount = 0;
-    RenderCommands.FlatColorMeshInstances.Meshes = 
-        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
-                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
-    RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
-    RenderCommands.TexturedMeshInstances.MeshCount = 0;
-    RenderCommands.TexturedMeshInstances.Meshes = 
-        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
-                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
-    RenderCommands.LoadedModelMeshInstance.MeshMax = InstancedMeshBufferSize;
-    RenderCommands.LoadedModelMeshInstance.MeshCount = 0;*/
-
     HDC RefreshDC = GetDC(WindowHandle);
     int RefreshRate = GetDeviceCaps(RefreshDC, VREFRESH);
     r32 RefreshRateInFloat = (r32)RefreshRate;
@@ -507,7 +491,7 @@ WinMain(HINSTANCE Instance,
     WindowsLoadedModelVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, LoadedModelVertexBufferSize, 
                                                                            LoadedModelVertices);
 
-    u32 IndexBufferSize = sizeof(u32)*4000;
+    u32 IndexBufferSize = sizeof(u32)*10000;
     u32 *LoadedModelIndices = (u32 *)VirtualAlloc(0, IndexBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     RenderCommands.LoadedModelVertexBuffer.Indices = LoadedModelIndices;
 

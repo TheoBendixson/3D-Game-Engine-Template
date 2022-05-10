@@ -173,6 +173,14 @@ ScanToLineStartingWithCharacter(char StartCharacter, char *Scan, char *Line)
 {
     b32 Scanning = true;
 
+#if WINDOWS
+    char NewLineToken = '\r';
+    u32 CharactersToNextLineAfterNewLineToken = 2;
+#elif MACOS
+    char NewLineToken = '\n';
+    u32 CharactersToNextLineAfterNewLineToken = 1;
+#endif
+
     while(Scanning)
     {
         if (*Line == StartCharacter)
@@ -181,15 +189,17 @@ ScanToLineStartingWithCharacter(char StartCharacter, char *Scan, char *Line)
         } else
         {
             // NOTE: (Ted)  Skip Lines
-            while(Scan++)
+            while(true)
             {
-                if(*Scan == '\n')
+                if(*Scan == NewLineToken)
                 {
                     break;
                 }
+
+                Scan++;
             }
 
-            Scan++;
+            Scan += CharactersToNextLineAfterNewLineToken;
             Line = Scan;
             continue;
         }
