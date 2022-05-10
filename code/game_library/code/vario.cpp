@@ -4,11 +4,18 @@
 #include "cube_map.cpp"
 #include "model_loader.cpp"
 #include "camera.cpp"
+#include "game_transforms.cpp"
+#include "game_texture_loading.cpp"
+#include "game_memory.cpp"
 
 #define RED_CUBE            1
 #define GREEN_CUBE          2
 #define BLUE_CUBE           3
 #define TEXTURED_CUBE       4
+
+// TODO: (Ted)  1. Basic tile-based collision detection.
+//              2. Either invert the controls or look at the world from
+//                 a different orientation.
 
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
@@ -39,7 +46,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                     
                     if (Layer == 0)
                     {
-                        Value = GREEN_CUBE;
+                        Value = TEXTURED_CUBE;
                     } else if (Layer == 1)
                     {
                         if (Row%2 == 0 && Column%3 == 0)
@@ -48,7 +55,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
                             if (Value == GREEN_CUBE)
                             {
-                                Value = TEXTURED_CUBE;
+                                Value = 0;
                             }
                         }
                     }
@@ -58,7 +65,76 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
             }
         }
 
+        cube_map_position P = {};
+        P.X = 1;
+        P.Y = 1;
+        P.Z = 1;
+        GameState->PlayerP = P;
+
+        GameState->ActionSlopFrames = 0;
+
         Memory->IsInitialized = true;
+    }
+
+    cube_map *CubeMap = &GameState->CubeMap;
+    
+    game_controller_input *Input1 = &Input->Controller;
+
+    if (Input1->Up.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextY = GameState->PlayerP.Y - 1;
+
+        if (NextY >= 0 && NextY < CubeMap->CountY)
+        {
+            GameState->PlayerP.Y = NextY;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (Input1->Down.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextY = GameState->PlayerP.Y + 1;
+
+        if (NextY >= 0 && NextY < CubeMap->CountY)
+        {
+            GameState->PlayerP.Y = NextY;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (Input1->Right.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextX = GameState->PlayerP.X + 1;
+
+        if (NextX >= 0 && NextX < CubeMap->CountX)
+        {
+            GameState->PlayerP.X = NextX;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (Input1->Left.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        s32 NextX = GameState->PlayerP.X - 1;
+
+        if (NextX >= 0 && NextX < CubeMap->CountX)
+        {
+            GameState->PlayerP.X = NextX;
+        }
+
+        GameState->ActionSlopFrames = 10;
+    }
+
+    if (GameState->ActionSlopFrames > 0)
+    {
+        GameState->ActionSlopFrames--;
     }
 
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
@@ -66,13 +142,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 CubeSideInMeters = 200.0f;
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
-    push_buffer *ColoredCubePushBuffer = &GameState->ColoredCubePushBuffer;
+    push_buffer *ColoredCubePushBuffer = &RenderCommands->ColoredCubePushBuffer;
     ColoredCubePushBuffer->DrawCount = 0;
 
-    push_buffer *TexturedCubePushBuffer = &GameState->TexturedCubePushBuffer;
+    push_buffer *TexturedCubePushBuffer = &RenderCommands->TexturedCubePushBuffer;
     TexturedCubePushBuffer->DrawCount = 0;
-
-    cube_map *CubeMap = &GameState->CubeMap;
 
     for (u32 Layer = 0;
          Layer < CubeMap->CountZ;
@@ -111,6 +185,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         }
     }
 
+#if WINDOWS
     matrix RotateX = { 1, 0,                            0,                              0,
                        0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)),   0,
                        0, (r32)(sin(ModelRotation.X)),  (r32)(cos(ModelRotation.X)),    0,
@@ -131,6 +206,42 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                      0,             0,              ModelScale.Z,   0,
                      0,             0,              0,              1 };
 
+    matrix View = {};
+#elif MACOS
+    matrix_float4x4 
+        RotateX = (matrix_float4x4) {{
+            { 1, 0,                            0,                            0 },
+            { 0, (r32)(cos(ModelRotation.X)),  -(r32)(sin(ModelRotation.X)), 0 },
+            { 0, (r32)(sin(ModelRotation.X)),  (r32)(cos(ModelRotation.X)),  0 },
+            { 0, 0,                            0,                            1 }
+        }};
+
+    matrix_float4x4 
+        RotateY = (matrix_float4x4) {{ 
+            { (r32)(cos(ModelRotation.Y)),     0,  (r32)(sin(ModelRotation.Y)),    0 },
+            { 0,                               1,  0,                              0 },
+            { -(r32)(sin(ModelRotation.Y)),    0,  (r32)(cos(ModelRotation.Y)),    0 },
+            { 0,                               0,  0,                              1 },
+        }};
+
+    matrix_float4x4 
+        RotateZ = (matrix_float4x4) {{
+            { (r32)(cos(ModelRotation.Z)), -(r32)(sin(ModelRotation.Z)),   0,  0 },
+            { (r32)(sin(ModelRotation.Z)), (r32)(cos(ModelRotation.Z)),    0,  0 },
+            { 0,                           0,                              1,  0 },
+            { 0,                           0,                              0,  1 },
+        }};
+
+    matrix_float4x4 Scale = (matrix_float4x4) {{
+        { ModelScale.X, 0,            0,             0 },
+        { 0,            ModelScale.Y, 0,             0 },
+        { 0,            0,            ModelScale.Z,  0 },
+        { 0,            0,            0,             1 } 
+    }};
+
+    matrix_float4x4 View = {};
+#endif
+
     u32 ViewportWidth = RenderCommands->ViewportWidth;
     u32 ViewportHeight = RenderCommands->ViewportHeight;
 
@@ -138,47 +249,81 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 EyeX = MiddleOfTheWorld;
 
-    vector_float_3 Eye = { EyeX,  -2*MiddleOfTheWorld, 2*MiddleOfTheWorld };
+    vector_float_3 Eye = { EyeX,  4*MiddleOfTheWorld, 2*MiddleOfTheWorld };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
-    matrix View = {};
-
-    b32 RotateCamera = true;
+    b32 RotateCamera = false;
 
     if (RotateCamera)
     {
         local_persist r32 CameraRotation = 0.0f;
         CameraRotation += 0.010f;
 
+#if WINDOWS
         matrix CameraRotateZ = { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0,
                                  (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0,
                                  0,                           0,                            1,  0,
                                  0,                           0,                            0,  1 };
+#elif MACOS
+        matrix_float4x4 CameraRotateZ = (matrix_float4x4) {{
+            { (r32)(cos(CameraRotation)), -(r32)(sin(CameraRotation)),   0,  0 },
+            { (r32)(sin(CameraRotation)), (r32)(cos(CameraRotation)),    0,  0 },
+            { 0,                           0,                            1,  0 },
+            { 0,                           0,                            0,  1 },
+        }};
+#endif
 
         r32 CameraRotationAxisOrigin = MiddleOfTheWorld;
 
+#if WINDOWS
         matrix CameraTranslate = { 1,                           0,                          0,                  0,
                                    0,                           1,                          0,                  0,
                                    0,                           0,                          1,                  0,
                                    -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 };
+#elif MACOS
+        matrix_float4x4 CameraTranslate = (matrix_float4x4) {{
+            { 1,                           0,                          0,                  0 },
+            { 0,                           1,                          0,                  0 },
+            { 0,                           0,                          1,                  0 },
+            { -CameraRotationAxisOrigin,   -CameraRotationAxisOrigin,  0,                  1 },
+        }};
+#endif
 
-        // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at matrix.
+        // NOTE: (Ted)  Any time you translate the camera, you also have to translate the look at point for the look at 
+        //              matrix.
         vector_float_3 At = {  (EyeX -CameraRotationAxisOrigin), (MiddleOfTheWorld - CameraRotationAxisOrigin),  0.0f };
+#if WINDOWS
         matrix LookAt = GenerateLookAtMatrix(At, Eye, Up);
         View = CameraTranslate*CameraRotateZ*LookAt;
+#elif MACOS
+        matrix_float4x4 LookAt = GenerateLookAtMatrix(At, Eye, Up);
+        matrix_float4x4 LookAtCamera = matrix_multiply(LookAt, CameraRotateZ);
+        View = matrix_multiply(LookAtCamera, CameraTranslate);
+#endif
+
     } else
     {
         vector_float_3 At = { EyeX, MiddleOfTheWorld, 0.0f };
         View = GenerateLookAtMatrix(At, Eye, Up);
     }
 
+#if WINDOWS
     matrix Projection = { 2 * Near / ViewportWidth, 0,                         0,                           0,
                           0,                        2 * Near / ViewportHeight, 0,                           0,
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
+#elif MACOS
+    matrix_float4x4 Projection = (matrix_float4x4) {{
+        { 2 * Near / ViewportWidth, 0,                         0,                           0 },
+        { 0,                        2 * Near / ViewportHeight, 0,                           0 },
+        { 0,                        0,                         Far / (Far - Near),          1 },
+        { 0,                        0,                         Near*Far / (Near - Far),     0 },
+    }};
+
+#endif
 
     mesh_instance_buffer *FlatColorMeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
 
@@ -187,18 +332,20 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = ColoredCubePushBuffer->Translations[InstanceIndex];
-
-        matrix Translate = { 1,                  0,                  0,                  0,
-                             0,                  1,                  0,                  0,
-                             0,                  0,                  1,                  0,
-                             ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
-
         mesh_instance *MeshInstance = &FlatColorMeshInstanceBuffer->Meshes[InstanceIndex];
+
+#if WINDOWS
+        matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#elif MACOS
+        matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
+        instance_uniforms *Uniforms = &MeshInstance->Uniforms;
+        Uniforms->Transform = matrix_multiply(Translate, Scale);
+#endif
 
         u32 CubeValue = GameState->CubeMap.Cubes[InstanceIndex];
 
@@ -224,22 +371,61 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
          InstanceIndex++)
     {
         vector_float_3 ModelTranslation = TexturedCubePushBuffer->Translations[InstanceIndex];
-
-        matrix Translate = { 1,                  0,                  0,                  0,
-                             0,                  1,                  0,                  0,
-                             0,                  0,                  1,                  0,
-                             ModelTranslation.X, ModelTranslation.Y, ModelTranslation.Z, 1 };
-
         mesh_instance *MeshInstance = &TexturedMeshInstanceBuffer->Meshes[InstanceIndex];
+
+#if WINDOWS
+        matrix Translate = GenerateTranslationMatrix(ModelTranslation);
         game_constants *Constants = &MeshInstance->Constants;
         Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#elif MACOS
+        matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
+        instance_uniforms *Uniforms = &MeshInstance->Uniforms;
+        Uniforms->Transform = matrix_multiply(Translate, Scale);
+#endif
         MeshInstance->ModelIndex = 0;
     }
 
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
+
+// TODO: (Ted)  Support this on Windows / D3D11
+    {
+        mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
+        vector_float_3 PersonScale = { 300.0f, 300.0f, 300.0f };
+        GameState->PlayerP.Offset.Z = -0.40f;
+        vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(GameState->PlayerP, CubeSideInMeters);
+        mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
+#if WINDOWS
+        matrix Translate = GenerateTranslationMatrix(Translation);
+        matrix Rotate = GenerateXRotationMatrix((r32)(M_PI*1.5));
+        matrix LoadedModelScale = GenerateScaleMatrix(PersonScale);
+
+        // TODO: (Ted)  Make this a function.
+        game_constants *Constants = &MeshInstance->Constants;
+        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->View = View;
+        Constants->Projection = Projection;
+        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#elif MACOS
+        matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
+        matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
+        instance_uniforms *Uniforms = &MeshInstance->Uniforms;
+        matrix_float4x4 LoadedModelScale = GenerateScaleMatrix(PersonScale);
+        Uniforms->Transform = matrix_multiply(Translate, matrix_multiply(Rotate, LoadedModelScale));
+#endif
+
+        MeshInstance->ModelIndex = 0;
+        LoadedModelMeshInstanceBuffer->MeshCount = 1;
+    }
+
+#if MACOS
+    game_constants *Constants = &RenderCommands->Constants;
+    Constants->View = View;
+    Constants->Projection = Projection;
+    Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+#endif
 
     clear_color *ClearColor = &RenderCommands->ClearColor;
     ClearColor->RGBA[0] = 0.183f;

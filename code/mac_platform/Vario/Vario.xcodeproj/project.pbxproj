@@ -1,0 +1,125 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		CFE7F2312770EA9A00D4E3BA /* Vario */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = CFE7F2322770EA9A00D4E3BA /* Build configuration list for PBXAggregateTarget "Vario" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = Vario;
+			productName = Vario;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXFileReference section */
+		CF3A77C9277E5180006DC1EB /* game_texture_loading.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = game_texture_loading.cpp; path = ../../game_library/code/game_texture_loading.cpp; sourceTree = "<group>"; };
+		CFCD7856277A617F007BBDF0 /* model_loader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = model_loader.cpp; path = ../../game_library/code/model_loader.cpp; sourceTree = "<group>"; };
+		CFE7F23827717E6E00D4E3BA /* vario.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = vario.cpp; path = ../../game_library/code/vario.cpp; sourceTree = "<group>"; };
+		CFE7F23A27717F0000D4E3BA /* mac_os_main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = mac_os_main.mm; path = ../mac_os_main.mm; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		CFE7F22A2770EA8400D4E3BA = {
+			isa = PBXGroup;
+			children = (
+				CFE7F23827717E6E00D4E3BA /* vario.cpp */,
+				CFE7F23A27717F0000D4E3BA /* mac_os_main.mm */,
+				CFCD7856277A617F007BBDF0 /* model_loader.cpp */,
+				CF3A77C9277E5180006DC1EB /* game_texture_loading.cpp */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		CFE7F22B2770EA8400D4E3BA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					CFE7F2312770EA9A00D4E3BA = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = CFE7F22E2770EA8400D4E3BA /* Build configuration list for PBXProject "Vario" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CFE7F22A2770EA8400D4E3BA;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CFE7F2312770EA9A00D4E3BA /* Vario */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		CFE7F22F2770EA8400D4E3BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		CFE7F2302770EA8400D4E3BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		CFE7F2332770EA9A00D4E3BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = N79LQXAXD6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CFE7F2342770EA9A00D4E3BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = N79LQXAXD6;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CFE7F22E2770EA8400D4E3BA /* Build configuration list for PBXProject "Vario" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFE7F22F2770EA8400D4E3BA /* Debug */,
+				CFE7F2302770EA8400D4E3BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CFE7F2322770EA9A00D4E3BA /* Build configuration list for PBXAggregateTarget "Vario" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFE7F2332770EA9A00D4E3BA /* Debug */,
+				CFE7F2342770EA9A00D4E3BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CFE7F22B2770EA8400D4E3BA /* Project object */;
+}

@@ -96,7 +96,7 @@ void CALLBACK MessageFiberProc(void *)
             {
                 u32 WMessage = Message.message;
 
-                game_controller_input *KeyboardController = &Input.Controllers[1];
+                game_controller_input *KeyboardController = &Input.Controller;
 
                 if (WMessage == WM_QUIT)
                 {
@@ -194,6 +194,7 @@ void CALLBACK MessageFiberProc(void *)
 
 global_variable ID3D11Buffer *WindowsFlatColorVertexBuffer;
 global_variable ID3D11Buffer *WindowsTextureVertexBuffer;
+global_variable ID3D11Buffer *WindowsLoadedModelVertexBuffer;
 
 internal
 void DrawMeshesFromInstanceBuffer(ID3D11DeviceContext *DeviceContext, ID3D11Buffer *ConstantsBuffer,
@@ -219,6 +220,15 @@ void DrawMeshesFromInstanceBuffer(ID3D11DeviceContext *DeviceContext, ID3D11Buff
     }
 }
 
+internal void
+InitializeMeshInstanceBufferWindows(mesh_instance_buffer *InstanceBuffer, u32 MaxMeshes)
+{
+    InstanceBuffer->MeshCount = 0;
+    InstanceBuffer->MeshMax = MaxMeshes;
+    InstanceBuffer->Meshes = (mesh_instance *)VirtualAlloc(0, MaxMeshes*sizeof(mesh_instance),
+                                                           MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+}
+
 int CALLBACK
 WinMain(HINSTANCE Instance,
         HINSTANCE PrevInstance,
@@ -229,6 +239,8 @@ WinMain(HINSTANCE Instance,
     HANDLE message_fiber = CreateFiber(0, MessageFiberProc, 0);
 
     game_memory GameMemory = {};
+
+    // TODO: (Ted)  Set these up in the cross-platform code.
     GameMemory.PermanentStorageSize = Megabytes(1024);
     GameMemory.TransientStorageSize = Megabytes(128);
     GameMemory.PermanentStorage = VirtualAlloc(0, GameMemory.PermanentStorageSize,
@@ -240,6 +252,8 @@ WinMain(HINSTANCE Instance,
     {
         return(0);
     }
+
+    GameSetupMemoryPartitions(&GameMemory);
 
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
     GameMemory.PlatformWriteEntireFile = PlatformWriteEntireFile;
@@ -293,17 +307,9 @@ WinMain(HINSTANCE Instance,
 
     // TODO: (Ted)  Once this is cross-platform, these buffers could be put on a single allocation up-front.
     u32 InstancedMeshBufferSize = 200;
-    RenderCommands.FlatColorMeshInstances.MeshMax = InstancedMeshBufferSize;
-    RenderCommands.FlatColorMeshInstances.MeshCount = 0;
-    RenderCommands.FlatColorMeshInstances.Meshes = 
-        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
-                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-
-    RenderCommands.TexturedMeshInstances.MeshMax = InstancedMeshBufferSize;
-    RenderCommands.TexturedMeshInstances.MeshCount = 0;
-    RenderCommands.TexturedMeshInstances.Meshes = 
-        (mesh_instance *)VirtualAlloc(0, InstancedMeshBufferSize*sizeof(mesh_instance),
-                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    InitializeMeshInstanceBufferWindows(&RenderCommands.FlatColorMeshInstances, InstancedMeshBufferSize);
+    InitializeMeshInstanceBufferWindows(&RenderCommands.TexturedMeshInstances, InstancedMeshBufferSize);
+    InitializeMeshInstanceBufferWindows(&RenderCommands.LoadedModelMeshInstances, InstancedMeshBufferSize);
 
     HDC RefreshDC = GetDC(WindowHandle);
     int RefreshRate = GetDeviceCaps(RefreshDC, VREFRESH);
@@ -477,6 +483,32 @@ WinMain(HINSTANCE Instance,
     WindowsTextureVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, TextureVertexBufferSize, 
                                                                        TextureVertices);
 
+    u32 LoadedModelVertexBufferSize = sizeof(game_texture_vertex)*10000;
+    game_texture_vertex *LoadedModelVertices =
+        (game_texture_vertex *)VirtualAlloc(0, LoadedModelVertexBufferSize, 
+                                            MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.LoadedModelVertexBuffer.Vertices = LoadedModelVertices;
+    WindowsLoadedModelVertexBuffer = SetupVertexBufferFromGameVertexBuffer(D11Device, LoadedModelVertexBufferSize, 
+                                                                           LoadedModelVertices);
+
+    u32 IndexBufferSize = sizeof(u32)*10000;
+    u32 *LoadedModelIndices = (u32 *)VirtualAlloc(0, IndexBufferSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    RenderCommands.LoadedModelVertexBuffer.Indices = LoadedModelIndices;
+
+    ID3D11Buffer* WindowsLoadedModelIndexBuffer;
+    {
+        D3D11_BUFFER_DESC Desc = {};
+        Desc.ByteWidth = IndexBufferSize;
+        Desc.Usage = D3D11_USAGE_DYNAMIC;
+        Desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+        D3D11_SUBRESOURCE_DATA Initial = {};
+        Initial.pSysMem = RenderCommands.LoadedModelVertexBuffer.Indices;
+        HRESULT HR = D11Device->CreateBuffer(&Desc, &Initial, &WindowsLoadedModelIndexBuffer);
+        AssertHR(HR);
+    }
+    
     // vertex & pixel shaders for drawing triangle, plus input layout for vertex input
     ID3D11InputLayout* FlatColorLayout;
     ID3D11VertexShader* FlatColorVShader;
@@ -557,14 +589,7 @@ WinMain(HINSTANCE Instance,
         AssertHR(HR);
     }
 
-    // Wipe the scratch space
-    u8* Byte = GameMemory.TransientStoragePartition.SecondaryPartition;
-    for (u32 Index = 0; 
-         Index < GameMemory.TransientStoragePartition.SecondaryPartitionSize; 
-         Index++)
-    {
-        *Byte++ = 0;
-    }
+    GameClearMemoryArena(&GameMemory);
 
     ID3D11RasterizerState* RasterizerState;
     {
@@ -598,6 +623,7 @@ WinMain(HINSTANCE Instance,
         AssertHR(HR);
     }
 
+    // TODO: (Ted)  Load the texture data from source images instead.
     UINT TextureData[] =
     {
         0xffffffff, 0xff7f7f7f,
@@ -647,13 +673,25 @@ WinMain(HINSTANCE Instance,
     DWORD CurrentWidth = 0;
     DWORD CurrentHeight = 0;
 
-    GameLoad3DModels(&RenderCommands);
+    GameLoad3DModels(&GameMemory, &RenderCommands);
 
     TransferVertexBufferContents(DeviceContext, WindowsFlatColorVertexBuffer, 
                                  RenderCommands.FlatColorVertexBuffer.Vertices, FlatColorVertexBufferSize);
 
     TransferVertexBufferContents(DeviceContext, WindowsTextureVertexBuffer, 
                                  RenderCommands.TextureVertexBuffer.Vertices, TextureVertexBufferSize);
+
+
+    TransferVertexBufferContents(DeviceContext, WindowsLoadedModelVertexBuffer, 
+                                 RenderCommands.LoadedModelVertexBuffer.Vertices, LoadedModelVertexBufferSize);
+
+    {
+        D3D11_MAPPED_SUBRESOURCE Mapped;
+        HRESULT HR = DeviceContext->Map((ID3D11Resource*)WindowsLoadedModelIndexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &Mapped);
+        AssertHR(HR);
+        memcpy(Mapped.pData, RenderCommands.LoadedModelVertexBuffer.Indices, IndexBufferSize);
+        DeviceContext->Unmap((ID3D11Resource*)WindowsLoadedModelIndexBuffer, 0);
+    }
 
     update_interval = 10;
     next_update = GetTickCount();
@@ -665,7 +703,7 @@ WinMain(HINSTANCE Instance,
 
         if (now >= next_update) 
         {
-            game_controller_input *GameController = &Input.Controllers[0];
+            game_controller_input *GameController = &Input.Controller;
 
             SDL_Event Event;
 
@@ -949,8 +987,6 @@ WinMain(HINSTANCE Instance,
 
                 // Pixel Shader
                 DeviceContext->PSSetShader(FlatColorPShader, NULL, 0);
-                //DeviceContext->PSSetSamplers(0, 1, NULL);
-                //DeviceContext->PSSetShaderResources(0, 1, NULL);
 
                 // Output Merger
                 DeviceContext->OMSetDepthStencilState(DepthState, 0);
@@ -976,6 +1012,30 @@ WinMain(HINSTANCE Instance,
 
                 DrawMeshesFromInstanceBuffer(DeviceContext, ConstantsBuffer, &RenderCommands.TexturedMeshInstances, 
                                              &RenderCommands.TextureVertexBuffer);
+
+                DeviceContext->IASetVertexBuffers(0, 1, &WindowsLoadedModelVertexBuffer, &Stride, &Offset);
+                DeviceContext->IASetIndexBuffer(WindowsLoadedModelIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+                mesh_instance_buffer *LoadedModelMeshInstances = &RenderCommands.LoadedModelMeshInstances;
+                game_indexed_vertex_buffer *LoadedModelVertexBuffer = &RenderCommands.LoadedModelVertexBuffer;
+
+                for (u32 Index = 0;
+                     Index < LoadedModelMeshInstances->MeshCount;
+                     Index++)
+                {
+                    mesh_instance *MeshInstance = &LoadedModelMeshInstances->Meshes[Index];
+
+                    {
+                        D3D11_MAPPED_SUBRESOURCE Mapped;
+                        HRESULT HR = DeviceContext->Map((ID3D11Resource*)ConstantsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 
+                                                         0, &Mapped);
+                        AssertHR(HR);
+                        memcpy(Mapped.pData, &MeshInstance->Constants, sizeof(game_constants));
+                        DeviceContext->Unmap((ID3D11Resource*)ConstantsBuffer, 0);
+                    }
+
+                    DeviceContext->DrawIndexed(LoadedModelVertexBuffer->IndexCount, 0, 0);
+                }
 
                 LARGE_INTEGER WithinFrameCounter2;
                 QueryPerformanceCounter(&WithinFrameCounter2);

@@ -35,4 +35,10 @@ typedef double r64;
 
 #if WINDOWS
 #define Assert(cond) do { if (!(cond)) __debugbreak(); } while (0)
+#elif MACOS
+#if SLOW 
+#define Assert(Expression) if(!(Expression)) { __builtin_trap(); }
+#else
+#define Assert(Expression)
+#endif
 #endif

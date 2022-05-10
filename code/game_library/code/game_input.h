@@ -35,6 +35,6 @@ struct game_input
     game_button_state MouseButtons[5];
     s32 MouseX, MouseY, MouseZ;
     r32 dtForFrame;
-    game_controller_input Controllers[2];
+    game_controller_input Controller;
     r32 FrameRateMultiplier;
 };

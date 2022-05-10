@@ -6,6 +6,9 @@ struct read_file_result
     char *Filename;
 };
 
+#define PLATFORM_READ_PNG_FILE(name) read_file_result name(char *Filename)
+typedef PLATFORM_READ_PNG_FILE(platform_read_png_file);
+
 #define PLATFORM_READ_ENTIRE_FILE(name) read_file_result name(thread_context *Thread, char *Filename)
 typedef PLATFORM_READ_ENTIRE_FILE(platform_read_entire_file);
 
@@ -17,3 +20,6 @@ typedef PLATFORM_WRITE_ENTIRE_FILE(platform_write_entire_file);
 
 #define PLATFORM_LOG_MESSAGE(name) void name(char *Message, u32 Count) 
 typedef PLATFORM_LOG_MESSAGE(platform_log_message);
+
+#define PLATFORM_QUIT_GAME(name) void name()
+typedef PLATFORM_QUIT_GAME(platform_quit_game);
