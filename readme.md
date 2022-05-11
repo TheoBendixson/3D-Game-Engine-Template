@@ -28,7 +28,7 @@ If this receives regular paid contributions and publicity, I can dedicate more t
 
 Here are a few ways you can do that.
 
-- Go to my [Itch Store](https://itch.io/profile/tedbendixson). Play one of my games and make a donation.
+- Go to my [Itch Store](https://tedbendixson.itch.io/). Play one of my games and make a donation.
 
 
 As always, thanks for your interest. Wishing you the best on your projects. Be the change you want to see in the world :-)
