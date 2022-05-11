@@ -9,7 +9,7 @@ I will be blunt about a few things. If you came here looking for "clean" elegant
 
 You won't make the same decisions I do, nor would I expect you to, but I do think this is a pretty good reference point if you want to dip your toes into making your own 3D game engines. It builds, and it works. What more could you ask for?
 
-Furthermore, for me to even say this is *my* work is only telling a small part of the story. I, like you, am a nexus of many different influences. Much of this code comes from Casey Muratori's work, and he was influenced by Chris Hecker, who was influenced by someone else and so on down the line. We don't choose our influences, but we do choose how to development our talents.
+Furthermore, for me to even say this is *my* work is only telling a small part of the story. I, like you, am a nexus of many different influences. Much of this code comes from Casey Muratori's work, and he was influenced by Chris Hecker, who was influenced by someone else and so on down the line. We don't choose our influences, but we do choose how to develop our talents.
 
 I'm not really sure what I uniquely bring to the table aside from recognizing the market's need to support Mac OS (and other developers' interest in it). I have been actively working on Mac ports for years because that (for a time) was the only development PC I owned. I sort of see myself as a bridge between the iOS development space (which I work in) and the wider game development space. If I can introduce more of the Apple-centric people to what true cross-platform app/game development looks like, it might cause the culture to shift toward something more manageable.
 
@@ -28,7 +28,7 @@ If this receives regular paid contributions and publicity, I can dedicate more t
 
 Here are a few ways you can do that.
 
-- Go to my [https://itch.io/profile/tedbendixson](Itch Store). Play one of my games and make a donation.
+- Go to my [Itch Store](https://itch.io/profile/tedbendixson). Play one of my games and make a donation.
 
 
 As always, thanks for your interest. Wishing you the best on your projects. Be the change you want to see in the world :-)
