@@ -35,7 +35,9 @@ Here are a few ways you can do that.
 
 - Go to my [Itch Store](https://tedbendixson.itch.io/). Play one of my games and make a donation.
 
-Even if you can't make a contribution, you are welcome to contact me with your questions and concerns. I understand that not everyone is in a position to give, and part of my mission is to make game development more open to people who can't afford expensive computers to run the latest version of Unity or other popular game engines. I also want to set you free from licensing fees.
+Even if you can't make a contribution, you are welcome to contact me with your questions and concerns. I understand that not everyone is in a position to give, and part of my mission is to make game development more open to people who can't afford expensive computers to run the latest version of Unity or other popular game engines. 
+
+I believe in a more decentralized computing world (albeit a market-based capitalistic one that rewards the competence of the individual). We need more options, not less, and this is my small way of showing you what that other option looks like.
 
 As always, thanks for your interest. Wishing you the best on your projects
 
