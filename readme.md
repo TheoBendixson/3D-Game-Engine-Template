@@ -21,17 +21,21 @@ Each platform has its own folder with a build script. Navigate to the folder in 
 ## A Note on Renderers
 This engine uses two separate rendering backends. On MacOS, it uses Metal as the renderer. On Windows, it uses D3D11. That's just how things have shaken out when I've done my own game prototyping (mostly based on recommendations from friends). The primary reason is the debugger support on both platforms. You can use Xcode as a rendering debugger on the Mac and RenderDoc + Visual Studio on Windows. It just seemed like the most manageable approach to take.
 
-## How to Support This Work
-I recognize that this project is in a rough state, but I am putting it out there anyway because people have approached me with great interest. I want to give back to the community, and financial support helps to make that work sustainable and justifiable.
+## About the obj model loader
+I threw it together over the course of like three days and it is super hacky. I know for a fact that it doesn't load most obj files. It only loads the ones in this project. Because the obj files I am working with don't have a clear character demarcating the end of the file, I just placed an 'e' at the end of my obj files so my parser knows where to find the end of the face data. So if you want to load your obj file, and you don't have an 'e' at the end like me, your thing is gonna crash. Fix this however you want.
 
-If this receives regular paid contributions and publicity, I can dedicate more time to supporting it. With more time and effort put in, you get the most polished version of the work and can learn more effectively. If you ask a question or would like an improvement made, and you contribute in some way, I will respond with an update to this project.
+I will make this thing more robust as my level of annoyance increases. For now, it more or less works. These are the sorts of tradeoffs you have to make to be productive in software. Starting with a generic solution means you have to support it, and supporting all conceivable use cases is much more effort than just making the thing that works for what you need right now.
+
+## How to Support This Work
+I recognize that this project is in a rough state, but I am putting it out there anyway because people have approached me with great interest. I want to give back to the community, and financial support helps to make this work sustainable and justifiable.
+
+If this receives regular paid contributions and publicity, I can dedicate more time to improving it. With more time and effort put in, you get the most polished version of the work and can learn more effectively. If you ask a question or would like an improvement made, and you contribute in some way, I will respond with an update to this project.
 
 Here are a few ways you can do that.
 
 - Go to my [Itch Store](https://tedbendixson.itch.io/). Play one of my games and make a donation.
 
-
-Even if you can't make a contribution, you are welcome to contact me with your questions and concerns. I understand that not everyone is in that kind of position, and part of my mission is to make game development more open to people who can't afford expensive computers to run the latest version of Unity or other popular game engines.
+Even if you can't make a contribution, you are welcome to contact me with your questions and concerns. I understand that not everyone is in a position to give, and part of my mission is to make game development more open to people who can't afford expensive computers to run the latest version of Unity or other popular game engines. I also want to set you free from licensing fees.
 
 As always, thanks for your interest. Wishing you the best on your projects
 
