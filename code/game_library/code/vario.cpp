@@ -404,7 +404,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
         // TODO: (Ted)  Make this a function.
         game_constants *Constants = &MeshInstance->Constants;
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+        Constants->Transform = Rotate * RotateY * RotateZ * LoadedModelScale * Translate;
         Constants->View = View;
         Constants->Projection = Projection;
         Constants->LightVector = { 1.0f, -0.5f, -0.5f };
