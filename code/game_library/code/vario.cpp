@@ -249,6 +249,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 EyeX = MiddleOfTheWorld;
 
+    // TODO: (Ted)  Those who build on both Mac OS and Windows will notice that this isn't
+    //              the same viewing distance on both platforms. This will need to change.
+    //
+    //              I think it depends more on the Viewport Width / Viewport Height than
+    //              I previously thought.
     vector_float_3 Eye = { EyeX,  4*MiddleOfTheWorld, 2*MiddleOfTheWorld };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
@@ -390,7 +395,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     TexturedMeshInstanceBuffer->MeshCount = TexturedCubePushBuffer->DrawCount;
 
-// TODO: (Ted)  Support this on Windows / D3D11
     {
         mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
         vector_float_3 PersonScale = { 300.0f, 300.0f, 300.0f };
