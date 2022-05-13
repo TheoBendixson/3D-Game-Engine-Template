@@ -17,6 +17,18 @@
 //              2. Either invert the controls or look at the world from
 //                 a different orientation.
 
+#if WINDOWS
+internal void
+SetupMeshConstants(game_constants *Constants, matrix RotateX, matrix RotateY, matrix RotateZ,
+                   matrix Scale, matrix Translate, matrix View, matrix Projection, vector_float_3 LightVector)
+{
+    Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
+    Constants->View = View;
+    Constants->Projection = Projection;
+    Constants->LightVector = LightVector;
+}
+
+#endif
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
@@ -80,7 +92,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     
     game_controller_input *Input1 = &Input->Controller;
 
-    if (Input1->Up.EndedDown &&
+    if (Input1->Down.EndedDown &&
         GameState->ActionSlopFrames == 0)
     {
         s32 NextY = GameState->PlayerP.Y - 1;
@@ -93,7 +105,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         GameState->ActionSlopFrames = 10;
     }
 
-    if (Input1->Down.EndedDown &&
+    if (Input1->Up.EndedDown &&
         GameState->ActionSlopFrames == 0)
     {
         s32 NextY = GameState->PlayerP.Y + 1;
@@ -106,7 +118,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         GameState->ActionSlopFrames = 10;
     }
 
-    if (Input1->Right.EndedDown &&
+    if (Input1->Left.EndedDown &&
         GameState->ActionSlopFrames == 0)
     {
         s32 NextX = GameState->PlayerP.X + 1;
@@ -119,7 +131,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         GameState->ActionSlopFrames = 10;
     }
 
-    if (Input1->Left.EndedDown &&
+    if (Input1->Right.EndedDown &&
         GameState->ActionSlopFrames == 0)
     {
         s32 NextX = GameState->PlayerP.X - 1;
@@ -254,7 +266,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     //
     //              I think it depends more on the Viewport Width / Viewport Height than
     //              I previously thought.
-    vector_float_3 Eye = { EyeX,  4*MiddleOfTheWorld, 2*MiddleOfTheWorld };
+    vector_float_3 Eye = { EyeX,  -0.5*MiddleOfTheWorld, 1.5*MiddleOfTheWorld };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
@@ -320,6 +332,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                           0,                        2 * Near / ViewportHeight, 0,                           0,
                           0,                        0,                         Far / (Far - Near),          1,
                           0,                        0,                         Near*Far / (Near - Far),     0 };
+    vector_float_3 LightVector = { 1.0f, -0.5f, -0.5f };
 #elif MACOS
     matrix_float4x4 Projection = (matrix_float4x4) {{
         { 2 * Near / ViewportWidth, 0,                         0,                           0 },
@@ -327,7 +340,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         { 0,                        0,                         Far / (Far - Near),          1 },
         { 0,                        0,                         Near*Far / (Near - Far),     0 },
     }};
-
+    vector_float3 LightVector = { 1.0f, -0.5f, -0.5f };
 #endif
 
     mesh_instance_buffer *FlatColorMeshInstanceBuffer = &RenderCommands->FlatColorMeshInstances;
@@ -341,11 +354,8 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 #if WINDOWS
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
-        game_constants *Constants = &MeshInstance->Constants;
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->View = View;
-        Constants->Projection = Projection;
-        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+        SetupMeshConstants(&MeshInstance->Constants, RotateX, RotateY, RotateZ,
+                           Scale, Translate, View, Projection, LightVector);
 #elif MACOS
         matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
@@ -380,11 +390,9 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
 #if WINDOWS
         matrix Translate = GenerateTranslationMatrix(ModelTranslation);
-        game_constants *Constants = &MeshInstance->Constants;
-        Constants->Transform = RotateX * RotateY * RotateZ * Scale * Translate;
-        Constants->View = View;
-        Constants->Projection = Projection;
-        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+        SetupMeshConstants(&MeshInstance->Constants, RotateX, RotateY, RotateZ,
+                           Scale, Translate, View, Projection, LightVector);
+
 #elif MACOS
         matrix_float4x4 Translate = GenerateTranslationMatrix(ModelTranslation);
         instance_uniforms *Uniforms = &MeshInstance->Uniforms;
@@ -403,15 +411,11 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
 #if WINDOWS
         matrix Translate = GenerateTranslationMatrix(Translation);
-        matrix Rotate = GenerateXRotationMatrix((r32)(M_PI*1.5));
+        matrix RotateX = GenerateXRotationMatrix((r32)(M_PI*1.5));
         matrix LoadedModelScale = GenerateScaleMatrix(PersonScale);
 
-        // TODO: (Ted)  Make this a function.
-        game_constants *Constants = &MeshInstance->Constants;
-        Constants->Transform = Rotate * RotateY * RotateZ * LoadedModelScale * Translate;
-        Constants->View = View;
-        Constants->Projection = Projection;
-        Constants->LightVector = { 1.0f, -0.5f, -0.5f };
+        SetupMeshConstants(&MeshInstance->Constants, RotateX, RotateY, RotateZ,
+                           LoadedModelScale, Translate, View, Projection, LightVector);
 #elif MACOS
         matrix_float4x4 Translate = GenerateTranslationMatrix(Translation);
         matrix_float4x4 Rotate = GenerateXRotationMatrix(M_PI*1.5);
