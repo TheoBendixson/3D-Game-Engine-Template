@@ -12,7 +12,11 @@ LoadTexture(game_memory *Memory, memory_arena *Arena, thread_context *Thread,
 {
     b32 LoadedTexture = false;
 
+#if WINDOWS
+    read_file_result Result = PlatformReadPNGFile(Description.Filename);
+#elif MACOS
     read_file_result Result = Memory->PlatformReadPNGFile(Description.Filename);
+#endif
 
     if (Result.ContentsSize > 0)
     {

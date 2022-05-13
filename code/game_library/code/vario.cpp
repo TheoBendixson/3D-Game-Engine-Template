@@ -1,4 +1,7 @@
+#if MACOS
 #include "vario.h"
+#endif
+
 #include "game_startup_config.cpp"
 #include "game_math.cpp"
 #include "cube_map.cpp"
@@ -27,8 +30,8 @@ SetupMeshConstants(game_constants *Constants, matrix RotateX, matrix RotateY, ma
     Constants->Projection = Projection;
     Constants->LightVector = LightVector;
 }
-
 #endif
+
 extern "C"
 GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {

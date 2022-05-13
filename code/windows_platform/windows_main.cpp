@@ -18,6 +18,36 @@
 
 #include <SDL.h>
 
+#include "windows_main.h"
+
+// TODO: (Ted)  Move to cross platform logic
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_JPEG
+#define STBI_NO_BMP
+#define STBI_NO_TGA
+#define STBI_NO_PSD
+#define STBI_NO_HDR
+#define STBI_NO_PIC
+#define STBI_NO_GIF
+#define STBI_NO_PNM
+#include "stb_image.h"
+
+PLATFORM_READ_PNG_FILE(PlatformReadPNGFile)
+{
+    read_file_result Result = {};
+
+    int X,Y,N;
+    u32 *ImageData = (u32 *)stbi_load(Filename, &X, &Y, &N, 0);
+
+    if (X > 0 && Y > 0 && ImageData != NULL)
+    {
+        Result.Contents = ImageData;
+        Result.ContentsSize = X*Y*sizeof(u32); 
+    }
+
+    return Result;
+}
+
 #include "../game_library/code/vario.cpp"
 
 #include "windows_file_io.h"
@@ -228,6 +258,9 @@ InitializeMeshInstanceBufferWindows(mesh_instance_buffer *InstanceBuffer, u32 Ma
     InstanceBuffer->Meshes = (mesh_instance *)VirtualAlloc(0, MaxMeshes*sizeof(mesh_instance),
                                                            MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 }
+
+#define MAX_SUPPORTED_TEXTURE_TYPES 2
+global_variable ID3D11ShaderResourceView* ShaderResourceViews[MAX_SUPPORTED_TEXTURE_TYPES];
 
 int CALLBACK
 WinMain(HINSTANCE Instance,
@@ -623,41 +656,18 @@ WinMain(HINSTANCE Instance,
         AssertHR(HR);
     }
 
-    // TODO: (Ted)  Load the texture data from source images instead.
-    UINT TextureData[] =
+    game_texture_buffer TextureBuffer = {};
+    TextureBuffer.Max = 2;
+    GameLoadTextures(&GameMemory, &TextureBuffer);
+
+    for (u32 TextureIndex = 0;
+         TextureIndex < 2;
+         TextureIndex++)
     {
-        0xffffffff, 0xff7f7f7f,
-        0xff7f7f7f, 0xffffffff,
-    };
-
-    u32 TextureWidth = 2;
-    u32 TextureHeight = 2;
-
-    ID3D11Texture2D* Texture;
-    {
-        D3D11_TEXTURE2D_DESC Desc = {};
-        Desc.Width              = TextureWidth;
-        Desc.Height             = TextureHeight;
-        Desc.MipLevels          = 1;
-        Desc.ArraySize          = 1;
-        Desc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        Desc.SampleDesc.Count   = 1;
-        Desc.Usage              = D3D11_USAGE_IMMUTABLE;
-        Desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
-
-        D3D11_SUBRESOURCE_DATA Data = {};
-        Data.pSysMem            = TextureData;
-        Data.SysMemPitch        = TextureWidth * 4; // 4 bytes per pixel
-
-        HR = D11Device->CreateTexture2D(&Desc, &Data, &Texture);
-        AssertHR(HR);
+        ShaderResourceViews[TextureIndex] = SetupShaderResourceView(D11Device, &TextureBuffer.Textures[TextureIndex]);
     }
 
-    ID3D11ShaderResourceView* TextureView;
-    {
-        HR = D11Device->CreateShaderResourceView(Texture, nullptr, &TextureView);
-        AssertHR(HR);
-    }
+    GameClearMemoryArena(&GameMemory);
 
     ID3D11RenderTargetView* RTView = NULL;
     ID3D11DepthStencilView* DSView = NULL;
@@ -1008,11 +1018,12 @@ WinMain(HINSTANCE Instance,
 
                 DeviceContext->PSSetShader(TexturedPShader, NULL, 0);
                 DeviceContext->PSSetSamplers(0, 1, &SamplerState);
-                DeviceContext->PSSetShaderResources(0, 1, &TextureView);
+                DeviceContext->PSSetShaderResources(0, 1, &ShaderResourceViews[1]);
 
                 DrawMeshesFromInstanceBuffer(DeviceContext, ConstantsBuffer, &RenderCommands.TexturedMeshInstances, 
                                              &RenderCommands.TextureVertexBuffer);
 
+                DeviceContext->PSSetShaderResources(0, 1, &ShaderResourceViews[0]);
                 DeviceContext->IASetVertexBuffers(0, 1, &WindowsLoadedModelVertexBuffer, &Stride, &Offset);
                 DeviceContext->IASetIndexBuffer(WindowsLoadedModelIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
