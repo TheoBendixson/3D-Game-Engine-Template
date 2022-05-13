@@ -790,14 +790,6 @@ int main(int argc, const char * argv[])
                      format: @"Failed to allocate transient storage"];
     }
 
-    // TODO: (Ted)  Move this to cross-platform logic. 
-    //              Have a cross-platform GameSetupMemoryPartitions
-    //              where this happens.
-    /*
-    u64 SecondaryPartitionSize = Megabytes(64);
-    GameMemory.TransientPartition.SecondaryGeneric.Size = SecondaryPartitionSize;
-    GameMemory.TransientPartition.SecondaryGeneric.Data = 
-        (u8 *)GameMemory.TransientStorage + SecondaryPartitionSize;*/
     if (Game.SetupMemoryPartitions)
     {
         Game.SetupMemoryPartitions(&GameMemory);
@@ -806,7 +798,6 @@ int main(int argc, const char * argv[])
         [NSException raise: @"Game Code Not Loaded"
                      format: @"Failed to load the game's code"];
     }
-
 
     GameMemory.PlatformReadEntireFile = PlatformReadEntireFile;
     GameMemory.PlatformReadPNGFile = PlatformReadPNGFile;
