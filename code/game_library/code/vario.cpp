@@ -269,7 +269,7 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     //
     //              I think it depends more on the Viewport Width / Viewport Height than
     //              I previously thought.
-    vector_float_3 Eye = { EyeX,  -0.5*MiddleOfTheWorld, 1.5*MiddleOfTheWorld };
+    vector_float_3 Eye = { EyeX,  (r32)(-0.5*MiddleOfTheWorld), (r32)(1.5*MiddleOfTheWorld) };
     vector_float_3 Up = {  0.0f,  0.0f,  1.0f };
 
     r32 Near = 1000.0f;
