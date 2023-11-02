@@ -37,4 +37,5 @@ struct game_state
     u32 DemoModeIndex;
     r32 PersonScaleMultiplier;
     b32 ReverseScale;
+    r32 PersonRotation;
 };

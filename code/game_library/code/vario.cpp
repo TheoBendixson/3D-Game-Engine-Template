@@ -178,7 +178,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     r32 CubeSideInMeters = 200.0f;
 
-
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
     push_buffer *ColoredCubePushBuffer = &RenderCommands->ColoredCubePushBuffer;
@@ -458,8 +457,6 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
                     GameState->ReverseScale = true;
                 }
             }
-
-
         } else
         {
             GameState->ReverseScale = false;
@@ -469,12 +466,23 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         r32 PersonSide = 300.0f*GameState->PersonScaleMultiplier;
 
         vector_float_3 PersonScale = { PersonSide, PersonSide, PersonSide };
-        GameState->PlayerP.Offset.Z = -0.40f;
+
+        if (DemoMode == GameDemoModeRotatePlayer)
+        {
+            GameState->PersonRotation += 0.01f;
+            GameState->PlayerP.Offset.Z = 1.0f;
+        } else
+        {
+            GameState->PersonRotation = 1.5f;
+            GameState->PlayerP.Offset.Z = -0.40f;
+        }
+
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(GameState->PlayerP, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
 #if WINDOWS
         matrix Translate = GenerateTranslationMatrix(Translation);
-        matrix RotateX = GenerateXRotationMatrix((r32)(M_PI*1.5));
+        matrix RotateX = {};
+        RotateX = GenerateXRotationMatrix((r32)(M_PI*GameState->PersonRotation));
         matrix LoadedModelScale = GenerateScaleMatrix(PersonScale);
 
         SetupMeshConstants(&MeshInstance->Constants, RotateX, RotateY, RotateZ,
