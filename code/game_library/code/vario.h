@@ -19,10 +19,22 @@
 #include "game_sound.h"
 #include "platform_to_game_interface.h"
 
+enum game_demo_mode
+{
+    GameDemoModeStandard,
+    GameDemoModeRotateWorld,
+    GameDemoModeScalePlayer,
+    GameDemoModeRotatePlayer
+};
+
 struct game_state
 {
     memory_arena ScratchArena;
     cube_map CubeMap;
     cube_map_position PlayerP;
     u32 ActionSlopFrames;
+    game_demo_mode DemoModes[4];
+    u32 DemoModeIndex;
+    r32 PersonScaleMultiplier;
+    b32 ReverseScale;
 };

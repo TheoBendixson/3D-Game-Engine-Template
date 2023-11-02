@@ -40,6 +40,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     if(!Memory->IsInitialized) 
     {
+        GameState->DemoModes[0] = GameDemoModeStandard;
+        GameState->DemoModes[1] = GameDemoModeRotateWorld;
+        GameState->DemoModes[2] = GameDemoModeScalePlayer;
+        GameState->DemoModes[3] = GameDemoModeRotatePlayer;
+
+        GameState->PersonScaleMultiplier = 1.0f;
+
         cube_map *CubeMap = &GameState->CubeMap;
         CubeMap->CountX = CUBE_COUNT_X;
         CubeMap->CountY = CUBE_COUNT_Y;
@@ -147,14 +154,31 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
         GameState->ActionSlopFrames = 10;
     }
 
+    if (Input1->A.EndedDown &&
+        GameState->ActionSlopFrames == 0)
+    {
+        GameState->DemoModeIndex += 1;
+
+        if (GameState->DemoModeIndex > 3)
+        {
+            GameState->DemoModeIndex = 0;
+        }
+
+        GameState->ActionSlopFrames = 30;
+    }
+
     if (GameState->ActionSlopFrames > 0)
     {
         GameState->ActionSlopFrames--;
     }
 
+    game_demo_mode DemoMode = GameState->DemoModes[GameState->DemoModeIndex];
+
     local_persist vector_float_3 ModelRotation = { 0.0f, 0.0f, 0.0f };
 
     r32 CubeSideInMeters = 200.0f;
+
+
     vector_float_3 ModelScale = { CubeSideInMeters, CubeSideInMeters, CubeSideInMeters };
 
     push_buffer *ColoredCubePushBuffer = &RenderCommands->ColoredCubePushBuffer;
@@ -275,7 +299,13 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
     r32 Near = 1000.0f;
     r32 Far = 10000.0f;
 
+
     b32 RotateCamera = false;
+
+    if (DemoMode == GameDemoModeRotateWorld)
+    {
+        RotateCamera = true;
+    }
 
     if (RotateCamera)
     {
@@ -408,7 +438,37 @@ GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 
     {
         mesh_instance_buffer *LoadedModelMeshInstanceBuffer = &RenderCommands->LoadedModelMeshInstances;
-        vector_float_3 PersonScale = { 300.0f, 300.0f, 300.0f };
+
+        if (DemoMode == GameDemoModeScalePlayer)
+        {
+            if (GameState->ReverseScale)
+            {
+                GameState->PersonScaleMultiplier -= 0.01f;
+
+                if (GameState->PersonScaleMultiplier < 1.0f)
+                {
+                    GameState->ReverseScale = false;
+                }
+            } else
+            {
+                GameState->PersonScaleMultiplier += 0.01f;
+
+                if (GameState->PersonScaleMultiplier > 3.0f)
+                {
+                    GameState->ReverseScale = true;
+                }
+            }
+
+
+        } else
+        {
+            GameState->ReverseScale = false;
+            GameState->PersonScaleMultiplier = 1.0f;
+        }
+
+        r32 PersonSide = 300.0f*GameState->PersonScaleMultiplier;
+
+        vector_float_3 PersonScale = { PersonSide, PersonSide, PersonSide };
         GameState->PlayerP.Offset.Z = -0.40f;
         vector_float_3 Translation = ConvertCubeMapPositionToModelTranslation(GameState->PlayerP, CubeSideInMeters);
         mesh_instance *MeshInstance = &LoadedModelMeshInstanceBuffer->Meshes[0];
