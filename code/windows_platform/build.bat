@@ -43,6 +43,3 @@ popd
 :: Manifest stuff for DPI-awareness
 mt.exe -manifest "VariosTemple.exe.manifest" -outputresource:"%windows_build_path%\VariosTemple.exe;1" -nologo
 
-
-
-

@@ -420,6 +420,7 @@ WinMain(HINSTANCE Instance,
 
 // MARK: SDL Setup (Gamepad Only)
 
+    /*
     SDL_Joystick *Joystick;
 
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
@@ -436,7 +437,7 @@ WinMain(HINSTANCE Instance,
             SDL_JoystickEventState(SDL_ENABLE);
             Joystick = SDL_JoystickOpen(0);
         }
-    }
+    }*/
 
     IDXGISwapChain* SwapChain;
     ID3D11Device* D11Device;
