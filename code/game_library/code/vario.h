@@ -2,7 +2,6 @@
 #include "thread_context.h"
 #include "platform.h"
 #include "game_memory.h"
-#include "game_input.h"
 
 // NOTE: (Ted)  On the Mac platform, the game is compiled as a dynamic library and the math library
 //              isn't loaded from the platform layer.
@@ -12,6 +11,7 @@
 #endif
 
 #include "game_math.h"
+#include "game_input.h"
 #include "game_texture.h"
 #include "cube_map.h"
 #include "game_render_commands.h"

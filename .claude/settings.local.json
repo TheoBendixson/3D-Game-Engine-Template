@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n game_render_commands /s/code/game_library/*.h)",
+      "Bash(cmd /c \"build.bat -no-shaders\")",
+      "Bash(cmd /c \"build.bat -no-shaders 2>&1\")",
+      "Bash(cmd /c \"where cl\" 2>&1)",
+      "Bash(cmd /c \"dir \\\\\"C:/Program Files/Microsoft Visual Studio/2022/\\\\\" 2>&1\")",
+      "Bash(cmd /c \"dir \\\\\"C:\\\\\\\\Program Files\\\\\\\\Microsoft Visual Studio\\\\\\\\\\\\\" 2>&1\")",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio//**)",
+      "Bash(ls:*)",
+      "Bash(cmd /c \"V:\\\\\\\\code\\\\\\\\windows_platform\\\\\\\\build_with_env.bat -no-shaders\" 2>&1)",
+      "Bash(cmd /c \"V:\\\\code\\\\windows_platform\\\\build_with_env.bat -no-shaders > V:\\\\build_output.txt 2>&1\")",
+      "Bash(powershell -Command \"& cmd /c ''V:\\\\code\\\\windows_platform\\\\build_with_env.bat -no-shaders'' 2>&1 | Out-File -FilePath V:\\\\build_output.txt -Encoding utf8\")",
+      "Bash(powershell -Command \"& cmd /c ''V:\\\\code\\\\windows_platform\\\\build_with_env.bat'' 2>&1 | Out-File -FilePath V:\\\\build_output.txt -Encoding utf8\")"
+    ]
+  }
+}

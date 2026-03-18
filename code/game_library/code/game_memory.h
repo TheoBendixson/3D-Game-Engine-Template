@@ -46,7 +46,7 @@ struct game_transient_storage_partition
     memory_partition SecondaryGeneric;
 };
 
-struct game_memory 
+struct game_memory
 {
     b32 IsInitialized;
 
@@ -55,12 +55,19 @@ struct game_memory
 
     u64 TransientStorageSize;
     void *TransientStorage;
-    
-    platform_read_entire_file *PlatformReadEntireFile;
-    platform_free_file_memory *PlatformFreeFileMemory;
-    platform_read_png_file *PlatformReadPNGFile;
-    platform_write_entire_file *PlatformWriteEntireFile;
-    platform_log_message *PlatformLogMessage;
+
+    platform_read_entire_file   *PlatformReadEntireFile;
+    platform_free_file_memory   *PlatformFreeFileMemory;
+    platform_read_png_file      *PlatformReadPNGFile;
+    platform_write_entire_file  *PlatformWriteEntireFile;
+    platform_open_file_dialog   *PlatformOpenFileDialog;
+    platform_save_file_dialog   *PlatformSaveFileDialog;
+    platform_launch_async_save  *PlatformLaunchAsyncSave;
+    platform_launch_async_load  *PlatformLaunchAsyncLoad;
+    platform_log_message        *PlatformLogMessage;
+    platform_quit_game          *PlatformQuitGame;
+
+    async_file_io AsyncFileIO;
 
     game_permanent_storage_partition PermanentPartition;
     game_transient_storage_partition TransientPartition;

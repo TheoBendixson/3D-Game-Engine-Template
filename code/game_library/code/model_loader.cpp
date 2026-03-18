@@ -130,8 +130,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
 {
     game_indexed_vertex_buffer *LoadedModelVertexBuffer = &RenderCommands->LoadedModelVertexBuffer;
 
-    thread_context Thread = {};
-    read_file_result Result = Memory->PlatformReadEntireFile(&Thread, "cartoon.obj");
+    read_file_result Result = Memory->PlatformReadEntireFile("cartoon.obj");
 
     if (Result.ContentsSize > 0)
     {
@@ -447,7 +446,7 @@ GAME_LOAD_3D_MODELS(GameLoad3DModels)
         LoadedModelVertexBuffer->VertexCount = VertexIndex;
     }
 
-    Memory->PlatformFreeFileMemory(&Thread, Result.Contents);
+    Memory->PlatformFreeFileMemory(Result.Contents);
     ClearMemoryPartition(&Memory->TransientPartition.SecondaryGeneric);
 
     r32 yMin = 0.0f;

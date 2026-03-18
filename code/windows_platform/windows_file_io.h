@@ -1,7 +1,8 @@
 
-PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory) 
+PLATFORM_FREE_FILE_MEMORY(PlatformFreeFileMemory)
 {
-    if (Memory) {
+    if (Memory)
+    {
         VirtualFree(Memory, 0, MEM_RELEASE);
     }
 }
@@ -16,10 +17,10 @@ PLATFORM_WRITE_ENTIRE_FILE(PlatformWriteEntireFile)
     {
         DWORD BytesWritten;
 
-        if (WriteFile(FileHandle, Memory, FileSize, &BytesWritten, 0))
+        if (WriteFile(FileHandle, Memory, (DWORD)FileSize, &BytesWritten, 0))
         {
             FileWritten = true;
-        } 
+        }
 
         CloseHandle(FileHandle);
     }
@@ -27,7 +28,7 @@ PLATFORM_WRITE_ENTIRE_FILE(PlatformWriteEntireFile)
     return FileWritten;
 }
 
-PLATFORM_READ_ENTIRE_FILE(PlatformReadEntireFile) 
+PLATFORM_READ_ENTIRE_FILE(PlatformReadEntireFile)
 {
     read_file_result Result = {};
 
@@ -38,9 +39,9 @@ PLATFORM_READ_ENTIRE_FILE(PlatformReadEntireFile)
         LARGE_INTEGER FileSize;
         if (GetFileSizeEx(FileHandle, &FileSize))
         {
-            // IMPORTANT: (Ted) This will fail if any file loaded is greater than four gigabytes!
+            // IMPORTANT: This will fail if any file is greater than four gigabytes.
             u32 FileSize32 = (u32)FileSize.QuadPart;
-            void *FileMemory = VirtualAlloc(0, FileSize32, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
+            void *FileMemory = VirtualAlloc(0, FileSize32, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 
             DWORD BytesRead = 0;
 
@@ -49,29 +50,106 @@ PLATFORM_READ_ENTIRE_FILE(PlatformReadEntireFile)
             {
                 Result.Contents = FileMemory;
                 Result.ContentsSize = (u64)FileSize32;
-                Result.Filename = (char *)VirtualAlloc(0, 200*sizeof(char), 
-                                                       MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE);
-
-                char *Dest = Result.Filename;
-                char *Scan = Filename;
-
-                while (*Scan != '\0')
-                {
-                    *Dest++ = *Scan++;
-                }
-
-                *Dest++ = '\0';
-
-            } else
+            }
+            else
             {
-                Result.Contents = 0;
-                Result.ContentsSize = 0;
+                VirtualFree(FileMemory, 0, MEM_RELEASE);
             }
         }
 
         CloseHandle(FileHandle);
+    }
 
-    } 
+    return Result;
+}
 
-    return (Result);
+PLATFORM_READ_PNG_FILE(PlatformReadPNGFile)
+{
+    read_file_result Result = {};
+
+    int X, Y, N;
+    u32 *ImageData = (u32 *)stbi_load(Filename, &X, &Y, &N, 0);
+
+    if (X > 0 && Y > 0 && ImageData != NULL)
+    {
+        Result.Contents = ImageData;
+        Result.ContentsSize = X * Y * sizeof(u32);
+    }
+
+    return Result;
+}
+
+PLATFORM_OPEN_FILE_DIALOG(PlatformOpenFileDialog)
+{
+    IFileOpenDialog *pFileOpen;
+
+    HRESULT HR = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                                  IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+    AssertHR(HR);
+
+    ShowSystemCursor();
+    HR = pFileOpen->Show(NULL);
+
+    IShellItem *pItem;
+    HR = pFileOpen->GetResult(&pItem);
+
+    if (pItem != NULL)
+    {
+        PWSTR pszFilePath;
+        HR = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+        AssertHR(HR);
+
+        read_file_result *ReadFileResult = (read_file_result *)TransientStorage;
+        ReadFileResult->ContentsSize = 0;
+
+        char *AdjustedFilePath = (char *)malloc(sizeof(char) * (wcslen(pszFilePath) + 1));
+        wsprintfA(AdjustedFilePath, "%S", pszFilePath);
+        *ReadFileResult = PlatformReadEntireFile(AdjustedFilePath);
+
+        CoTaskMemFree(pszFilePath);
+        free(AdjustedFilePath);
+
+        pItem->Release();
+        pFileOpen->Release();
+    }
+
+    HideSystemCursor();
+}
+
+PLATFORM_SAVE_FILE_DIALOG(PlatformSaveFileDialog)
+{
+    if (FileSaveDialog == NULL)
+    {
+        HRESULT HR = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL,
+                                      IID_IFileSaveDialog, reinterpret_cast<void**>(&FileSaveDialog));
+        AssertHR(HR);
+    }
+
+    ShowSystemCursor();
+
+    FILEOPENDIALOGOPTIONS Options = {};
+    FileSaveDialog->SetOptions(Options);
+
+    HRESULT HR = FileSaveDialog->Show(NULL);
+
+    IShellItem *pItem;
+    HR = FileSaveDialog->GetResult(&pItem);
+
+    if (SUCCEEDED(HR))
+    {
+        PWSTR pszFilePath;
+        HR = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+        AssertHR(HR);
+
+        char *AdjustedFilePath = (char *)malloc(sizeof(char) * (wcslen(pszFilePath) + 1));
+        wsprintfA(AdjustedFilePath, "%S", pszFilePath);
+
+        PlatformWriteEntireFile(AdjustedFilePath, FileSize, Memory);
+
+        CoTaskMemFree(pszFilePath);
+        free(AdjustedFilePath);
+        pItem->Release();
+    }
+
+    HideSystemCursor();
 }

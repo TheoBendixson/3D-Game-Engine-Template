@@ -1,0 +1,18 @@
+﻿cmd.exe : 'vswhere.exe' is not recognized as an internal or external command,
+At line:1 char:1
++ & cmd /c 'V:\code\windows_platform\build_with_env.bat -no-shaders' 2> ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ('vswhere.exe' i...ternal command,:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+operable program or batch file.
+**********************************************************************
+** Visual Studio 2019 Developer Command Prompt v16.0
+** Copyright (c) 2021 Microsoft Corporation
+**********************************************************************
+[vcvarsall.bat] Environment initialized for: 'x64'
+windows_main.cpp
+        1 file(s) copied.
+        1 file(s) copied.
+        1 file(s) copied.
+        1 file(s) copied.

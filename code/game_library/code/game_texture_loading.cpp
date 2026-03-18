@@ -7,7 +7,7 @@ struct game_texture_description
 };
 
 internal b32
-LoadTexture(game_memory *Memory, memory_arena *Arena, thread_context *Thread,
+LoadTexture(game_memory *Memory, memory_arena *Arena,
             game_texture *Texture, game_texture_description Description)
 {
     b32 LoadedTexture = false;
@@ -38,7 +38,7 @@ LoadTexture(game_memory *Memory, memory_arena *Arena, thread_context *Thread,
         LoadedTexture = true;
     } 
 
-    Memory->PlatformFreeFileMemory(Thread, Result.Contents);
+    Memory->PlatformFreeFileMemory(Result.Contents);
 
     return LoadedTexture;
 }
@@ -53,8 +53,6 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
     InitializeArena(ScratchArena, SecondaryPartition->Size, SecondaryPartition->Data);
     TextureBuffer->Textures = PushArray(ScratchArena, TextureBuffer->Max, game_texture);
 
-    thread_context Thread = {};
-    
     game_texture_description Descriptions[2];
     Descriptions[0].Width = 942;
     Descriptions[0].Height = 942;
@@ -68,7 +66,7 @@ GAME_LOAD_TEXTURES(GameLoadTextures)
          Index < TextureBuffer->Max;
          Index++)
     {
-        if (LoadTexture(Memory, ScratchArena, &Thread, 
+        if (LoadTexture(Memory, ScratchArena,
             &TextureBuffer->Textures[Index], Descriptions[Index]))
         {
             TextureBuffer->Count++;

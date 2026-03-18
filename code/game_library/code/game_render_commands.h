@@ -1,4 +1,80 @@
 
+// ---- 2D sprite types ----
+
+enum texture_atlas_type
+{
+    TextureAtlasType_Tile24,
+    TextureAtlasType_Tile32
+};
+
+struct float_color
+{
+    r32 Red, Green, Blue, Alpha;
+};
+
+// 2D quad vertex (Position and UV are 2-component floats)
+struct sprite_vertex
+{
+    v2 Position;
+    v2 UV;
+};
+
+struct texture_draw_command_instance_uniforms
+{
+    v2  vMin;
+    v2  vMax;
+    r32 Rotation;
+    u32 TextureID;
+    r32 Alpha;
+    r32 Progress;
+};
+
+struct texture_draw_command_instance_buffer
+{
+    texture_draw_command_instance_uniforms *InstanceUniforms;
+    u32 InstanceCount;
+    u32 InstanceMax;
+};
+
+struct sprite_vertex_buffer
+{
+    sprite_vertex *Vertices;
+    u32 Size;
+    u32 VertexCount;
+    u32 Max;
+};
+
+struct game_texture_draw_command
+{
+    v2 vMin;
+    v2 vMax;
+    u32 TextureID;
+    r32 Alpha;
+    r32 Rotation;
+    u32 ZLayer;
+    texture_atlas_type TextureAtlasType;
+    r32 Progress;
+};
+
+struct render_commands_array
+{
+    game_texture_draw_command *Commands;
+    u32 CommandCount;
+    u32 MaxCommands;
+    texture_atlas_type TextureAtlasType;
+    s32 DrawnCount;
+    b32 BufferDrawn;
+};
+
+#define BOTTOM_LAYER_COUNT 35
+
+struct game_texture_draw_command_buffer
+{
+    render_commands_array BottomLayers[BOTTOM_LAYER_COUNT];
+};
+
+// ---- 3D geometry types ----
+
 #if WINDOWS
 struct game_constants
 {
@@ -15,7 +91,6 @@ struct game_flat_color_vertex
     r32 Color[3];
 };
 
-// TODO: (Ted)  See if there is a way to simplify this on Windows
 struct game_texture_vertex
 {
     r32 Position[3];
@@ -52,8 +127,7 @@ struct game_texture_vertex
 
 #endif
 
-
-#define MAX_MODELS  3
+#define MAX_MODELS 3
 
 struct model_range
 {
@@ -84,7 +158,6 @@ struct game_indexed_vertex_buffer
     void *Indices;
     u32 IndexCount;
 
-    // TODO: (Ted)  Clearly this will need some notion of multiple models.
     r32 ModelHeight;
 };
 
@@ -116,12 +189,13 @@ struct push_buffer
     u32 DrawCount;
 };
 
+// ---- Combined render commands ----
+
 struct game_render_commands
 {
-
 #if MACOS
     u32 FrameIndex;
-    r32 ScreenScaleFactor; 
+    r32 ScreenScaleFactor;
     game_constants Constants;
 #endif
 
@@ -129,6 +203,13 @@ struct game_render_commands
     s32 ViewportHeight;
     clear_color ClearColor;
 
+    // 2D sprite pipeline
+    memory_arena DrawCommandsArena;
+    game_texture_draw_command_buffer DrawCommandsBuffer;
+    sprite_vertex_buffer SpriteVertexBuffer;
+    texture_draw_command_instance_buffer InstanceBuffer;
+
+    // 3D mesh pipeline
     game_vertex_buffer FlatColorVertexBuffer;
     game_vertex_buffer TextureVertexBuffer;
     game_indexed_vertex_buffer LoadedModelVertexBuffer;

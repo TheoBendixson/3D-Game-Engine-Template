@@ -1,0 +1,428 @@
+# Windows Platform Layer Upgrade Plan
+
+Porting Cave Factory's Windows platform layer (S:/code/windows_platform/) into
+Vario's Temple (V:/code/windows_platform/), adding 2D rendering capability while
+preserving all existing 3D rendering.
+
+---
+
+## Research Summary
+
+### What Vario's Temple has that Cave Factory does not
+
+These must be kept in the merged result:
+
+1. **3D vertex structures** in `game_render_commands.h`:
+   - `game_flat_color_vertex` (Position[3], Normal[3], Color[3])
+   - `game_texture_vertex` (Position[3], Normal[3], UV[2])
+   - `game_constants` (Transform matrix, View matrix, Projection matrix, LightVector)
+   - `mesh_instance` / `mesh_instance_buffer`
+   - `game_vertex_buffer` (vertex pointer + model ranges)
+   - `game_indexed_vertex_buffer` (vertices + indices, used for loaded OBJ models)
+   - `push_buffer` (translation list for instanced cube rendering)
+
+2. **D3D11 depth stencil** — Z-buffering for 3D scene correctness.
+
+3. **Two 3D shader pairs** compiled by `fxc.exe`:
+   - `shader_flat.hlsl` → flat-color geometry
+   - `shader_textured.hlsl` → UV-mapped geometry
+   Both compile to C headers `d3d11_vshader_*.h` / `d3d11_pshader_*.h`.
+
+4. **3D render fields on `game_render_commands`**:
+   - `FlatColorVertexBuffer`, `TextureVertexBuffer`, `LoadedModelVertexBuffer`
+   - `FlatColorMeshInstances`, `TexturedMeshInstances`, `LoadedModelMeshInstances`
+   - `ColoredCubePushBuffer`, `TexturedCubePushBuffer`
+
+5. **Startup calls**: `GameLoad3DModels`, `GameClearMemoryArena`,
+   `GameSetupMemoryPartitions`, `GameLoadTextures`.
+
+6. **`DrawMeshesFromInstanceBuffer`** helper — iterates mesh_instance_buffer and
+   uploads `game_constants` to the constant buffer before each Draw call.
+
+7. **Index buffer** for loaded OBJ model rendering (`DrawIndexed`).
+
+8. **Rasterizer with back-face culling** (`D3D11_CULL_BACK`) and
+   **`FrontCounterClockwise = TRUE`** matching OBJ winding.
+
+### What Cave Factory has that Vario's Temple lacks
+
+These are what we are porting in:
+
+1. **Full keyboard input** — all 26 letters, 10 digits, F1–F15, Tab, Escape,
+   Delete, Backspace, Shift, Alt, Control, and more.
+
+2. **Non-English keyboard support** — `EnglishKeyboardLayout` loaded via
+   `LoadKeyboardLayoutA("00000409")`, with `MapVirtualKeyEx` translating
+   scan codes to US QWERTY physical positions. This lets WASD work regardless
+   of the OS keyboard layout setting.
+
+3. **`ProcessButton` helper** — increments `TransitionCount` and sets
+   `EndedDown`, giving game code proper pressed/released-this-frame semantics.
+
+4. **`ResetInput`** (in `shared_input.cpp`) — zeroes all `TransitionCount`
+   values after each fixed-timestep update tick.
+
+5. **Mouse input** — cursor position (via `GetCursorPos` / `ScreenToClient`),
+   all 5 mouse buttons, scroll wheel (`WM_MOUSEWHEEL`), focus-aware unpress.
+
+6. **XInput controller** — polls device 0 each frame; maps A/B/X/Y, D-pad,
+   shoulders, analog triggers, right thumbstick with deadzone normalisation.
+
+7. **`HasFocus` / `HasFocusPrev`** — tracked via `WM_ACTIVATEAPP` so game
+   code can pause or suppress input when the window is out of focus.
+
+8. **Sophisticated DirectSound sync** — adaptive write-ahead based on
+   `QueryPerformanceCounter` frame timing, avoids under-runs when frame rate
+   varies. The current Vario sound code is commented out.
+
+9. **Fixed-timestep game loop** — accumulator at `FIXED_DT = 1/60 s` with
+   `GameUpdate` + `GameRender` separation. Vario calls `GameUpdateAndRender`
+   with raw delta time.
+
+10. **Fullscreen toggle** (`ToggleFullscreen`) — saves/restores `WINDOWPLACEMENT`,
+    detects monitor resolution, shows/hides cursor.
+
+11. **`AdjustViewportWithUpdatedWindowSize`** — updates render command viewport
+    dimensions on resize without needing to re-create the full swap chain.
+
+12. **`PlatformLogMessage`** — writes to console via `WriteFile`.
+
+13. **File dialogs** — `PlatformOpenFileDialog` and `PlatformSaveFileDialog`
+    using `IFileOpenDialog` / `IFileSaveDialog` (COM), with cursor
+    show/hide around modal dialogs.
+
+14. **Async file I/O** — `windows_async_file_io.h`: `PlatformLaunchAsyncSave`
+    and `PlatformLaunchAsyncLoad` spawn worker threads, write/read in 64 KB
+    chunks, report progress, use `_InterlockedExchange` for completion signals.
+
+15. **2D instanced sprite rendering** — the pixel-art shader pipeline:
+    - One quad vertex buffer (6 vertices, reused for every sprite via instancing)
+    - Per-instance uniforms: `vMin`, `vMax`, `Rotation`, `TextureID`, `Alpha`,
+      `Progress` (radial mask)
+    - Batched by `texture_atlas_type`; up to 5 000 instances per draw call
+    - 35 Z-layers in `game_texture_draw_command_buffer`
+
+16. **`shared_renderer.cpp`** — resets renderer state between frames.
+
+17. **`windows_renderer_setup.h`** — `SetupInstanceBuffer`.
+
+18. **Build improvements**: no SDL dependency; links `XInput.lib`, `shell32.lib`;
+    has `-no-shaders` / `-no-assets` flags; deletes stale `.obj` files.
+
+### What to explicitly discard
+
+- SDL2 — replace with XInput for controllers.
+- `GetTickCount`-based frame timing — replace with `QueryPerformanceCounter`.
+- Amplitude analytics — project does not need telemetry.
+- Steam integration — not applicable.
+- Level editor menus / `LEVELEDITOR` flag — not needed here (can be added later).
+
+---
+
+## Implementation Plan
+
+### Step 1 — Copy supporting files from Cave Factory
+
+Copy these files verbatim into `V:/code/windows_platform/`:
+
+| Source (S:/) | Destination (V:/) | Notes |
+|---|---|---|
+| `code/shared_platform_layer/shared_input.cpp` | `code/game_library/code/shared_input.cpp` | Already fits platform interface |
+| `code/shared_platform_layer/shared_renderer.cpp` | `code/game_library/code/shared_renderer.cpp` | Inspect for dependencies first |
+| `code/windows_platform/windows_async_file_io.h` | `code/windows_platform/windows_async_file_io.h` | Async file I/O |
+
+Check `shared_renderer.cpp` for Cave Factory–specific types before copying;
+trim any 2D-only fields that conflict with Vario's 3D fields.
+
+### Step 2 — Extend `game_render_commands.h`
+
+Add the Cave Factory 2D sprite types alongside the existing 3D types.
+The combined struct will look like:
+
+```c
+// ---- 2D sprite types (from Cave Factory) ----
+struct game_texture_draw_command { ... };          // per-sprite command
+struct render_commands_array { ... };              // one Z-layer
+#define BOTTOM_LAYER_COUNT 35
+struct game_texture_draw_command_buffer { ... };   // 35 layers
+struct game_texture_vertex { ... };                // quad vertex (2D, v2 Pos + v2 UV)
+struct game_texture_vertex_buffer { ... };         // the 6-vertex quad
+struct texture_draw_command_instance_uniforms { ... };
+struct texture_draw_command_instance_buffer { ... };
+
+// ---- existing 3D types (from Vario's Temple) ----
+struct game_flat_color_vertex { ... };
+struct game_texture_vertex_3d { ... };   // rename to avoid collision with 2D version
+struct game_constants { ... };
+struct mesh_instance { ... };
+struct mesh_instance_buffer { ... };
+struct game_vertex_buffer { ... };
+struct game_indexed_vertex_buffer { ... };
+struct push_buffer { ... };
+
+struct game_render_commands
+{
+    // shared
+    s32 ViewportWidth, ViewportHeight;
+    clear_color ClearColor;
+
+    // 2D sprite pipeline
+    memory_arena DrawCommandsArena;
+    game_texture_draw_command_buffer DrawCommandsBuffer;
+    game_texture_vertex_buffer SpriteVertexBuffer;
+    texture_draw_command_instance_buffer InstanceBuffer;
+    game_texture_description SupportedTextureTypes[MAX_SUPPORTED_TEXTURE_TYPES];
+    ...
+
+    // 3D mesh pipeline (existing)
+    game_vertex_buffer FlatColorVertexBuffer;
+    game_vertex_buffer TextureVertexBuffer;
+    game_indexed_vertex_buffer LoadedModelVertexBuffer;
+    mesh_instance_buffer FlatColorMeshInstances;
+    mesh_instance_buffer TexturedMeshInstances;
+    mesh_instance_buffer LoadedModelMeshInstances;
+    push_buffer ColoredCubePushBuffer;
+    push_buffer TexturedCubePushBuffer;
+};
+```
+
+Note: the name `game_texture_vertex` is used in both codebases for different
+structs (2D in CF, 3D in VT). Rename Vario's 3D version to
+`game_texture_vertex_3d` everywhere it is referenced.
+
+### Step 3 — Merge `windows_main.cpp`
+
+Use Cave Factory's file as the base and integrate Vario's 3D code.
+High-level structure of the merged file:
+
+```
+[includes]
+  - windows.h, d3d11.h, dsound.h, xinput.h (no SDL)
+  - stb_image.h (moved here from windows_main, matching Vario's style)
+  - vario.cpp (game library)
+  - shared_input.cpp, shared_renderer.cpp
+  - windows_file_io.h, windows_async_file_io.h
+  - windows_renderer_setup.h, windows_gpu_transfer.h
+
+[cursor management]         ← from Cave Factory
+[PlatformQuitGame]          ← keep Vario's (identical to CF)
+[PlatformLogMessage]        ← from Cave Factory
+[ShowSystemCursor/Hide]     ← from Cave Factory (needed for file dialogs)
+
+[performance counter helpers]  ← from Cave Factory (QPC-based)
+
+[WndProc / MainWindowCallback]
+  - WM_ACTIVATEAPP → set HasFocus flag  ← from Cave Factory
+  - WM_SIZE → resizing flag             ← from Vario
+  - WM_PAINT / WM_TIMER / WM_ENTERSIZEMOVE / WM_EXITMENULOOP  ← keep Vario's
+
+[MessageFiberProc]
+  - Full Cave Factory keyboard handler (all keys, non-English layout)
+  - Mouse wheel + mouse buttons (Cave Factory)
+  - ProcessButton pattern (Cave Factory)
+  - SwitchToFiber(main_fiber) at end of loop
+
+[3D draw helpers]            ← from Vario's Temple (keep as-is)
+  - DrawMeshesFromInstanceBuffer
+  - InitializeMeshInstanceBufferWindows
+
+[ToggleFullscreen]           ← from Cave Factory
+[AdjustViewportWithUpdatedWindowSize]  ← from Cave Factory
+
+[WinMain]
+  - Fiber creation (identical pattern)
+  - Memory allocation (Vario's sizes: 1024 MB permanent, 128 MB transient)
+  - GameSetupMemoryPartitions (Vario)
+  - Platform callbacks: PlatformReadEntireFile, PlatformWriteEntireFile,
+    PlatformFreeFileMemory, PlatformReadPNGFile, PlatformOpenFileDialog,
+    PlatformSaveFileDialog, PlatformLaunchAsyncSave, PlatformLaunchAsyncLoad,
+    PlatformQuitGame, PlatformLogMessage
+  - Window class registration + CreateWindowExW (Vario's style)
+  - RefreshRate detection for dtForFrame (Vario)
+  - DirectSound init (Cave Factory's sophisticated version)
+  - D3D11 device + swap chain creation (Vario's, identical in both)
+  - Debug layer setup (Vario's, identical)
+  - Alt+Enter disable (Vario's, identical)
+
+  -- 2D pipeline setup (from Cave Factory) --
+  - Allocate 6-vertex quad buffer
+  - Compile pixel_art_shader.hlsl → vertex + pixel shaders
+  - Create input layout (per-vertex Pos+UV, per-instance vMin/vMax/Rotation/TextureID/Alpha/Progress)
+  - SetupInstanceBuffer (up to 5 000 instances)
+  - Viewport constant buffer
+  - Texture size constant buffer
+  - Blend state (alpha blending, SRC_ALPHA / INV_SRC_ALPHA)
+  - Sampler state (linear, clamp)
+  - Rasterizer: no cull, solid (2D sprites don't need culling)
+  - ShaderResourceViews for 2D texture atlases
+
+  -- 3D pipeline setup (from Vario's Temple) --
+  - Allocate FlatColor, Texture, LoadedModel vertex buffers (VirtualAlloc)
+  - Allocate index buffer
+  - Compile flat + textured 3D shaders (already present in build.bat)
+  - Create FlatColorLayout + TexturedLayout (Position+Normal+Color / Position+Normal+UV)
+  - ConstantsBuffer for game_constants (transform/view/proj/light)
+  - RasterizerState (CULL_BACK, FrontCounterClockwise)
+  - DepthStencilState (depth test + write)
+  - Sampler state (POINT filter, WRAP addressing — 3D textures)
+  - ShaderResourceViews for 3D textures (game_character.png, grid_surface.png)
+  - InitializeMeshInstanceBufferWindows × 3
+  - GameLoad3DModels → upload vertex + index buffers to GPU
+  - GameLoadTextures → upload 3D textures
+
+  [Main loop]
+  SwitchToFiber(message_fiber)
+
+  -- Cave Factory additions --
+  XInput polling (gamepad)
+  Mouse position + button processing (focus-aware)
+  Fullscreen handling
+  Swap chain resize (recreate RTView + DSView)
+
+  -- Fixed timestep loop (from Cave Factory) --
+  Accumulate delta, call GameUpdate + ResetInput each tick
+  GameRender once per frame (or merge if Vario uses GameUpdateAndRender)
+
+  -- Audio (Cave Factory's sophisticated sync) --
+
+  -- Rendering (combined) --
+  Set viewport
+  ClearRenderTargetView + ClearDepthStencilView
+
+  [3D pass — with depth stencil]
+    IASetInputLayout(FlatColorLayout)
+    OMSetDepthStencilState(DepthState) — enable depth
+    OMSetBlendState(nullptr) — no blending for 3D
+    IASetVertexBuffers(FlatColorVertexBuffer)
+    DrawMeshesFromInstanceBuffer(FlatColorMeshInstances)
+
+    IASetInputLayout(TexturedLayout)
+    IASetVertexBuffers(TextureVertexBuffer)
+    PSSetShaderResources → 3D texture
+    DrawMeshesFromInstanceBuffer(TexturedMeshInstances)
+
+    IASetVertexBuffers(LoadedModelVertexBuffer)
+    IASetIndexBuffer(LoadedModelIndexBuffer)
+    for each LoadedModelMeshInstance: Map constants, DrawIndexed
+
+  [2D pass — no depth, with alpha blend]
+    OMSetDepthStencilState(nullptr) — disable depth test for 2D
+    OMSetBlendState(AlphaBlendState) — enable alpha blending
+    IASetInputLayout(SpriteLayout)
+    IASetVertexBuffers(QuadVertexBuffer, InstanceBuffer)
+    for each texture atlas batch:
+      PSSetShaderResources → atlas texture
+      TransferInstanceBufferToGPU
+      DrawInstanced(6, instanceCount, 0, 0)
+
+  SwapChain->Present(vsync, 0)
+  Frame timing capture for audio adaptive sync
+```
+
+### Step 4 — Update `windows_file_io.h`
+
+Replace Vario's `windows_file_io.h` with Cave Factory's. Cave Factory's version
+adds `PlatformOpenFileDialog`, `PlatformSaveFileDialog`, and uses `VirtualFree`
+for `PlatformFreeFileMemory` instead of no-op. The `read_file_result` struct
+in Vario's `platform.h` uses a plain `char *Filename` while Cave Factory's uses
+a `platform_string Filename` struct — reconcile this by checking what game code
+actually uses from `read_file_result.Filename`.
+
+### Step 5 — Update `windows_renderer_setup.h`
+
+Merge Cave Factory's `SetupInstanceBuffer` with Vario's `SetupVertexBufferFromGameVertexBuffer`
+and `SetupShaderResourceView` into a single header.
+
+### Step 6 — Update `windows_gpu_transfer.h`
+
+Merge Cave Factory's four transfer functions with Vario's `TransferVertexBufferContents`.
+Both use the same `D3D11_MAP_WRITE_DISCARD` pattern — no conflict.
+
+### Step 7 — Update `build.bat`
+
+Changes needed vs. current `V:/code/windows_platform/build.bat`:
+
+- Remove SDL2 include path and `SDL2.lib` link
+- Remove `copy SDL2.dll`
+- Add `XInput.lib` and `shell32.lib` to included_libraries
+- Add Cave Factory's pixel_art_shader compilation step (keep existing 3D shader steps)
+- Add `-no-shaders` flag to skip shader compilation when iterating
+
+New included_libraries line:
+```
+set included_libraries=user32.lib d3d11.lib gdi32.lib dxguid.lib ole32.lib dwmapi.lib shell32.lib XInput.lib
+```
+
+New shader compilation block:
+```bat
+fxc.exe ... /Fh pixel_art_vertex_shader.h /Vn pixel_art_vertex_shader ... pixel_art_shader.hlsl
+fxc.exe ... /Fh pixel_art_fragment_shader.h /Vn pixel_art_fragment_shader ... pixel_art_shader.hlsl
+fxc.exe ... /Fh d3d11_vshader_flat.h ...
+fxc.exe ... /Fh d3d11_pshader_flat.h ...
+fxc.exe ... /Fh d3d11_vshader_textured.h ...
+fxc.exe ... /Fh d3d11_pshader_textured.h ...
+```
+
+Copy `pixel_art_shader.hlsl` from `S:/code/windows_platform/` into
+`V:/code/windows_platform/`.
+
+### Step 8 — Update `windows_main.h`
+
+Currently just `#include "../game_library/code/vario.h"`. Extend to also
+forward-declare `FatalError` (matching Cave Factory's pattern).
+
+### Step 9 — Update `platform.h` (game library)
+
+Cave Factory's platform interface adds several macros not in Vario's:
+- `PLATFORM_LOG_MESSAGE`
+- `PLATFORM_OPEN_FILE_DIALOG`
+- `PLATFORM_SAVE_FILE_DIALOG`
+- `PLATFORM_LAUNCH_ASYNC_SAVE`
+- `PLATFORM_LAUNCH_ASYNC_LOAD`
+- `PLATFORM_UNLOCK_ACHIEVEMENT` (skip — Steam-only)
+
+Add these to `V:/code/game_library/code/platform.h`. Update `game_memory`
+struct in `vario.h` with function pointer slots for the new callbacks.
+
+---
+
+## File Checklist
+
+### New files to copy from Cave Factory:
+- [ ] `S:/code/windows_platform/pixel_art_shader.hlsl` → `V:/code/windows_platform/`
+- [ ] `S:/code/shared_platform_layer/shared_input.cpp` → `V:/code/game_library/code/`
+- [ ] `S:/code/shared_platform_layer/shared_renderer.cpp` → `V:/code/game_library/code/` (trim as needed)
+- [ ] `S:/code/windows_platform/windows_async_file_io.h` → `V:/code/windows_platform/`
+
+### Files to modify:
+- [ ] `V:/code/game_library/code/game_render_commands.h` — add 2D sprite types
+- [ ] `V:/code/game_library/code/platform.h` — add dialog + async + log callbacks
+- [ ] `V:/code/game_library/code/vario.h` — add new function pointer fields to game_memory
+- [ ] `V:/code/windows_platform/windows_main.cpp` — full merge (main work)
+- [ ] `V:/code/windows_platform/windows_main.h` — add FatalError forward decl
+- [ ] `V:/code/windows_platform/windows_file_io.h` — replace with Cave Factory version
+- [ ] `V:/code/windows_platform/windows_renderer_setup.h` — merge SetupInstanceBuffer
+- [ ] `V:/code/windows_platform/windows_gpu_transfer.h` — merge transfer functions
+- [ ] `V:/code/windows_platform/build.bat` — drop SDL, add XInput/shell32, add 2D shader
+
+### Files unchanged:
+- `V:/code/windows_platform/shader_flat.hlsl`
+- `V:/code/windows_platform/shader_textured.hlsl`
+- All `game_library/code/` game logic files
+- `V:/code/windows_platform/VariosTemple.exe.manifest`
+
+---
+
+## Ordering of Implementation
+
+Do steps in this order to keep the build green after each step:
+
+1. Update `build.bat` (drop SDL, add XInput) and verify it still compiles.
+2. Copy `pixel_art_shader.hlsl`.
+3. Extend `platform.h` and `vario.h` (adds fields — backward compatible).
+4. Extend `game_render_commands.h` with 2D types (additive — 3D code unaffected).
+5. Replace `windows_file_io.h` and merge `windows_gpu_transfer.h` / `windows_renderer_setup.h`.
+6. Copy `shared_input.cpp` and `shared_renderer.cpp`.
+7. Replace `windows_main.cpp` (the main work — build and test here).
+8. Verify 3D rendering still works (run the game, check 3D scene).
+9. Verify 2D rendering works (add a test 2D sprite call from game code).
